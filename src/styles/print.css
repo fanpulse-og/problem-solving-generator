@@ -1,0 +1,57 @@
+@page {
+  size: A4;
+  margin: 14mm 14mm 16mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff;
+    font-size: 11.5pt;
+  }
+  .no-print,
+  .topbar,
+  .worksheet-tools,
+  .skip {
+    display: none !important;
+  }
+  .worksheet-wrap {
+    padding: 0;
+  }
+  .sheet {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+  }
+  /* The answer sheet always starts on a new page. */
+  .answers-sheet {
+    break-before: page;
+  }
+  .sheet-q,
+  .answer-block,
+  .worked,
+  .diagram,
+  .qtable-wrap {
+    break-inside: avoid;
+  }
+  .stage h2 {
+    break-after: avoid;
+  }
+  .diagram {
+    max-width: 290px;
+  }
+  .mark-tag,
+  .hand {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Printing from another view: show only the main content. */
+  .view-build .sidebar,
+  .view-build .qactions,
+  .view-board .board-bar,
+  .view-board .board-actions,
+  .view-board .keys {
+    display: none !important;
+  }
+}

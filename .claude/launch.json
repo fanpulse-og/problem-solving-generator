@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "question-generator",
+      "runtimeExecutable": "/Users/zainhusayni/.local/node/bin/npx",
+      "runtimeArgs": ["vite", "--port", "5173", "--strictPort"],
+      "port": 5173,
+      "env": { "PATH": "/Users/zainhusayni/.local/node/bin:/usr/bin:/bin" }
+    }
+  ]
+}
