@@ -17,6 +17,12 @@ export function Diagram({ spec }: { spec: DiagramSpec }) {
       <Figure spec={spec} />
     ) : spec.type === 'histogram' ? (
       <Histogram spec={spec} />
+    ) : spec.type === 'grid' ? (
+      <Grid spec={spec} />
+    ) : spec.type === 'tree' ? (
+      <Tree spec={spec} />
+    ) : spec.type === 'venn' ? (
+      <Venn spec={spec} />
     ) : (
       <Plate spec={spec} />
     );
@@ -171,7 +177,7 @@ function Plate({ spec }: { spec: Extract<DiagramSpec, { type: 'plateCutouts' }> 
 
 /** SVG text where single letters (variables) are italic, e.g. "(3x + 10)°". */
 export function MathSvgText({ x, y, text, anchor = 'middle' }: { x: number; y: number; text: string; anchor?: 'start' | 'middle' | 'end' }) {
-  const parts = text.split(/([a-z])/);
+  const parts = text.split(/((?<![a-z])(?<!\d )[a-z](?![a-z]))/);
   return (
     <text x={x} y={y} textAnchor={anchor} className="dlabel">
       {parts.map((p, i) =>
@@ -278,7 +284,9 @@ function Figure({ spec }: { spec: Extract<DiagramSpec, { type: 'figure' }> }) {
   const ys = all.map((p) => p[1]);
   const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   const pad = 42;
-  const scale = Math.min((W - 2 * pad) / (maxX - minX || 1), (H - 2 * pad) / (maxY - minY || 1));
+  // Side labels such as "(x − 2) cm" need room beside the shape.
+  const padX = Math.max(pad, 24 + 7.5 * Math.max(0, ...(spec.edgeLabels ?? []).map((e) => e.text.length)));
+  const scale = Math.min((W - 2 * padX) / (maxX - minX || 1), (H - 2 * pad) / (maxY - minY || 1));
   const ox = (W - (maxX - minX) * scale) / 2;
   const oy = (H - (maxY - minY) * scale) / 2;
   const P: Record<string, [number, number]> = {};
@@ -338,7 +346,7 @@ function Figure({ spec }: { spec: Extract<DiagramSpec, { type: 'figure' }> }) {
           nx = -nx;
           ny = -ny;
         }
-        return <MathSvgText key={`e${i}`} x={mx + nx * 15} y={my + ny * 15 + 5} text={e.text} anchor={Math.abs(nx) > 0.6 ? (nx > 0 ? 'start' : 'end') : 'middle'} />;
+        return <MathSvgText key={`e${i}`} x={mx + nx * 15} y={my + ny * 15 + 5} text={e.text} anchor={Math.abs(nx) > 0.35 ? (nx > 0 ? 'start' : 'end') : 'middle'} />;
       })}
       {spec.dots?.map((n) => <circle key={`dot${n}`} cx={P[n][0]} cy={P[n][1]} r={2.5} fill="currentColor" />)}
       {labelled.map((n) => {
@@ -405,6 +413,220 @@ function Histogram({ spec }: { spec: Extract<DiagramSpec, { type: 'histogram' }>
       <text x={14} y={(top + bottom) / 2} textAnchor="middle" className="dlabel" transform={`rotate(-90 14 ${(top + bottom) / 2})`}>
         {spec.yLabel}
       </text>
+    </svg>
+  );
+}
+
+/** Ticks at multiples of `every` within [a, b], computed in integer steps to avoid drift. */
+function ticks(a: number, b: number, every: number): number[] {
+  const out: number[] = [];
+  for (let k = Math.ceil(a / every - 1e-9); k * every <= b + 1e-9; k++) out.push(+(k * every).toFixed(6));
+  return out;
+}
+
+function Grid({ spec }: { spec: Extract<DiagramSpec, { type: 'grid' }> }) {
+  const [x0, x1] = spec.x;
+  const [y0, y1] = spec.y;
+  const xs = spec.xStep ?? 1;
+  const ys = spec.yStep ?? 1;
+  const ml = spec.yLabel ? 54 : 26;
+  const mb = spec.xLabel ? 40 : 22;
+  const mt = 12;
+  const mr = 14;
+  const Wd = 380;
+  const plotW = Wd - ml - mr;
+  const plotH = spec.square ? (plotW * (y1 - y0)) / (x1 - x0) : 240;
+  const Hd = plotH + mt + mb;
+  const X = (x: number) => ml + ((x - x0) / (x1 - x0)) * plotW;
+  const Y = (y: number) => mt + ((y1 - y) / (y1 - y0)) * plotH;
+  // Axes through the origin when it is on the grid (transformations), otherwise along the edges.
+  const ax = y0 <= 0 && y1 >= 0 ? 0 : y0;
+  const ay = x0 <= 0 && x1 >= 0 ? 0 : x0;
+  const crossing = ax === 0 && ay === 0 && x0 < 0 && y0 < 0;
+  const xLab = ticks(x0, x1, spec.xLabelEvery ?? xs).filter((t) => !(crossing && t === 0));
+  const yLab = ticks(y0, y1, spec.yLabelEvery ?? ys).filter((t) => !(crossing && t === 0));
+  const fmt = (t: number) => String(t).replace('-', '−');
+  return (
+    <svg viewBox={`0 0 ${Wd} ${Hd}`} role="img" aria-label="Grid">
+      {ticks(x0, x1, xs).map((t) => (
+        <line key={`gx${t}`} x1={X(t)} y1={Y(y0)} x2={X(t)} y2={Y(y1)} stroke={xLab.includes(t) && spec.xLabelEvery ? '#cfd5df' : '#e3e7ee'} />
+      ))}
+      {ticks(y0, y1, ys).map((t) => (
+        <line key={`gy${t}`} x1={X(x0)} y1={Y(t)} x2={X(x1)} y2={Y(t)} stroke={yLab.includes(t) && spec.yLabelEvery ? '#cfd5df' : '#e3e7ee'} />
+      ))}
+      <line x1={X(x0)} y1={Y(ax)} x2={X(x1)} y2={Y(ax)} className="dline" />
+      <line x1={X(ay)} y1={Y(y0)} x2={X(ay)} y2={Y(y1)} className="dline" />
+      {spec.paths?.map((p, i) => {
+        const pts = p.points.map(([x, y]) => `${X(x)},${Y(y)}`).join(' ');
+        const cx = p.labelAt?.[0] ?? p.points.reduce((s, q) => s + q[0], 0) / p.points.length;
+        const cy = p.labelAt?.[1] ?? p.points.reduce((s, q) => s + q[1], 0) / p.points.length;
+        return (
+          <g key={`p${i}`}>
+            {p.closed ? <polygon points={pts} className="dshape" fill={p.shaded ? '#dce4f2' : 'none'} style={{ fill: p.shaded ? '#dce4f2' : 'none' }} /> : <polyline points={pts} className="dshape" />}
+            {p.dots && p.points.map(([x, y], j) => <circle key={j} cx={X(x)} cy={Y(y)} r={2.4} fill="currentColor" />)}
+            {p.label && (
+              <text x={X(cx)} y={Y(cy) + 5} textAnchor="middle" className="dlabel" fontWeight={600}>
+                {p.label}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      {xLab.map((t) => (
+        <text key={`lx${t}`} x={X(t)} y={Y(ax) + 14} textAnchor="middle" className="dtick dhalo">
+          {fmt(t)}
+        </text>
+      ))}
+      {yLab.map((t) => (
+        <text key={`ly${t}`} x={X(ay) - 5} y={Y(t) + 4} textAnchor="end" className="dtick dhalo">
+          {fmt(t)}
+        </text>
+      ))}
+      {crossing && (
+        <>
+          <text x={X(0) - 5} y={Y(0) + 14} textAnchor="end" className="dtick dhalo">
+            O
+          </text>
+          <text x={X(x1) - 4} y={Y(0) - 6} textAnchor="end" className="dlabel" fontStyle="italic">
+            x
+          </text>
+          <text x={X(0) + 6} y={Y(y1) + 12} className="dlabel" fontStyle="italic">
+            y
+          </text>
+        </>
+      )}
+      {spec.xLabel && (
+        <text x={ml + plotW / 2} y={Hd - 6} textAnchor="middle" className="dlabel">
+          {spec.xLabel}
+        </text>
+      )}
+      {spec.yLabel && (
+        <text x={14} y={mt + plotH / 2} textAnchor="middle" className="dlabel" transform={`rotate(-90 14 ${mt + plotH / 2})`}>
+          {spec.yLabel}
+        </text>
+      )}
+    </svg>
+  );
+}
+
+/** A probability on a branch: 'a/b' stacked as a fraction, '' as a dotted blank. */
+function ProbSvg({ x, y, p }: { x: number; y: number; p: string }) {
+  if (p === '') return <line x1={x - 16} y1={y + 2} x2={x + 16} y2={y + 2} stroke="currentColor" strokeDasharray="2 3" />;
+  const m = /^(\d+)\/(\d+)$/.exec(p);
+  if (!m) {
+    return (
+      <text x={x} y={y} textAnchor="middle" className="dlabel">
+        {p}
+      </text>
+    );
+  }
+  const w = Math.max(m[1].length, m[2].length) * 4.5 + 3;
+  return (
+    <g className="dlabel">
+      <text x={x} y={y - 9} textAnchor="middle" className="dprob">
+        {m[1]}
+      </text>
+      <line x1={x - w} y1={y - 5} x2={x + w} y2={y - 5} stroke="currentColor" strokeWidth={1} />
+      <text x={x} y={y + 8} textAnchor="middle" className="dprob">
+        {m[2]}
+      </text>
+    </g>
+  );
+}
+
+function Tree({ spec }: { spec: Extract<DiagramSpec, { type: 'tree' }> }) {
+  const Wd = 400;
+  const n1 = spec.first.length;
+  const n2 = Math.max(...spec.second.map((s) => s.length));
+  const leaves = n1 * n2;
+  const Hd = Math.max(200, leaves * 40 + (spec.stages ? 30 : 10));
+  const top = spec.stages ? 30 : 10;
+  const leafY = (i: number) => top + ((i + 0.5) * (Hd - top)) / leaves;
+  const root: [number, number] = [16, (top + Hd) / 2];
+  const midX = 150;
+  const endX = 300;
+  // Each first-stage node sits in the middle of its own leaves.
+  const nodeY = spec.first.map((_, i) => (leafY(i * n2) + leafY(i * n2 + n2 - 1)) / 2);
+  const branch = (a: [number, number], b: [number, number], p: string, key: string) => {
+    const mx = (a[0] + b[0]) / 2;
+    const my = (a[1] + b[1]) / 2;
+    const up = b[1] < a[1];
+    return (
+      <g key={key}>
+        <line x1={a[0]} y1={a[1]} x2={b[0] - 6} y2={b[1]} className="dline" />
+        <ProbSvg x={mx} y={up ? my - 10 : my + 20} p={p} />
+      </g>
+    );
+  };
+  return (
+    <svg viewBox={`0 0 ${Wd} ${Hd}`} role="img" aria-label="Tree diagram">
+      {spec.stages && (
+        <>
+          <text x={(root[0] + midX) / 2 + 20} y={16} textAnchor="middle" className="dtick">
+            {spec.stages[0]}
+          </text>
+          <text x={(midX + endX) / 2 + 40} y={16} textAnchor="middle" className="dtick">
+            {spec.stages[1]}
+          </text>
+        </>
+      )}
+      {spec.first.map((f, i) => (
+        <g key={`f${i}`}>
+          {branch(root, [midX, nodeY[i]], f.p, `fb${i}`)}
+          <text x={midX} y={nodeY[i] + 5} className="dlabel">
+            {f.label}
+          </text>
+          {spec.second[i].map((s, j) => {
+            const ly = leafY(i * n2 + j);
+            return (
+              <g key={`s${i}${j}`}>
+                {branch([midX + 8 + f.label.length * 7.5, nodeY[i]], [endX, ly], s.p, `sb${i}${j}`)}
+                <text x={endX} y={ly + 5} className="dlabel">
+                  {s.label}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function Venn({ spec }: { spec: Extract<DiagramSpec, { type: 'venn' }> }) {
+  const Wd = 380;
+  const Hd = 230;
+  const r = 80;
+  const ca: [number, number] = [148, 122];
+  const cb: [number, number] = [232, 122];
+  const block = (x: number, y: number, s: string, key: string) => {
+    const ls = s.split('\n');
+    return (
+      <g key={key}>
+        {ls.map((l, i) => (
+          <MathSvgText key={i} x={x} y={y + 5 + (i - (ls.length - 1) / 2) * 18} text={l} />
+        ))}
+      </g>
+    );
+  };
+  return (
+    <svg viewBox={`0 0 ${Wd} ${Hd}`} role="img" aria-label="Venn diagram">
+      <rect x={6} y={6} width={Wd - 12} height={Hd - 12} className="dshape" />
+      <text x={16} y={26} className="dlabel" fontStyle="italic">
+        ξ
+      </text>
+      <circle cx={ca[0]} cy={ca[1]} r={r} className="dshape" />
+      <circle cx={cb[0]} cy={cb[1]} r={r} className="dshape" />
+      <text x={ca[0] - r * 0.75} y={ca[1] - r * 0.78} textAnchor="end" className="dlabel">
+        {spec.sets[0]}
+      </text>
+      <text x={cb[0] + r * 0.75} y={cb[1] - r * 0.78} className="dlabel">
+        {spec.sets[1]}
+      </text>
+      {block(ca[0] - 34, ca[1], spec.regions.a, 'a')}
+      {block((ca[0] + cb[0]) / 2, ca[1], spec.regions.both, 'ab')}
+      {block(cb[0] + 34, cb[1], spec.regions.b, 'b')}
+      {block(Wd - 40, Hd - 26, spec.regions.neither, 'n')}
     </svg>
   );
 }

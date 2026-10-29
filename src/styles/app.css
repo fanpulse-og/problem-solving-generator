@@ -666,3 +666,12 @@ button.big {
   margin-top: 0.2rem;
   padding-top: 0;
 }
+.dprob {
+  font-size: 13px;
+}
+/* Axis numbers stay readable where a shape covers them. */
+.dhalo {
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 3px;
+}

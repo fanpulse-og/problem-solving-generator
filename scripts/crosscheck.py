@@ -802,6 +802,393 @@ def stats_iqr_compare(v, ans, level):
     return n[:4] == [med, mB, uq - lq, uB - lB] and f": {better_avg} " in ans[0] and f": {better_con} was" in ans[0], "stretch comparison"
 
 
+
+# ---------------------------------------------------------------- batch 4
+
+
+def signed_nums(text):
+    """Numbers with their signs, \\frac{a}{b} read as fractions (for coordinates and equations)."""
+    t = text.replace("−", "-").replace(" ", "")
+    out = []
+    for m in re.finditer(r"(-?)\\frac\{(\d+)\}\{(\d+)\}|(-?\d+(?:\.\d+)?)", t):
+        if m.group(2):
+            out.append((-1 if m.group(1) else 1) * F(int(m.group(2)), int(m.group(3))))
+        else:
+            out.append(F(m.group(4)))
+    return out
+
+
+def frac_of(text):
+    m = re.search(r"\\frac\{(\d+)\}\{(\d+)\}", text)
+    return F(int(m.group(1)), int(m.group(2))) if m else F(nums(text)[0])
+
+
+def std_value(text):
+    m = re.search(r"([\d.]+) \\times 10\^\{(-?\d+)\}", text)
+    return F(m.group(1)) * F(10) ** int(m.group(2)), F(m.group(1))
+
+
+def num_lcm_problems(v, ans, level):
+    L = math.lcm(*v["sizes"])
+    if level == "foundational":
+        if v["ctx"] == 0:
+            t = v["start"] + L
+            want = f"{t // 60 % 24:02d} {t % 60:02d}"
+        else:
+            want = f"{L} seconds"
+        return ans[0] == want, f"expected {want}"
+    if level == "core":
+        got = nums(ans[0])
+        return got == [L // v["sizes"][0], L // v["sizes"][1]], f"expected {L // v['sizes'][0]}, {L // v['sizes'][1]}"
+    pence = sum(L // n * pr for n, pr in zip(v["sizes"], v["pricesP"]))
+    return last_num(ans[0]) == F(pence, 100), f"expected £{pence / 100:.2f}"
+
+
+def num_standard_form(v, ans, level):
+    A = q(v["a"]) * F(10) ** v["p"]
+    B = q(v["b"]) * F(10) ** v["q"]
+    vals = [std_value(a) for a in ans if "times" in a]
+    if any(not (1 <= m < 10) for _, m in vals):
+        return False, "mantissa out of range"
+    if level == "foundational":
+        return vals[0][0] == A * B and vals[1][0] == A + B, f"expected {A * B}, {A + B}"
+    if level == "core":
+        want = A / B if v["ctx"] == 2 else A * B
+        return vals[0][0] == want, f"expected {float(want):.4g}"
+    if v["ctx"] == 0:
+        photos = (q(v["a"]) * 10**12) // (q(v["b"]) * 10**6)
+        yes = photos > v["claim"]
+        got = [int(x) for x in re.findall(r"\d+", ans[0].replace("\u00a0", ""))]
+        return ans[0].startswith("Yes" if yes else "No") and got == [photos, v["claim"]], f"photos {photos}"
+    grains = q(v["a"]) * 1000 / B
+    if v["calc"]:
+        mag = math.floor(math.log10(grains))
+        mant = round_dp(grains / F(10) ** mag, 2)
+        if mant >= 10:
+            mant, mag = mant / 10, mag + 1
+        return vals[0][0] == mant * F(10) ** mag, f"expected {float(grains):.4g}"
+    return vals[0][0] == grains, f"expected {grains}"
+
+
+def num_percentage_of_percentage(v, ans, level):
+    subjects = [["maths", "science"], ["French", "history"], ["geography", "English"], ["music", "computing"]]
+    if level == "foundational":
+        a, b, c, d = v["scores"]
+        best = subjects[v["ctx"]][0 if F(a, b) > F(c, d) else 1]
+        pcts = nums(ans[0])
+        return ans[0].lower().startswith(best.lower()) and pcts == [F(100 * a, b), F(100 * c, d)], f"expected {best}"
+    T, p_, q_, r_ = v["total"], v["p"], v["q"], v["r"]
+    if level == "core":
+        given = T * F(p_, 100) * F(q_, 100)  # the number stated in the question
+        want = given / (F(p_, 100) * F(q_, 100))
+    else:
+        g1 = T * F(p_, 100)
+        given = g1 * F(q_, 100) + (T - g1) * F(r_, 100)
+        want = given / (F(p_, 100) * F(q_, 100) + F(100 - p_, 100) * F(r_, 100))
+    ok = given.denominator == 1 and last_num(ans[0]) == want
+    return ok, f"expected {want}"
+
+
+def alg_quadratic_area(v, ans, level):
+    if level == "stretch":
+        a, b = v["a"], v["b"]
+        # x^2 + (x+a)^2 = (x+b)^2  ->  x^2 - 2(b-a)x + (a^2 - b^2) = 0
+        x = (b - a) + math.sqrt((b - a) ** 2 + b * b - a * a)
+        area = x * (x + a) / 2
+        shown = last_num(ans[0])
+        if v["calc"]:
+            return shown == round_sf(area, 3), f"expected {area:.4g}"
+        return abs(float(shown) - area) < 1e-9, f"expected {area}"
+    k, p_, r_, area = v["k"], v["p"], v["r"], v["area"]
+    A2, B1, C0 = k, p_ + k * r_, p_ * r_ - area
+    disc = B1 * B1 - 4 * A2 * C0
+    sq = isqrt_exact(disc)
+    if sq is None:
+        return False, "no rational root"
+    roots = [F(-B1 + sq, 2 * A2), F(-B1 - sq, 2 * A2)]
+    good = [x for x in roots if k * x + p_ > 0 and x + r_ > 0]
+    if len(good) != 1:
+        return False, f"roots {roots}"
+    x = good[0]
+    per = 2 * (k * x + p_ + x + r_)
+    ok = last_num(ans[-1]) == per
+    if level == "foundational":
+        # The equation to show: read its coefficients and test the root.
+        lhs = ans[0].replace("$", "").split("=")[0].replace(" ", "")
+        cs = {2: 0, 1: 0, 0: 0}
+        for mm in re.finditer(r"([+-]?)(\d*)(x\^2|x)?", lhs):
+            if not mm.group(0):
+                continue
+            c = (-1 if mm.group(1) == "-" else 1) * (int(mm.group(2)) if mm.group(2) else 1)
+            cs[2 if mm.group(3) == "x^2" else 1 if mm.group(3) == "x" else 0] += c if (mm.group(3) or mm.group(2)) else 0
+        ok = ok and ans[0].replace("$", "").split("=")[1].strip() == "0" and (cs[2], cs[1], cs[0]) == (A2, B1, C0)
+    return ok, f"expected {per} cm"
+
+
+def alg_algebraic_proof(v, ans, level):
+    """Rebuild the whole expected answer independently, and test the claim numerically."""
+    kind, k = v["kind"], v["k"]
+
+    def poly(cs, var="n"):
+        deg = len(cs) - 1
+        out = ""
+        for i, c in enumerate(cs):
+            if c == 0:
+                continue
+            pw = deg - i
+            a = abs(c)
+            body = str(a) if pw == 0 else f"{'' if a == 1 else a}{var}{'' if pw == 1 else '^' + str(pw)}"
+            out += (("-" if c < 0 else "") + body) if not out else ((" - " if c < 0 else " + ") + body)
+        return out or "0"
+
+    def value(n):
+        if kind == "consec-int":
+            return sum(n + i for i in range(k))
+        if kind == "consec-even":
+            return sum(2 * n + 2 * i for i in range(k))
+        if kind == "consec-odd":
+            return sum(2 * n + 1 + 2 * i for i in range(k))
+        if kind == "odd-square":
+            return (2 * n + 1) ** 2
+        if kind == "sum-squares":
+            return n * n + (n + 1) ** 2
+        return (v["a"] * n + v["b"]) ** 2 - (v["c"] * n + v["d"]) ** 2
+
+    for n in range(1, 80):
+        x = value(n)
+        bad = (x - 1) % 8 if kind == "odd-square" else x % 2 == 0 if kind == "sum-squares" else x % v["g"]
+        if bad:
+            return False, f"claim fails at n = {n}"
+    if kind == "odd-square":
+        want = "$(2n + 1)^2 = 4n^2 + 4n + 1 = 4n(n + 1) + 1$; $n(n + 1)$ is even, so $4n(n + 1)$ is a multiple of 8"
+        return ans[0] == want, want
+    if kind == "sum-squares":
+        want = "$n^2 + (n + 1)^2 = 2n^2 + 2n + 1 = 2(n^2 + n) + 1$, which is 1 more than an even number, so it is odd"
+        return ans[0] == want, want
+    # Coefficients from values at n = 0, 1, 2 (finite differences).
+    y0, y1, y2 = value(0), value(1), value(2)
+    A = (y2 - 2 * y1 + y0) // 2
+    B = y1 - y0 - A
+    C = y0
+    if kind.startswith("consec"):
+        first, step_ = {"consec-int": (1, 0), "consec-even": (2, 0), "consec-odd": (2, 1)}[kind]
+        d = 1 if kind == "consec-int" else 2
+        terms = [poly([first, step_ + d * i]) for i in range(k)]
+        setup = " + ".join(t if i == 0 else f"({t})" for i, t in enumerate(terms))
+    else:
+        setup = f"({poly([v['a'], v['b']])})^2 - ({poly([v['c'], v['d']])})^2"
+    g = v["g"]
+    inner = [A // g, B // g, C // g]
+    fac = f"{g} \\times {poly(inner)}" if sum(1 for c in inner if c) == 1 else f"{g}({poly(inner)})"
+    want = f"${setup} = {poly([A, B, C])} = {fac}$, which is a multiple of {g}"
+    return ans[0] == want, want
+
+
+def alg_straight_line(v, ans, level):
+    A, B = v["A"], v["B"]
+    t = ans[0]
+    if level == "foundational":
+        m = re.fullmatch(r"\$y = (-?)(\d*)x(?: ([+-]) (\d+))?\$", t)
+        if not m:
+            return False, "format"
+        grad = (-1 if m.group(1) else 1) * (int(m.group(2)) if m.group(2) else 1)
+        c = (-1 if m.group(3) == "-" else 1) * int(m.group(4)) if m.group(3) else 0
+        return all(grad * x + c == y for x, y in (A, B)), f"line {grad}x + {c}"
+    if level == "core":
+        a, b = v["a"], v["b"]
+        P, R = v["P"], v["R"]
+        g = F(b, a)
+        c = P[1] - g * P[0]
+        yR = g * R[0] + c
+        on = yR == R[1]
+        got = signed_nums(t)  # gradient, c, x, y, (given y)
+        want = [g] + ([c] if c != 0 else []) + [R[0], yR] + ([] if on else [R[1]])
+        ok = t.startswith("Yes" if on else "No") and got == want
+        return ok, f"want {want}"
+    m = F(B[1] - A[1], B[0] - A[0])
+    xy = signed_nums(t)
+    if v["tier"] == "H":
+        Mx, My = F(A[0] + B[0], 2), F(A[1] + B[1], 2)
+        k = My + Mx / m  # perpendicular gradient is -1/m
+        return xy == [0, k], f"expected (0, {k})"
+    x0 = A[0] - F(A[1]) / m
+    return xy == [x0, 0], f"expected ({x0}, 0)"
+
+
+def geom_transformations(v, ans, level):
+    def step_map(kind, p):
+        if kind == "translate":
+            return lambda x, y: (x + p[0], y + p[1])
+        if kind == "reflectX":
+            return lambda x, y: (2 * p[0] - x, y)
+        if kind == "reflectY":
+            return lambda x, y: (x, 2 * p[0] - y)
+        if kind == "reflectYX":
+            return lambda x, y: (y, x)
+        if kind == "reflectYnegX":
+            return lambda x, y: (-y, -x)
+        if kind == "rotate":
+            ang, a, b = p
+            turns = {90: 1, 180: 2, 270: 3}[ang]
+
+            def rot(x, y):
+                dx, dy = x - a, y - b
+                for _ in range(turns):
+                    dx, dy = -dy, dx  # 90 degrees anticlockwise
+                return (a + dx, b + dy)
+
+            return rot
+        k = F(p[0], p[1])
+        return lambda x, y: (p[2] + k * (x - p[2]), p[3] + k * (y - p[3]))
+
+    pts = [tuple(map(F, q_)) for q_ in v["A"]]
+    image = pts
+    for s_ in v["steps"]:
+        f = step_map(s_["kind"], s_["p"])
+        image = [f(*q_) for q_ in image]
+    d = ans[0]
+    if d.startswith("Translation"):
+        a, b = signed_nums(d)
+        g = lambda x, y: (x + a, y + b)
+    elif d.startswith("Reflection"):
+        if "y = x" in d:
+            g = lambda x, y: (y, x)
+        elif "y = -x" in d:
+            g = lambda x, y: (-y, -x)
+        elif "$x =" in d:
+            k = signed_nums(d)[0]
+            g = lambda x, y: (2 * k - x, y)
+        else:
+            k = signed_nums(d)[0]
+            g = lambda x, y: (x, 2 * k - y)
+    elif d.startswith("Rotation"):
+        nums_ = signed_nums(d)
+        cx, cy = nums_[-2], nums_[-1]
+        if not re.match(r"Rotation (90° clockwise|90° anticlockwise|180°) about", d):
+            return False, "angle"
+        turns = 2 if "180" in d else 1 if "anticlockwise" in d else 3
+
+        def g(x, y):
+            dx, dy = x - cx, y - cy
+            for _ in range(turns):
+                dx, dy = -dy, dx
+            return (cx + dx, cy + dy)
+
+    elif d.startswith("Enlargement"):
+        nums_ = signed_nums(d.split("centre")[0])
+        k = nums_[0]
+        cx, cy = signed_nums(d.split("centre")[1])
+        g = lambda x, y: (cx + k * (x - cx), cy + k * (y - cy))
+    else:
+        return False, "unknown description"
+    got = sorted(g(*q_) for q_ in pts)
+    return got == sorted(image), f"image {sorted(image)}"
+
+
+def stats_cumulative_frequency(v, ans, level):
+    start, w = v["ctx"]["start"], v["ctx"]["w"]
+    f = v["freqs"]
+    n = sum(f)
+
+    def x_at(c):
+        cum = 0
+        for i, fi in enumerate(f):
+            if cum + fi >= c:
+                return start + i * w + (c - cum) * F(w, fi)
+            cum += fi
+
+    def cf_at(x):
+        cum = 0
+        for i, fi in enumerate(f):
+            lo = start + i * w
+            if x <= lo + w:
+                return cum + fi * F(x - lo, w)
+            cum += fi
+
+    def accepts(text, val):
+        m = re.search(r"accept (-?[\d.]+)%? to (-?[\d.]+)", text)
+        return m and F(m.group(1)) <= val <= F(m.group(2))
+
+    half_up = lambda x: math.floor(x + F(1, 2))
+
+    def shown(text, val, tol):
+        # "34 (accept 33 to 35)": the value, then floor(val - tol) to ceil(val + tol).
+        got = nums(text)
+        return got == [half_up(val), math.floor(val - tol), math.ceil(val + tol)]
+
+    med, lq, uq = x_at(F(n, 2)), x_at(F(n, 4)), x_at(F(3 * n, 4))
+    if level == "foundational":
+        tx = F(w, 5)
+        iqr_shown = half_up(uq) - half_up(lq)
+        ok = shown(ans[0], med, tx) and nums(ans[1]) == [iqr_shown, math.floor(uq - lq - tx), math.ceil(uq - lq + tx)]
+        return ok, f"median {float(med):.2f}, IQR {float(uq - lq):.2f}"
+    if level == "core":
+        pct = (n - cf_at(v["X"])) * F(100, n)
+        tol = F((2 if n <= 60 else 4) * 100, n)
+        return shown(ans[0], pct, tol), f"expected {float(pct):.1f}%"
+    shown_iqr = half_up(uq) - half_up(lq)
+    t = ans[0]
+    higher = half_up(med) > v["other"]["med"]
+    ok = nums(t)[:3] == [half_up(med), shown_iqr, n] and (v["ctx"]["higher"] in t) == higher
+    ok = ok and (("more consistent" in t) == (shown_iqr < v["other"]["iqr"]))
+    return ok, f"median {float(med):.2f}, IQR {shown_iqr}"
+
+
+def prob_tree_diagram(v, ans, level):
+    p_, q_ = q(v["p"]), q(v["q"])
+    if level == "foundational" or (level == "stretch" and v["tier"] != "H"):
+        neither = (1 - p_) * (1 - q_)
+        if level == "foundational":
+            done = [F(x) for x in re.findall(r"\d+\.\d+|\d+", ans[0])]
+            return F(ans[1]) == neither and done == [1 - p_, q_, 1 - q_], f"expected {float(neither)}"
+        got = [F(x) for x in re.findall(r"\d+\.\d+|\d+", ans[0])]
+        want = [F(1), 1 - p_, 1 - q_, 1 - neither, F(1, 2)]
+        return ans[0].startswith("Yes" if 1 - neither > F(1, 2) else "No") and got == want, f"P(at least one) {float(1 - neither)}"
+    r, b = v["r"], v["b"]
+    n = r + b
+    if level == "core":
+        same = F(r, n) * F(r - 1, n - 1) + F(b, n) * F(b - 1, n - 1)
+        raw = [tuple(map(int, m)) for m in re.findall(r"\\frac\{(\d+)\}\{(\d+)\}", ans[0])]
+        want = [(r - 1, n - 1), (b, n - 1), (r, n - 1), (b - 1, n - 1)]
+        return frac_of(ans[1]) == same and raw == want, f"expected {same}"
+    P = F(r * (r - 1), n * (n - 1))
+    c = F(r * (r - 1)) / P  # n(n - 1)
+    root = (1 + math.isqrt(int(1 + 4 * c))) // 2
+    g_ = math.gcd(P.numerator, P.denominator)
+    want0 = f"$\\frac{{{r}}}{{n}} \\times \\frac{{{r - 1}}}{{n - 1}} = \\frac{{{P.numerator}}}{{{P.denominator}}}$, so $n^2 - n - {int(c)} = 0$"
+    return nums(ans[1])[0] == root and ans[0] == want0 and g_ == 1, f"expected n = {root}"
+
+
+def prob_venn_diagram(v, ans, level):
+    if level == "core":
+        N, a = v["N"], v["a"]
+        tests = [
+            lambda x: x % 2 == 1,
+            lambda x: 24 % x == 0,
+            lambda x: 36 % x == 0,
+            lambda x: x > 1 and all(x % d for d in range(2, x)),
+            lambda x: math.isqrt(x) ** 2 == x,
+        ]
+        inB = tests[v["setB"]]
+        union = sum(1 for x in range(1, N + 1) if x % a == 0 or inB(x))
+        parts_ = dict(re.findall(r"(A only|A and B|B only|outside): ([\d, ]+)", ans[0]))
+        region = lambda x: "A and B" if x % a == 0 and inB(x) else "A only" if x % a == 0 else "B only" if inB(x) else "outside"
+        want = {r_: ", ".join(str(x) for x in range(1, N + 1) if region(x) == r_) for r_ in ("A only", "A and B", "B only", "outside")}
+        return frac_of(ans[1]) == F(union, N) and {k_: v_.strip() for k_, v_ in parts_.items()} == want, f"expected {F(union, N)}"
+    n = v["aOnly"] + v["both"] + v["bOnly"] + v["neither"]
+    if level == "foundational":
+        A_total, B_total = v["aOnly"] + v["both"], v["bOnly"] + v["both"]
+        a_only = A_total - v["both"]
+        b_only = B_total - v["both"]
+        neither = n - a_only - b_only - v["both"]
+        want = {"aOnly": a_only, "neither": neither, "one": a_only + b_only}[v["ask"]]
+        regions = [int(x) for x in re.findall(r"\d+", ans[0])]
+        return frac_of(ans[1]) == F(want, n) and regions == [a_only, v["both"], b_only, neither], f"expected {F(want, n)}"
+    Bt = v["bOnly"] + v["both"]
+    x = F(n - Bt - v["neither"], v["k"])
+    want = x / Bt if v["tier"] == "H" else (v["k"] * x + Bt - x) / n
+    return frac_of(ans[0]) == want, f"expected {want}"
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -845,6 +1232,16 @@ CHECKS = {
     "stats-grouped-mean": stats_grouped_mean,
     "stats-histogram": stats_histogram,
     "stats-iqr-compare": stats_iqr_compare,
+    "num-lcm-problems": num_lcm_problems,
+    "num-standard-form": num_standard_form,
+    "num-percentage-of-percentage": num_percentage_of_percentage,
+    "alg-quadratic-area": alg_quadratic_area,
+    "alg-algebraic-proof": alg_algebraic_proof,
+    "alg-straight-line": alg_straight_line,
+    "geom-transformations": geom_transformations,
+    "stats-cumulative-frequency": stats_cumulative_frequency,
+    "prob-tree-diagram": prob_tree_diagram,
+    "prob-venn-diagram": prob_venn_diagram,
 }
 
 

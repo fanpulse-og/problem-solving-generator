@@ -167,3 +167,60 @@ export function approx(q: Q, dp = 2): string {
   const scale = 10 ** dp;
   return `${dec(Q.of(q.mul(scale).floor(), scale), dp)}…`;
 }
+
+/** Exact mantissa and power of ten: q = m × 10^e with 1 ≤ m < 10. */
+export function stdParts(q: Q): { m: Q; e: number } {
+  if (!q.isPositive()) throw new Error('stdParts: needs a positive number');
+  let m = q;
+  let e = 0;
+  while (m.cmp(10) >= 0) {
+    m = m.div(10);
+    e++;
+  }
+  while (m.lt(1)) {
+    m = m.mul(10);
+    e--;
+  }
+  return { m, e };
+}
+
+/**
+ * Standard form as KaTeX, e.g. "4.5 \times 10^{12}". With `sf`, the mantissa
+ * is rounded exactly (half up) and shown to that many significant figures.
+ */
+export function stdFormTex(q: Q, sf?: number): string {
+  let { m, e } = stdParts(q);
+  let ms: string;
+  if (sf === undefined) ms = dec(m);
+  else {
+    m = roundQ(m, sf - 1);
+    if (m.cmp(10) >= 0) {
+      m = m.div(10);
+      e++;
+    }
+    ms = fixed(m, sf - 1);
+  }
+  return `${ms} \\times 10^{${e}}`;
+}
+
+export const stdForm = (q: Q, sf?: number) => `$${stdFormTex(q, sf)}$`;
+
+/**
+ * KaTeX for a polynomial with integer coefficients, highest power first:
+ * [2, -7, 0, 3] → "2x^3 - 7x^2 + 3". Zero terms are skipped; 1 and -1 drop.
+ */
+export function polyTex(coeffs: number[], v = 'x'): string {
+  const deg = coeffs.length - 1;
+  let s = '';
+  coeffs.forEach((c, i) => {
+    if (c === 0) return;
+    const pow = deg - i;
+    const abs = Math.abs(c);
+    const body = pow === 0 ? `${abs}` : `${abs === 1 ? '' : abs}${v}${pow === 1 ? '' : `^${pow}`}`;
+    s += s === '' ? `${c < 0 ? '-' : ''}${body}` : ` ${c < 0 ? '-' : '+'} ${body}`;
+  });
+  return s || '0';
+}
+
+/** "x + 3", "x - 2", "2x" for a linear expression ax + b. */
+export const linTex = (a: number, b: number, v = 'x') => polyTex([a, b], v);

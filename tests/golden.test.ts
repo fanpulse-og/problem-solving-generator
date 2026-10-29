@@ -59,6 +59,22 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['stats-histogram.stretch.H.c.p0', ['332'], '128 − 40 = 88 → 2 per unit; 112 + 84 + 40 + 96'],
   ['alg-simultaneous-context.core.F.nc.p0', ['Coffee £4.15, cake £3.20'], '2(4.15) + 4(3.20) = 21.10; 4.15 + 6(3.20) = 23.35'],
   ['stats-grouped-mean.stretch.F.c.p0', ['52.6 minutes', 'Yes: 67 out of 106 is 63.2%, which is more than 50%'], '5580 ÷ 106; 67 ÷ 106'],
+  // Batch 4
+  ['num-lcm-problems.core.F.nc.p0', ['6 packs of paper bags and 5 packs of party hats'], 'LCM(15, 18) = 90'],
+  ['num-lcm-problems.stretch.H.nc.p0', ['£36.25'], 'LCM(8, 15, 20) = 120: 15 × 0.85 + 8 × 1.85 + 6 × 1.45'],
+  ['num-standard-form.core.H.c.p0', ['$1.64 \\times 10^{13}$'], '4.1 × 4 = 16.4, 10⁶ × 10⁶'],
+  ['num-standard-form.stretch.H.nc.p0', ['$1 \\times 10^{6}$'], '2000 g ÷ 0.002 g'],
+  ['num-percentage-of-percentage.stretch.H.c.p0', ['400'], '0.65 × 0.35 + 0.35 × 0.15 = 0.28; 112 ÷ 0.28'],
+  ['alg-quadratic-area.core.H.nc.p0', ['36 cm'], '2x² + x − 55 = 0 → x = 5: 15 by 3'],
+  ['alg-quadratic-area.stretch.H.c.p0', ['178 cm²'], 'x² − 12x − 84 = 0 → x = 6 + √120 = 16.95; ½ × 16.95 × 20.95'],
+  ['alg-algebraic-proof.stretch.F.nc.p0', ['$(5n + 1)^2 - (n - 5)^2 = 24n^2 + 20n - 24 = 4(6n^2 + 5n - 6)$, which is a multiple of 4'], '25n² + 10n + 1 − (n² − 10n + 25)'],
+  ['alg-straight-line.stretch.H.nc.p0', ['$(0, 7)$'], 'midpoint (3, 1), gradient ½ → −2; 1 = −6 + c'],
+  ['geom-transformations.core.H.nc.p0', ['Rotation 90° anticlockwise about $(1, 3)$'], '(x, y) → (4 − y, x + 2) sends every corner of A to B'],
+  ['geom-transformations.stretch.H.nc.p0', ['Rotation 180° about $(0, 0)$'], 'reflections in y = −x then y = x'],
+  ['stats-cumulative-frequency.foundational.H.c.p0', ['32 (accept 31 to 34)', '9 (accept 7 to 10)'], 'median 30 + 5 × 14/30; LQ 28.2, UQ 37.1'],
+  ['prob-tree-diagram.core.H.nc.p0', ['After black: black $\\frac{5}{14}$, white $\\frac{9}{14}$. After white: black $\\frac{6}{14}$, white $\\frac{8}{14}$', '$\\frac{17}{35}$'], '(30 + 72) ÷ 210'],
+  ['prob-tree-diagram.stretch.H.nc.p0', ['$\\frac{6}{n} \\times \\frac{5}{n - 1} = \\frac{5}{12}$, so $n^2 - n - 72 = 0$', '$n = 9$'], 'n(n − 1) = 72'],
+  ['prob-venn-diagram.stretch.H.nc.p0', ['$\\frac{14}{31}$'], '2x + x + 31 − x + 11 = 70 → x = 14'],
 ];
 
 describe('golden questions (hand-verified)', () => {

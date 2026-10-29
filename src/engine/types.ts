@@ -124,6 +124,39 @@ export type DiagramSpec =
       /** Leave the frequency-density axis unnumbered (scale must be deduced). */
       hideScale?: boolean;
       notAccurate?: boolean;
+    }
+  | {
+      /** Coordinate grid: transformations, cumulative frequency graphs. */
+      type: 'grid';
+      x: [number, number];
+      y: [number, number];
+      /** Spacing of the grid lines (default 1). */
+      xStep?: number;
+      yStep?: number;
+      /** Number the axis every n units (default: every grid line). */
+      xLabelEvery?: number;
+      yLabelEvery?: number;
+      xLabel?: string;
+      yLabel?: string;
+      /** Same scale on both axes, for shapes. */
+      square?: boolean;
+      paths?: { points: [number, number][]; closed?: boolean; label?: string; labelAt?: [number, number]; shaded?: boolean; dots?: boolean }[];
+      notAccurate?: boolean;
+    }
+  | {
+      /** Two-stage probability tree. A probability of '' is drawn as a blank to complete; 'a/b' is drawn as a fraction. */
+      type: 'tree';
+      first: { label: string; p: string }[];
+      second: { label: string; p: string }[][];
+      stages?: [string, string];
+      notAccurate?: boolean;
+    }
+  | {
+      /** Two-set Venn diagram; '' leaves a region empty. Use \n to break a long list. */
+      type: 'venn';
+      sets: [string, string];
+      regions: { a: string; both: string; b: string; neither: string };
+      notAccurate?: boolean;
     };
 
 export type Block =

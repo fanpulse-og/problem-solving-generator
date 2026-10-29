@@ -30,6 +30,11 @@ Start from [`src/templates/_skeleton.ts`](../src/templates/_skeleton.ts).
 - `table({ header, rows, rowHeaders })`: blank cells are `''`.
 - `cards(['4', '$x$'])`: number cards.
 - `diagram({...})`: SVG drawn from your numbers (see `DiagramSpec` in `types.ts`).
+  Types: `polygon`, `figure` (named points: triangles, circles, cuboids, vectors),
+  `histogram`, `grid` (coordinate grid for transformations and cumulative frequency
+  graphs), `tree` (two-stage probability tree; `''` draws a blank, `'a/b'` a fraction),
+  `venn` (two sets), plus the special-purpose `squareSemicircles`, `plateCutouts` and
+  `parallelTriangle`.
 - `single(marks, …blocks)` for a one-part question; `part('a', marks, …blocks)` for multi-part.
 - `step('M1', working, note)`: codes are `P1` (process), `M1` (method), `A1` (accuracy), `B1` (independent) and `C1` (communication). Write the working as a student would, and the note in plain, friendly language.
 
