@@ -19,6 +19,7 @@ interface V {
   forwardP: number; // foundational (a): a different item's price before the change
   items: [string, string]; // foundational: two different items
   years: number;
+  nc: boolean; // stretch: undo one year at a time (÷ 0.8 twice), not ÷ 0.64
 }
 
 const CONTEXTS = [
@@ -57,7 +58,7 @@ export default defineTemplate<V>({
       const unit0 = 10000 / gcdInt(m2, 10000);
       const unit = friendly ? lcmInt(unit0, 10000) : unit0; // non-calculator: whole £100s
       const originalP = rng.int(Math.ceil(800000 / unit), Math.floor(4000000 / unit)) * unit;
-      return { level, name, ctx: { item: 'the value of the car', up: '', down: '' }, pct, increase: false, originalP, forwardP: 0, items: ['', ''], years };
+      return { level, name, ctx: { item: 'the value of the car', up: '', down: '' }, pct, increase: false, originalP, forwardP: 0, items: ['', ''], years, nc: friendly };
     }
     const increase = rng.chance(0.5);
     const pct = friendly || level === 'foundational' ? rng.pick([10, 20, 25, 5, 15, 30]) : rng.int(3, 35);
@@ -66,7 +67,7 @@ export default defineTemplate<V>({
     const step = friendly ? 100 : 10;
     let originalP = rng.step(1000, 60000, step);
     originalP = Math.round(originalP / Number(m.d)) * Number(m.d) || Number(m.d);
-    const v: V = { level, name, ctx, pct, increase, originalP, forwardP: 0, items: rng.sample(ITEMS, 2) as [string, string], years: 0 };
+    const v: V = { level, name, ctx, pct, increase, originalP, forwardP: 0, items: rng.sample(ITEMS, 2) as [string, string], years: 0, nc: friendly };
     ensure(after(v).isInt(), 'new price must be whole pence');
     if (friendly) ensure(after(v).toInt() % 5 === 0 && originalP % 100 === 0, 'friendly prices');
     if (level === 'foundational') {
@@ -118,6 +119,17 @@ export default defineTemplate<V>({
     if (v.level === 'stretch') {
       const m1 = Q.of(100 - v.pct, 100);
       const end = m1.mul(m1).mul(v.originalP).toInt();
+      if (v.nc) {
+        // Without a calculator, undo one year at a time: two easy divisions instead of ÷ 0.64.
+        const mid = m1.mul(v.originalP).toInt();
+        return [
+          [
+            step('P1', `Multiplier = 1 − ${dec(Q.of(v.pct, 100))} = ${dec(m1)} each year`, `A decrease of ${v.pct}% leaves ${100 - v.pct}% each year.`),
+            step('P1', `${money(end)} ${DIV} ${dec(m1)} = ${money(mid)}`, 'Work backwards one year: divide by the multiplier (don’t add the percentage back on).'),
+            step('A1', `${money(mid)} ${DIV} ${dec(m1)} = ${money(v.originalP)}`, 'And again for the other year.'),
+          ],
+        ];
+      }
       return [
         [
           step('P1', `Multiplier = 1 − ${dec(Q.of(v.pct, 100))} = ${dec(m1)}, over 2 years: ${dec(m1)}² = ${dec(m1.mul(m1))}`, 'Each year the value is multiplied by the same amount, so square it for 2 years.'),

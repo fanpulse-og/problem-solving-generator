@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "samples": "vite-node scripts/export-samples.ts",
-    "crosscheck": "vite-node scripts/export-samples.ts 40 > .samples.jsonl && python3 -I scripts/crosscheck.py .samples.jsonl"
+    "crosscheck": "vite-node scripts/export-samples.ts 40 > .samples.jsonl && python3 -I scripts/crosscheck.py .samples.jsonl",
+    "quality": "vite-node scripts/quality-report.ts"
   },
   "dependencies": {
     "@fontsource/kalam": "5.3.0",

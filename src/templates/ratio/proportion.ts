@@ -142,7 +142,8 @@ export default defineTemplate<V>({
     }
     const yGiven = y(v, v.x2);
     const back =
-      v.kind === 'x2' ? `$x^2 = ${dec(yGiven)} ${DIV} ${kTex} = ${v.x2 * v.x2}$`
+      v.kind === 'x' ? `$x = ${dec(yGiven)} ${DIV} ${kTex} = ${v.x2}$`
+      : v.kind === 'x2' ? `$x^2 = ${dec(yGiven)} ${DIV} ${kTex} = ${v.x2 * v.x2}$`
       : v.kind === 'x3' ? `$x^3 = ${dec(yGiven)} ${DIV} ${kTex} = ${v.x2 ** 3}$`
       : v.kind === 'sqrt' ? `$\\sqrt{x} = ${dec(yGiven)} ${DIV} ${kTex} = ${Math.sqrt(v.x2)}$`
       : v.kind === 'inv' ? `$x = ${kTex} ${DIV} ${dec(yGiven)}$`

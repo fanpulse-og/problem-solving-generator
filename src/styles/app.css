@@ -118,6 +118,19 @@ button {
 button:hover:not(:disabled) {
   border-color: var(--brand);
 }
+/* A link that looks like a button (e.g. "Report a problem", which opens a new tab). */
+a.button-link {
+  display: inline-block;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  text-decoration: none;
+}
+a.button-link:hover {
+  border-color: var(--brand);
+}
 button:disabled {
   opacity: 0.5;
   cursor: default;

@@ -1,5 +1,6 @@
 import katex from 'katex';
 import { describe, expect, it } from 'vitest';
+import { arithmeticIssues, untidyAnswers } from '../src/engine/arithmetic';
 import { TEMPLATES } from '../src/engine/registry';
 import { buildQuestion, generateSet } from '../src/engine/generate';
 import type { Block, Calc, Level, Question, Tier } from '../src/engine/types';
@@ -88,6 +89,9 @@ for (const t of TEMPLATES) {
                 continue;
               }
               const errs = [...t.validate(q.vars), ...t.check(q.vars, q.answers), ...lint(q)];
+              // Quality rules (src/engine/arithmetic.ts): tidy answers; manageable non-calculator arithmetic.
+              errs.push(...untidyAnswers(q).map((a) => `untidy answer: ${a}`));
+              if (calc === 'non-calc') errs.push(...arithmeticIssues(q).map((i) => `non-calculator arithmetic too heavy: ${i.reason}`));
               if (q.answers.length !== q.content.parts.length) errs.push('answers/parts count');
               if (q.scheme.length !== q.content.parts.length) errs.push('scheme/parts count');
               q.content.parts.forEach((p, pi) => {

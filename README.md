@@ -36,7 +36,16 @@ Correct maths is the top priority, so there are three layers of checks:
 ```bash
 npm test             # every template × tier × level × calculator mode, 500 seeds each
 npm run crosscheck   # an independent Python program re-solves exported questions
+npm run quality      # ~2,000 seeds per template: untidy answers, heavy non-calculator
+                     # arithmetic, wrong mark totals, failures → docs/quality-report.md
 ```
+
+**Non-calculator questions** must only need manageable hand arithmetic
+(`src/engine/arithmetic.ts`). The rule is checked on the mark-scheme working: up to
+3-digit × 2-digit multiplication, division by a "friendly" number (1–12, 15, 16, 25,
+75, 125 times a power of ten) or with a friendly whole-number answer, and no number
+with more than 6 significant digits. Generation retries any non-calculator question
+that breaks the rule, and the tests enforce it.
 
 1. **Exact arithmetic.** The app uses fractions, never floating point, for anything
    a student sees. Rounding of π and square-root answers rejects values close to a

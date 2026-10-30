@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Question } from '../engine/types';
 import { AnswerView, MarkScheme, QuestionView, totalSteps } from '../components/QuestionView';
+import { ReportProblem } from '../components/ReportProblem';
 
 interface Props {
   questions: Question[];
@@ -88,6 +89,7 @@ export function BoardView({ questions, index, onIndex, onRegenerate }: Props) {
         <button type="button" onClick={() => onRegenerate(index)}>
           Generate new
         </button>
+        <ReportProblem q={q} />
       </div>
       <div aria-live="polite">
         {showAnswer && (

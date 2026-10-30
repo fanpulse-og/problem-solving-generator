@@ -53,14 +53,28 @@ export default defineTemplate<V>({
       ensure(m2.gt(0) && m2.toNumber() <= ctx.hi * 1.3 && m1 > 0, 'realistic means');
       return { level, ctx, n1, n2, m1, m2, exact: true };
     }
+    if (friendly) {
+      // Non-calculator: a friendly total (÷ 20, ÷ 25 …) and a whole-number overall mean, built first.
+      const N = rng.pick(tier === 'KS3' ? [10, 12, 15, 16, 20, 25, 30] : [20, 25, 30, 40, 50]);
+      const a = rng.int(4, N - 4);
+      const b = N - a;
+      ensure(a !== b, 'different group sizes');
+      const M = rng.int(ctx.lo + 3, ctx.hi - 3);
+      const options: [number, number][] = [];
+      for (let m1 = ctx.lo; m1 <= ctx.hi; m1++) {
+        const rest = N * M - a * m1;
+        if (rest % b === 0 && rest / b >= ctx.lo && rest / b <= ctx.hi && rest / b !== m1) options.push([m1, rest / b]);
+      }
+      ensure(options.length > 0, 'whole-number means for both groups');
+      const [m1, m2] = rng.pick(options);
+      return { level, ctx, n1: a, n2: b, m1, m2: Q.of(m2), exact: true };
+    }
     const m1 = rng.int(ctx.lo, ctx.hi);
     const m2 = Q.of(rng.int(ctx.lo, ctx.hi));
     ensure(!m2.eq(m1), 'different means');
     const v: V = { level, ctx, n1, n2, m1, m2, exact: true };
     const target = overall(v);
-    if (friendly) {
-      ensure(target.isInt() || target.mul(2).isInt(), 'whole or half for non-calculator');
-    } else {
+    {
       v.exact = target.terminatesWithin(2);
       if (!v.exact) {
         // Exact rationals round unambiguously, but avoid values within 0.001 of a .x5 boundary for clarity.

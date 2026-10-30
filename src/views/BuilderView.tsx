@@ -4,6 +4,7 @@ import { LEVELS, STYLES, type Question } from '../engine/types';
 import { Controls } from '../components/Controls';
 import { MarkScheme, QuestionView } from '../components/QuestionView';
 import { shareLink } from '../state';
+import { ReportProblem } from '../components/ReportProblem';
 
 interface Props {
   options: SetOptions;
@@ -65,6 +66,7 @@ export function BuilderView({ options, questions, onOptions, onGenerate, onRegen
                 <button type="button" onClick={() => copy(q)}>
                   {copied === q.code ? 'Link copied' : 'Copy link'}
                 </button>
+                <ReportProblem q={q} />
               </div>
               {open[q.code] && <MarkScheme q={q} />}
             </article>

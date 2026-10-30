@@ -1,9 +1,11 @@
 import { Reject } from './format';
+import { lineIssues } from './arithmetic';
 import { Rng, freshSeed } from './rng';
 import type { Calc, Level, Question, StyleId, Strand, Template, Tier } from './types';
 import { LEVELS } from './types';
 
-const MAX_ATTEMPTS = 200;
+// Raising this only affects codes that used to fail: earlier attempts, and so existing questions, are unchanged.
+const MAX_ATTEMPTS = 500;
 const CALC_CODE: Record<Calc, string> = { 'non-calc': 'nc', calc: 'c' };
 
 /** "ratio-difference.core.F.nc.k3f9a" */
@@ -48,6 +50,14 @@ export function buildQuestion(t: Template, level: Level, tier: Tier, calc: Calc,
       const content = t.render(vars);
       const answers = t.answer(vars);
       const scheme = t.markScheme(vars);
+      // Non-calculator: the hand arithmetic must be manageable (see arithmetic.ts); otherwise try the next sub-seed.
+      if (calc === 'non-calc') {
+        const heavy = scheme.flat().flatMap((s) => lineIssues(s.working));
+        if (heavy.length) {
+          lastReason = `non-calculator arithmetic too heavy: ${heavy[0].reason}`;
+          continue;
+        }
+      }
       const marks = content.parts.reduce((s, p) => s + p.marks, 0);
       return {
         code,
