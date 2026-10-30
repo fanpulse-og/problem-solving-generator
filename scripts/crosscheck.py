@@ -1404,6 +1404,217 @@ def stats_pie_chart(v, ans, level):
     ok = ans[0].startswith("Yes" if y11 > y7 else "No") and nums(ans[0])[:4] == [y7, 7, y11, 11]
     return ok, f"Y7 {y7}, Y11 {y11}"
 
+
+# ---------------------------------------------------------------- batch 6
+
+
+def ratio_recipes(v, ans, level):
+    batches = {0: 10, 1: 8, 2: 12}
+    names_ = {0: ["butter", "self-raising flour", "sugar", "milk"], 1: ["plain flour", "milk", "eggs", "butter"], 2: ["oats", "butter", "sugar", "golden syrup"]}
+    B, A = batches[v["r"]], v["amounts"]
+    if level == "foundational":
+        want = [F(a * v["target"], B) for a in A]
+        return nums(ans[0]) == want, f"expected {want}"
+    def enough(n):
+        return all(F(a * n, B) <= h for a, h in zip(A, v["have"]))
+    if level == "core":
+        ok = ans[0].startswith("Yes" if enough(v["target"]) else "No")
+        if not enough(v["target"]):
+            short = next(i for i, (a, h) in enumerate(zip(A, v["have"])) if F(a * v["target"], B) > h)
+            ok = ok and names_[v["r"]][short] in ans[0] and nums(ans[0])[:2] == [F(A[short] * v["target"], B), F(v["have"][short])]
+        return ok, "decision"
+    n = min(h * B // a for a, h in zip(A, v["have"]))
+    return nums(ans[0])[0] == n, f"expected {n}"
+
+
+def ratio_inverse_work(v, ans, level):
+    work = q(v["t1"]) * v["n1"]  # worker-time units for the whole job
+    if level == "foundational":
+        return nums(ans[0])[0] == work / v["n2"], f"expected {work / v['n2']}"
+    if level == "core":
+        mins = work / v["n2"] * q(v["part"]) * 60
+        return hm(ans[0]) == mins, f"expected {mins} minutes"
+    n = math.ceil(work / v["limit"])
+    return nums(ans[0])[0] == n, f"expected {n}"
+
+
+def ratio_exchange_rates(v, ans, level):
+    if level == "foundational":
+        rate = q(v["rate"])
+        conv = q(v["poundPrice"]) * rate
+        paris = q(v["euroPrice"]) < conv
+        ok = nums(ans[0])[0] == rate * v["pounds"] and ans[1].startswith("Paris" if paris else "London")
+        ok = ok and nums(ans[1])[:2] == [q(v["poundPrice"]), conv]
+        return ok, "euros"
+    if level == "core":
+        spain = q(v["eur"]) * q(v["eurToGbp"]) / v["litres"]
+        wales = q(v["gbp"]) / (v["gallons"] * F(9, 2))
+        got = nums(ans[0])
+        ok = ans[0].startswith("Yes" if spain < wales else "No") and got[0] == round_dp(spain, 3) and got[1] == round_dp(wales, 3)
+        return ok, f"spain {float(spain):.4f}, wales {float(wales):.4f}"
+    a = F(v["pounds"] * (100 - v["commission"]), 100) * q(v["rate"])
+    b = (v["pounds"] - v["fee"]) * q(v["rateB"])
+    best = "A" if a > b else "B"
+    got = nums(ans[0])
+    return ans[0].startswith(f"Bureau {best}") and got == [abs(a - b), a, b], f"A {float(a)}, B {float(b)}"
+
+
+def ratio_parts(v, ans, level):
+    r = v["r"]
+    if level == "foundational":
+        first = F(v["total"] * r[0], r[0] + r[1])
+        want = first - first * q(v["fr"]) - first * F(v["pc"], 100)
+        return nums(ans[0])[0] == want, f"expected {want}"
+    if level == "core":
+        s_ = sum(r)
+        parts_ = [F(v["total"] * x, s_) for x in r]
+        left = v["total"] - parts_[1] * q(v["rem"][0]) - parts_[2] * q(v["rem"][1])
+        want = parts_[0] / left * 100
+        return nums(ans[0])[0] == want, f"expected {float(want)}%"
+    a, b = r
+    c, d = v["after"]
+    k = F(v["k"], 100) if v["ctx"] == 0 else F(v["k"])
+    x = k * (c - d) / (a * d - b * c)  # d(ax + k) = c(bx + k)
+    return nums(ans[0])[0] == a * x, f"expected {a * x}"
+
+
+def num_profit(v, ans, level):
+    if level == "foundational":
+        want = F(abs(v["sellP"] - v["costP"]) * 100, v["costP"])
+        return nums(ans[0])[0] == want, f"expected {want}%"
+    target = F(v["costP"] * (100 + v["pct"]), 100)  # pence
+    if level == "core":
+        bags = int(q(v["bulkKg"]) * 1000) // v["bagG"]
+        pence = math.ceil(target / bags)
+    else:
+        pence = math.ceil((target - v["soldA"] * v["priceA"]) / (v["n"] - v["soldA"]))
+    return nums(ans[0])[0] == F(pence, 100), f"expected £{pence / 100:.2f}"
+
+
+def geom_pressure_density(v, ans, level):
+    got = nums(ans[0])[0]
+    if level == "foundational":
+        want = q(v["force"]) / (q(v["len"]) * q(v["wid"]))
+        return got == want, f"expected {want}"
+    if level == "core":
+        p_ = q(v["force"]) / (q(v["len"]) * q(v["wid"]))
+        want = q(v["force"]) / p_ / q(v["len"])
+        return got == want, f"expected {want}"
+    if v["tier"] == "H":
+        m1, d1, m2, D = q(v["m1"]), q(v["d1"]), q(v["m2"]), q(v["D"])
+        d2 = m2 / ((m1 + m2) / D - m1 / d1)
+        return got == round_sf(float(d2), 3), f"expected {float(d2):.4g}"
+    want = (q(v["d1"]) * v["v1"] + q(v["D"]) * v["v2"]) / (v["v1"] + v["v2"])
+    return got == want, f"expected {want}"
+
+
+def geom_scales(v, ans, level):
+    s_ = v["s"]
+    a, b = q(v["a"]), q(v["b"])
+    if level == "foundational":
+        return nums(ans[0])[0] == a * s_ / 100000 and nums(ans[1])[0] == b * 100000 / s_, "map"
+    if level == "core":
+        return nums(ans[0])[0] == b * s_ / 100, f"expected {b * s_ / 100}"
+    area_m2 = a * b * s_ * s_ / 10000
+    want = area_m2 / 10000 * v["price"]
+    got = F(ans[0].replace("£", "").replace(" ", "").replace(" ", ""))
+    return got == want, f"expected £{want}"
+
+
+def stats_capture_recapture(v, ans, level):
+    N = F(v["M"] * v["S"], v["m"])
+    if level != "stretch":
+        return int(ans[0].replace(" ", "").replace(" ", "")) == N, f"expected {N}"
+    got = [int(t) for t in re.findall(r"\d+", ans[0].replace(" ", ""))]
+    ok = ans[0].startswith("Yes" if N > v["claim"] else "No") and got[:2] == [N, v["claim"]] and "too big" in ans[1]
+    return ok, f"expected {N}"
+
+
+def prob_frequency_tree(v, ans, level):
+    a, b, a1, b1 = v["a"], v["b"], v["a1"], v["b1"]
+    labels = [("adult", "child", "passed", "failed"), ("Year 10", "Year 11", "job", "no job"), ("petrol", "diesel", "passed", "failed")][v["ctx"]]
+    g0, g1, o0, o1 = labels
+    nodes = f"{g0} {a} ({o0} {a1}, {o1} {a - a1}); {g1} {b} ({o0} {b1}, {o1} {b - b1})"
+    got, want_nodes = ans[0], nodes
+    N = a + b
+    want = F(a - a1, N) if level == "foundational" else F(a1 + b1, N) if level == "core" else F(b1, a1 + b1)
+    return got == want_nodes and frac_of(ans[1]) == want, f"expected {want_nodes}, {want}"
+
+
+def alg_travel_graph(v, ans, level):
+    d = F(v["d"]).limit_denominator(2)
+    v1 = d / v["t1"] * 60
+    v3 = d / v["t3"] * 60
+    if level == "foundational":
+        got = [nums(x)[0] for x in ans]
+        return got == [v["stay"], v1 * v["at"] / 60, v1], f"expected {v['stay']}, {v1 * v['at'] / 60}, {v1}"
+    if level == "core":
+        ok = ans[0].startswith("On the way there" if v1 > v3 else "On the way home") and nums(ans[0])[:2] == [v1, v3]
+        return ok, f"{v1} vs {v3}"
+    arrive = v["late"] + d / v["vb"] * 60
+    leaves = v["t1"] + v["stay"]
+    clk = lambda m: f"{int(m) // 60 % 24:02d} {int(m) % 60:02d}"
+    times = re.findall(r"\d\d \d\d", ans[0])
+    want = [clk(v["start"] + arrive), clk(v["start"] + leaves)]
+    return ans[0].startswith("Yes" if arrive < leaves else "No") and times == want, f"times {want}"
+
+
+def alg_circles_lines(v, ans, level):
+    if level == "foundational":
+        a, b = v["p"]
+        # Tangent: ax + by = r^2, so y = -a/b x + r^2/b
+        m, c = F(-a, b), F(v["r2"], b)
+        got = signed_nums(ans[0])
+        return got == [m, c] or got == [m, c], f"expected y = {m}x + {c}"
+    if level == "core":
+        dx, dy = v["p"][0] - v["c"][0], v["p"][1] - v["c"][1]
+        A, B, C = dx, dy, -(dx * v["p"][0] + dy * v["p"][1])
+        g = math.gcd(math.gcd(A, B), C)
+        A, B, C = A // g, B // g, C // g
+        if A < 0 or (A == 0 and B < 0):
+            A, B, C = -A, -B, -C
+        got = signed_nums(ans[0].replace("x", " ").replace("y", " "))
+        # Coefficients of 1 are not printed; rebuild from the text.
+        t = ans[0].strip("$").replace(" ", "")
+        m = re.fullmatch(r"(-?\d*)x([+-]\d*)y(?:([+-]\d+))?=0", t)
+        if not m:
+            return False, "format"
+        co = lambda s_: -1 if s_ == "-" else 1 if s_ in ("", "+") else int(s_)
+        return (co(m.group(1)), co(m.group(2)), int(m.group(3) or 0)) == (A, B, C), f"expected {A}x + {B}y + {C} = 0"
+    m = F(v["q"][1] - v["p"][1], v["q"][0] - v["p"][0])
+    c = v["p"][1] - m * v["p"][0]
+    # (1 + m^2)x^2 + 2mcx + c^2 - r^2 = 0
+    A, B, C = 1 + m * m, 2 * m * c, c * c - v["r2"]
+    disc = B * B - 4 * A * C
+    root = isqrt_exact(disc)
+    xs = sorted([(-B - root) / (2 * A), (-B + root) / (2 * A)])
+    want = [n for x in xs for n in (x, m * x + c)]
+    return signed_nums(ans[0]) == want, f"expected {want}"
+
+
+def alg_iteration(v, ans, level):
+    k, c, p0 = q(v["k"]), q(v["c"]), q(v["p0"])
+    half_up = lambda x: math.floor(x + F(1, 2))
+    if level == "foundational":
+        p3 = k * k * p0
+        n = 1
+        while k ** n <= 2:
+            n += 1
+        got = int(ans[0].replace(" ", "").replace(" ", ""))
+        return got == half_up(p3) and nums(ans[1])[0] == n, f"expected {half_up(p3)}, {n}"
+    if level == "core":
+        x = p0
+        for _ in range(3):
+            x = k * x + c
+        got = F(ans[1].replace("£", "").replace(" ", "").replace(" ", ""))
+        return signed_nums(ans[0]) == [k] and got == half_up(x), f"expected a = {k}, £{half_up(x)}"
+    L = c / (1 - k)
+    x, n = p0, 0
+    while x >= q(v["target"]):
+        x = k * x + c
+        n += 1
+    return nums(ans[0])[0] == n and nums(ans[1])[0] == round_dp(L, 2), f"expected {n}, {float(L):.3f}"
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -1468,6 +1679,18 @@ CHECKS = {
     "geom-bearings": geom_bearings,
     "stats-frequency-table": stats_frequency_table,
     "stats-pie-chart": stats_pie_chart,
+    "ratio-recipes": ratio_recipes,
+    "ratio-inverse-work": ratio_inverse_work,
+    "ratio-exchange-rates": ratio_exchange_rates,
+    "ratio-parts": ratio_parts,
+    "num-profit": num_profit,
+    "geom-pressure-density": geom_pressure_density,
+    "geom-scales": geom_scales,
+    "stats-capture-recapture": stats_capture_recapture,
+    "prob-frequency-tree": prob_frequency_tree,
+    "alg-travel-graph": alg_travel_graph,
+    "alg-circles-lines": alg_circles_lines,
+    "alg-iteration": alg_iteration,
 }
 
 

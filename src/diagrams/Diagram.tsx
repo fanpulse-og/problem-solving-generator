@@ -426,6 +426,9 @@ function ticks(a: number, b: number, every: number): number[] {
   return out;
 }
 
+/** 24-hour clock in Edexcel style, for axis labels: 08 10 */
+const clockLabel = (m: number) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')} ${String(m % 60).padStart(2, '0')}`;
+
 function Grid({ spec }: { spec: Extract<DiagramSpec, { type: 'grid' }> }) {
   const [x0, x1] = spec.x;
   const [y0, y1] = spec.y;
@@ -476,7 +479,7 @@ function Grid({ spec }: { spec: Extract<DiagramSpec, { type: 'grid' }> }) {
       })}
       {xLab.map((t) => (
         <text key={`lx${t}`} x={X(t)} y={Y(ax) + 14} textAnchor="middle" className="dtick dhalo">
-          {fmt(t)}
+          {spec.xClock !== undefined ? clockLabel(spec.xClock + t) : fmt(t)}
         </text>
       ))}
       {yLab.map((t) => (
@@ -556,12 +559,17 @@ function Tree({ spec }: { spec: Extract<DiagramSpec, { type: 'tree' }> }) {
     return (
       <g key={key}>
         <line x1={a[0]} y1={a[1]} x2={b[0] - 6} y2={b[1]} className="dline" />
-        <ProbSvg x={mx} y={up ? my - 10 : my + 20} p={p} />
+        {!spec.frequencies && <ProbSvg x={mx} y={up ? my - 10 : my + 20} p={p} />}
       </g>
     );
   };
   return (
     <svg viewBox={`0 0 ${Wd} ${Hd}`} role="img" aria-label="Tree diagram">
+      {spec.root && (
+        <text x={root[0]} y={root[1] - 12} className="dlabel">
+          {spec.root}
+        </text>
+      )}
       {spec.stages && (
         <>
           <text x={(root[0] + midX) / 2 + 20} y={16} textAnchor="middle" className="dtick">

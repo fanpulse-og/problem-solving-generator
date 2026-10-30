@@ -89,6 +89,21 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['geom-bearings.stretch.H.c.p0', ['33.8 km', '144°'], '√(28² + 19²); 200° − tan⁻¹(28/19)'],
   ['stats-frequency-table.stretch.F.nc.p0', ['$x = 17$, $y = 15$'], 'x + y = 32, x + 4y = 77'],
   ['stats-pie-chart.core.F.nc.p0', ['12'], '360 − 288 = 72°; 60° is 10 students → 6° each'],
+  // Batch 6 (structures from the June and November 2022 papers)
+  ['ratio-recipes.stretch.F.nc.p0', ['3 scones'], 'butter 20 ÷ 65 × 10 = 3.08 is the limit'],
+  ['ratio-inverse-work.stretch.F.c.p0', ['13 workers'], '9 × 28.5 = 256.5; ÷ 21 = 12.2 → 13'],
+  ['ratio-exchange-rates.core.F.c.p0', ['Yes: Spain £1.504 per litre, Wales £1.650 per litre'], '35.80 × 0.84 ÷ 20; 37.13 ÷ 22.5'],
+  ['ratio-parts.foundational.F.nc.p0', ['40'], '100 cars; 40 electric, 20 diesel'],
+  ['ratio-parts.stretch.H.nc.p0', ['8 years'], '15(4x + 9) = 17(3x + 9) → x = 2'],
+  ['num-profit.core.F.c.p0', ['£1.53'], '22 bags; 24.80 × 1.35 ÷ 22 = 1.5218 → round up'],
+  ['geom-pressure-density.stretch.H.c.p0', ['9.33 g/cm³'], '842.4 ÷ 7.3 − 44 = 71.40 cm³; 666.4 ÷ 71.40'],
+  ['geom-scales.stretch.F.nc.p0', ['£62\u00a0920'], '130 m × 220 m = 2.86 ha × £22 000'],
+  ['stats-capture-recapture.foundational.F.c.p0', ['1336'], '208 × 167 ÷ 26'],
+  ['prob-frequency-tree.stretch.F.nc.p0', ['adult 52 (passed 23, failed 29); child 105 (passed 87, failed 18)', '$\\frac{87}{110}$'], '52 − x + 3x = 110 → x = 29'],
+  ['alg-travel-graph.stretch.F.nc.p0', ['Yes: Noah arrives at 15 15 and Amelia leaves at 15 25'], '8 km at 16 km/h = 30 min from 14 45'],
+  ['alg-circles-lines.core.H.nc.p0', ['$7x + 4y - 47 = 0$'], 'radius gradient 4/7 → −7/4 through (5, 3)'],
+  ['alg-circles-lines.stretch.H.nc.p0', ['$(-12, -5)$ and $(-5, -12)$'], 'x² + 17x + 60 = 0'],
+  ['alg-iteration.stretch.H.c.p0', ['14 minutes', '26.32°C'], 'L = 5 ÷ 0.19'],
 ];
 
 describe('golden questions (hand-verified)', () => {

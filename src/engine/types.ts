@@ -138,6 +138,8 @@ export type DiagramSpec =
       yLabelEvery?: number;
       xLabel?: string;
       yLabel?: string;
+      /** Label the x-axis as 24-hour clock times, starting at this many minutes after midnight. */
+      xClock?: number;
       /** Same scale on both axes, for shapes. */
       square?: boolean;
       paths?: { points: [number, number][]; closed?: boolean; label?: string; labelAt?: [number, number]; shaded?: boolean; dots?: boolean }[];
@@ -149,6 +151,9 @@ export type DiagramSpec =
       first: { label: string; p: string }[];
       second: { label: string; p: string }[][];
       stages?: [string, string];
+      /** Frequency tree: a label at the root and no probabilities on the branches. */
+      root?: string;
+      frequencies?: boolean;
       notAccurate?: boolean;
     }
   | {
