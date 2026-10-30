@@ -634,11 +634,13 @@ function Venn({ spec }: { spec: Extract<DiagramSpec, { type: 'venn' }> }) {
 }
 
 function Pie({ spec }: { spec: Extract<DiagramSpec, { type: 'pie' }> }) {
-  const Wd = 380;
-  const Hd = spec.title ? 270 : 250;
+  // Names go outside the circle (they can be wider than a sector); angles go inside.
+  const Wd = 440;
+  const r = 88;
+  const top = spec.title ? 52 : 30;
+  const Hd = top + 2 * r + 30;
   const cx = Wd / 2;
-  const cy = spec.title ? 145 : 125;
-  const r = 100;
+  const cy = top + r;
   // Bearing-style angles: 0° at the top, clockwise.
   const at = (deg: number, rr: number): [number, number] => [cx + rr * Math.sin((deg * Math.PI) / 180), cy - rr * Math.cos((deg * Math.PI) / 180)];
   let start = 0;
@@ -655,18 +657,23 @@ function Pie({ spec }: { spec: Extract<DiagramSpec, { type: 'pie' }> }) {
         start += s.angle;
         const [x, y] = at(a0, r);
         const mid = a0 + s.angle / 2;
-        const small = s.angle < 40;
-        const [lx, ly] = at(mid, small ? r + 16 : r * 0.58);
-        const anchor = small ? (Math.sin((mid * Math.PI) / 180) >= 0 ? 'start' : 'end') : 'middle';
+        const sin = Math.sin((mid * Math.PI) / 180);
+        const cos = Math.cos((mid * Math.PI) / 180);
+        const [lx, ly] = at(mid, r + 12);
+        const anchor = Math.abs(sin) < 0.25 ? 'middle' : sin > 0 ? 'start' : 'end';
+        // Labels above the circle sit on their baseline; labels below hang down.
+        const dy = cos > 0.5 ? -2 : cos < -0.5 ? 12 : 5;
+        const inside = s.angle >= 28;
+        const [ax, ay] = at(mid, r * 0.6);
         return (
           <g key={i}>
             <line x1={cx} y1={cy} x2={x} y2={y} className="dline" />
-            <text x={lx} y={ly + (s.showAngle && !small ? -3 : 5)} textAnchor={anchor} className="dlabel">
+            <text x={lx} y={ly + dy} textAnchor={anchor} className="dlabel">
               {s.label}
-              {small && s.showAngle ? ` ${s.angle}°` : ''}
+              {s.showAngle && !inside ? ` (${s.angle}°)` : ''}
             </text>
-            {s.showAngle && !small && (
-              <text x={lx} y={ly + 15} textAnchor="middle" className="dtick">
+            {s.showAngle && inside && (
+              <text x={ax} y={ay + 5} textAnchor="middle" className="dlabel" fontSize={13}>
                 {s.angle}°
               </text>
             )}
