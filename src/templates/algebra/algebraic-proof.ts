@@ -11,6 +11,7 @@ import { gcdInt } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
+  tier?: 'KS3' | 'F' | 'H';
   kind: 'consec-int' | 'consec-even' | 'consec-odd' | 'diff-squares' | 'odd-squares' | 'general' | 'odd-square' | 'sum-squares';
   k: number; // number of consecutive terms
   a: number; // (an + b)² − (cn + d)²
@@ -104,7 +105,7 @@ export default defineTemplate<V>({
   calculator: 'non-calc',
 
   generate({ rng, level, tier }) {
-    const base: V = { level, kind: 'general', k: 0, a: 0, b: 0, c: 0, d: 0, g: 0 };
+    const base: V = { level, tier, kind: 'general', k: 0, a: 0, b: 0, c: 0, d: 0, g: 0 };
     if (level === 'foundational') {
       const kind = rng.pick(['consec-int', 'consec-even', 'consec-odd'] as const);
       const k = rng.pick([3, 5]);
@@ -145,7 +146,8 @@ export default defineTemplate<V>({
   render(v) {
     const s = statement(v);
     const marks = v.level === 'foundational' || v.level === 'core' ? 3 : 4;
-    return { stem: [], parts: [single(marks, text(`Prove algebraically that ${s}.`))] };
+    // Proof is Higher only (A6); Foundation students "argue mathematically to show".
+    return { stem: [], parts: [single(marks, text(`${v.tier === 'F' ? 'Show' : 'Prove'} algebraically that ${s}.`))] };
   },
 
   answer(v) {

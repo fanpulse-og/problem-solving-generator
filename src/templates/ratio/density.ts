@@ -53,7 +53,7 @@ export default defineTemplate<V>({
   title: 'Density problems',
   strand: 'Ratio & Proportion',
   subtopic: 'Compound measures & best buys',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'measures',
   styleByLevel: { stretch: 'decide' },

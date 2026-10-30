@@ -1,4 +1,5 @@
 import type { SetOptions } from './engine/generate';
+import { currentSubtopics } from './engine/registry';
 import type { SheetOptions } from './state';
 
 /** A set saved in this browser (localStorage). It holds codes, so it reopens exactly. */
@@ -20,7 +21,9 @@ export function loadSaved(): SavedSet[] {
   try {
     const raw = localStorage.getItem(KEY);
     const list = raw ? (JSON.parse(raw) as SavedSet[]) : [];
-    return Array.isArray(list) ? list.filter((s) => s && typeof s.name === 'string' && Array.isArray(s.codes)) : [];
+    return Array.isArray(list)
+      ? list.filter((s) => s && typeof s.name === 'string' && Array.isArray(s.codes)).map((s) => ({ ...s, options: { ...s.options, subtopics: currentSubtopics(s.options?.subtopics ?? []) } }))
+      : [];
   } catch {
     return []; // storage blocked (private browsing, settings): the app still works, it just can't save
   }

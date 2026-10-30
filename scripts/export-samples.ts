@@ -11,7 +11,7 @@ const replacer = (_k: string, v: unknown) => (v instanceof Q ? { $q: `${v.n}/${v
 
 for (const t of TEMPLATES) {
   const calcs: Calc[] = t.calculator === 'either' ? ['non-calc', 'calc'] : [t.calculator];
-  for (const tier of t.tiers)
+  for (const tier of [...t.tiers, ...(t.formerTiers ?? [])])
     for (const level of t.levels)
       for (const calc of calcs)
         for (let i = 0; i < n; i++) {

@@ -36,7 +36,7 @@ export default defineTemplate<V>({
   title: 'Equations of straight lines',
   strand: 'Algebra',
   subtopic: 'Straight-line graphs',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'multi-step',
   styleByLevel: { core: 'decide' },

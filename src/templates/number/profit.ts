@@ -47,7 +47,7 @@ export default defineTemplate<V>({
   title: 'Profit, loss and pricing',
   strand: 'Number',
   subtopic: 'Measures, time & money',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'multi-step',
   styleByLevel: { core: 'backwards', stretch: 'backwards' },

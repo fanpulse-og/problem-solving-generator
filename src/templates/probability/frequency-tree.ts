@@ -12,6 +12,7 @@ import { Q } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
+  tier?: 'KS3' | 'F' | 'H';
   ctx: number;
   a: number; // group 1 size
   b: number; // group 2 size
@@ -42,20 +43,25 @@ const noun = (c: (typeof CONTEXTS)[number], i: number) => {
 };
 const rel = (c: (typeof CONTEXTS)[number]) => (c.who === 'car' ? 'that' : 'who');
 
+/** Conditional probability (out of one part of the tree) is Higher only (P9). */
+const conditional = (v: V) => v.level === 'stretch' && v.tier === 'H';
+
 export default defineTemplate<V>({
   id: 'prob-frequency-tree',
   title: 'Frequency trees',
   strand: 'Probability',
   subtopic: 'Probability tables',
-  tiers: ['KS3', 'F'],
+  tiers: ['F', 'H'],
+  // Frequency trees are GCSE content, not KS3; old KS3 links still open.
+  formerTiers: ['KS3'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'data',
   styleByLevel: { stretch: 'form-solve' },
   calculator: 'non-calc',
 
-  generate({ rng, level }) {
+  generate({ rng, level, tier }) {
     const ctx = rng.int(0, CONTEXTS.length - 1);
-    const base: V = { level, ctx, a: 0, b: 0, a1: 0, b1: 0, fa: Q.of(0), pa: 0, k: 0 };
+    const base: V = { level, tier, ctx, a: 0, b: 0, a1: 0, b1: 0, fa: Q.of(0), pa: 0, k: 0 };
     if (level === 'core') {
       const fa = rng.pick([Q.of(1, 4), Q.of(3, 8), Q.of(2, 5), Q.of(3, 5), Q.of(1, 3), Q.of(5, 8)]);
       const pa = rng.pick([20, 25, 40, 60, 75, 80]);
@@ -130,7 +136,12 @@ export default defineTemplate<V>({
         text(`The number of ${c.gs[1]} ${rel(c)} ${outcomeVerb(c, 0, true)} is ${v.k} times the number of ${c.gs[0]} ${rel(c)} ${outcomeVerb(c, 1, true)}.`),
         text(`Altogether, ${v.a1 + v.b1} ${outcomeVerb(c, 0, true)}.`),
       ],
-      parts: [part('a', 3, text('Complete the frequency tree.'), tree), part('b', 2, text(`A ${c.who} ${rel(c)} ${outcomeVerb(c, 0, false)} is picked at random.`), text(`Find the probability that this ${c.who} is ${noun(c, 1)}.`))],
+      parts: [
+        part('a', 3, text('Complete the frequency tree.'), tree),
+        conditional(v)
+          ? part('b', 2, text(`A ${c.who} ${rel(c)} ${outcomeVerb(c, 0, false)} is picked at random.`), text(`Find the probability that this ${c.who} is ${noun(c, 1)}.`))
+          : part('b', 2, text(`One of the ${N} is picked at random.`), text(`Find the probability that this ${c.who} is ${noun(c, 1)} ${rel(c)} ${outcomeVerb(c, 0, false)}.`)),
+      ],
     };
   },
 
@@ -138,7 +149,7 @@ export default defineTemplate<V>({
     const N = v.a + v.b;
     if (v.level === 'foundational') return [{ text: nodeText(v) }, { text: frac(Q.of(v.a - v.a1, N)) }];
     if (v.level === 'core') return [{ text: nodeText(v) }, { text: frac(Q.of(v.a1 + v.b1, N)) }];
-    return [{ text: nodeText(v) }, { text: frac(Q.of(v.b1, v.a1 + v.b1)) }];
+    return [{ text: nodeText(v) }, { text: frac(Q.of(v.b1, conditional(v) ? v.a1 + v.b1 : N)) }];
   },
 
   markScheme(v) {
@@ -170,7 +181,7 @@ export default defineTemplate<V>({
         step('M1', `${c.gs[0]} ${c.o[1]} = x: ${v.a} ${MINUS} x + ${v.k}x = ${v.a1 + v.b1}, so x = ${v.a - v.a1}`, `Let x be the ${c.gs[0]} who ${outcomeVerb(c, 1, true)}; then ${v.k}x of the ${c.gs[1]} ${outcomeVerb(c, 0, true)}.`),
         step('A1', nodeText(v), 'Check every pair of branches adds up.'),
       ],
-      [step('M1', `$\\frac{${v.b1}}{${v.a1 + v.b1}}$`, `Only look at the ${v.a1 + v.b1} who ${outcomeVerb(c, 0, true)}: that is the new total.`), step('A1', frac(Q.of(v.b1, v.a1 + v.b1)), 'Simplify if you can.')],
+      conditional(v) ? [step('M1', `$\\frac{${v.b1}}{${v.a1 + v.b1}}$`, `Only look at the ${v.a1 + v.b1} who ${outcomeVerb(c, 0, true)}: that is the new total.`), step('A1', frac(Q.of(v.b1, v.a1 + v.b1)), 'Simplify if you can.')] : [step('M1', `$\\frac{${v.b1}}{${N}}$`, `Out of EVERYONE (${N}): one branch of the tree.`), step('A1', frac(Q.of(v.b1, N)), 'Simplify if you can.')],
     ];
   },
 
@@ -185,7 +196,7 @@ export default defineTemplate<V>({
     if (v.level === 'foundational' && (A1 !== v.a1 || A !== v.a || B2 !== v.b - v.b1)) p.push('given facts');
     if (v.level === 'core' && (!v.fa.mul(N).eq(A) || A1 * 100 !== A * v.pa || B1 !== v.b1)) p.push('given facts');
     if (v.level === 'stretch' && (A !== v.a || B1 !== v.k * A2 || A1 + B1 !== v.a1 + v.b1)) p.push('given facts');
-    const want = v.level === 'foundational' ? Q.of(A2, N) : v.level === 'core' ? Q.of(A1 + B1, N) : Q.of(B1, A1 + B1);
+    const want = v.level === 'foundational' ? Q.of(A2, N) : v.level === 'core' ? Q.of(A1 + B1, N) : conditional(v) ? Q.of(B1, A1 + B1) : Q.of(B1, N);
     if (answers[1].text !== frac(want)) p.push('probability');
     return p;
   },

@@ -72,7 +72,8 @@ function lint(q: Question): string[] {
 for (const t of TEMPLATES) {
   describe(t.id, () => {
     const calcs: Calc[] = t.calculator === 'either' ? ['non-calc', 'calc'] : [t.calculator];
-    for (const tier of t.tiers as Tier[]) {
+    // Former tiers too: old links with them must still open to a valid question.
+    for (const tier of [...t.tiers, ...(t.formerTiers ?? [])] as Tier[]) {
       for (const level of t.levels as Level[]) {
         for (const calc of calcs) {
           it(`${tier} ${level} ${calc}: ${SEEDS} seeds valid, checked and well-formed`, async () => {

@@ -40,7 +40,7 @@ export default defineTemplate<V>({
   title: 'Travel graphs',
   strand: 'Algebra',
   subtopic: 'Straight-line graphs',
-  tiers: ['KS3', 'F'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'data',
   styleByLevel: { core: 'decide', stretch: 'decide' },

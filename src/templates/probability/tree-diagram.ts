@@ -81,7 +81,7 @@ export default defineTemplate<V>({
   id: 'prob-tree-diagram',
   title: 'Probability tree diagrams',
   strand: 'Probability',
-  subtopic: 'Tree diagrams & Venn diagrams',
+  subtopic: 'Tree diagrams',
   tiers: ['F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'multi-step',

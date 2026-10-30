@@ -43,7 +43,7 @@ export default defineTemplate<V>({
   title: 'Ratio with fractions, percentages and changes',
   strand: 'Ratio & Proportion',
   subtopic: 'Sharing in a ratio',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'ratio-reasoning',
   styleByLevel: { stretch: 'form-solve' },

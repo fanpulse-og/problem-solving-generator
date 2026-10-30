@@ -45,7 +45,7 @@ export default defineTemplate<V>({
   title: 'Pie charts',
   strand: 'Statistics',
   subtopic: 'Charts & diagrams',
-  tiers: ['KS3', 'F'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'data',
   styleByLevel: { stretch: 'decide' },

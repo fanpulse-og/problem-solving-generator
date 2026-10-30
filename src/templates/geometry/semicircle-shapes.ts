@@ -27,7 +27,7 @@ export default defineTemplate<V>({
   title: 'Shapes made from squares and semicircles',
   strand: 'Geometry & Measures',
   subtopic: 'Area & perimeter problems',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'geometry-chain',
   calculator: 'calc',

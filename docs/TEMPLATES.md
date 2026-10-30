@@ -11,6 +11,8 @@ Start from [`src/templates/_skeleton.ts`](../src/templates/_skeleton.ts).
 | `id` | Unique kebab-case id, e.g. `ratio-difference`. It appears in share links, so **never rename or reuse one**. |
 | `title`, `strand`, `subtopic` | How the template is listed in the topic picker. |
 | `tiers` | Any of `'KS3'`, `'F'`, `'H'`. KS3 should get easier numbers (check `tier === 'KS3'` in `generate`). |
+| `formerTiers` | Optional. Tiers the template is no longer offered at (see [TIERS.md](TIERS.md)); old links with them still open. |
+| `levelsByTier` | Optional. Levels offered at a tier when the other levels need Higher-only content, e.g. `{ F: ['foundational', 'core'] }`. |
 | `levels` | Any of `'foundational'`, `'core'`, `'stretch'`. Levels should change the **question**, not just the numbers: foundational adds scaffolding parts; core is the paper-style problem; stretch reverses it, adds a step or asks for a decision. |
 | `style`, `styleByLevel` | One of the styles in `src/engine/types.ts` (`STYLES`), optionally different per level. |
 | `calculator` | `'non-calc'`, `'calc'` or `'either'`. With `'either'`, `generate` receives `calc` and must keep non-calculator numbers mental-friendly. |

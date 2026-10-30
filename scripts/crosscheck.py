@@ -639,7 +639,9 @@ def geom_similarity(v, ans, level):
         return nums(ans[0])[0] == round_sf(k, 3), f"k {k}"
     f = F(v["p"], v["q"])
     if level == "foundational":
-        return nums(ans[0])[0] == v["sides"][2] * f and nums(ans[1])[0] == v["areaSmall"] * f * f, "found"
+        # Higher: area of DEF (area factor f²); KS3 and Foundation: perimeter of DEF.
+        second = v["areaSmall"] * f * f if v.get("tier") == "H" else sum(v["sides"]) * f
+        return nums(ans[0])[0] == v["sides"][2] * f and nums(ans[1])[0] == second, "found"
     A1, A2 = v["areaUnit"] * v["p"] ** 2, v["areaUnit"] * v["q"] ** 2
     lf = isqrt_exact(F(A1, A2))
     return nums(ans[0])[0] == v["volSmall"] * lf ** 3, "volume"
@@ -1537,7 +1539,8 @@ def prob_frequency_tree(v, ans, level):
     nodes = f"{g0} {a} ({o0} {a1}, {o1} {a - a1}); {g1} {b} ({o0} {b1}, {o1} {b - b1})"
     got, want_nodes = ans[0], nodes
     N = a + b
-    want = F(a - a1, N) if level == "foundational" else F(a1 + b1, N) if level == "core" else F(b1, a1 + b1)
+    # Higher stretch is conditional (out of everyone with outcome 1); Foundation is out of everyone.
+    want = F(a - a1, N) if level == "foundational" else F(a1 + b1, N) if level == "core" else F(b1, a1 + b1) if v.get("tier") == "H" else F(b1, N)
     return got == want_nodes and frac_of(ans[1]) == want, f"expected {want_nodes}, {want}"
 
 

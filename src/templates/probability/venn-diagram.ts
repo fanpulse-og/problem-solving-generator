@@ -54,7 +54,7 @@ export default defineTemplate<V>({
   id: 'prob-venn-diagram',
   title: 'Venn diagrams and probability',
   strand: 'Probability',
-  subtopic: 'Tree diagrams & Venn diagrams',
+  subtopic: 'Venn diagrams',
   tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'data',

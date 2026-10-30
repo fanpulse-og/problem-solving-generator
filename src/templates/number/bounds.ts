@@ -53,7 +53,9 @@ export default defineTemplate<V>({
   title: 'Upper and lower bounds',
   strand: 'Number',
   subtopic: 'Bounds & accuracy',
-  tiers: ['F', 'H'],
+  tiers: ['H'],
+  // Not in the Foundation specification (calculating with upper and lower bounds is Higher only, N16); old Foundation links still open.
+  formerTiers: ['F'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'decide',
   styleByLevel: { foundational: 'multi-step' },

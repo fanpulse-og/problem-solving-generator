@@ -48,7 +48,9 @@ export default defineTemplate<V>({
   title: 'Direct and inverse proportion',
   strand: 'Ratio & Proportion',
   subtopic: 'Direct & inverse proportion',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
+  // Proportion to powers and roots is Higher only (R13): the stretch is Higher.
+  levelsByTier: { KS3: ['foundational', 'core'], F: ['foundational', 'core'] },
   levels: ['foundational', 'core', 'stretch'],
   style: 'form-solve',
   calculator: 'either',
@@ -64,7 +66,7 @@ export default defineTemplate<V>({
       const x3 = rng.pick([1, 4, 9, 16, 25, 36].filter((x) => x !== xA));
       return { ...base, k: Q.of(k), m, y1, xA, x3 };
     }
-    const kinds: Kind[] = level === 'foundational' || tier === 'F' ? ['x', 'inv'] : ['x2', 'x3', 'sqrt', 'inv', 'inv2', 'invsqrt'];
+    const kinds: Kind[] = level === 'foundational' || tier !== 'H' ? ['x', 'inv'] : ['x2', 'x3', 'sqrt', 'inv', 'inv2', 'invsqrt'];
     const kind = rng.pick(kinds);
     const sq = kind === 'sqrt' || kind === 'invsqrt';
     const pickX = () => (sq ? rng.pick([1, 4, 9, 16, 25, 36, 49, 64, 100]) : rng.int(2, kind === 'x3' ? 5 : 12));

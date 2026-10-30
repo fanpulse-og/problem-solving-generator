@@ -37,7 +37,7 @@ export default defineTemplate<V>({
   title: 'Right-angled trigonometry in context',
   strand: 'Geometry & Measures',
   subtopic: 'Trigonometry',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'geometry-chain',
   styleByLevel: { core: 'decide' },

@@ -27,7 +27,7 @@ export default defineTemplate<V>({
   title: 'Percentage change of a product (area, takings)',
   strand: 'Ratio & Proportion',
   subtopic: 'Percentages',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'multi-step',
   styleByLevel: { stretch: 'backwards' },

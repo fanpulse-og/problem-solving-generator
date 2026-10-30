@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { eligibleTemplates, type SetOptions } from '../engine/generate';
 import { TEMPLATES, subtopicsByStrand } from '../engine/registry';
-import { LEVELS, STRANDS, STYLES, TIERS, type Level, type StyleId } from '../engine/types';
+import { LEVELS, STRANDS, STYLES, TIERS, type Level, type StyleId, type Tier } from '../engine/types';
 
 interface Props {
   options: SetOptions;
@@ -15,8 +15,19 @@ function toggle<T>(list: T[], x: T): T[] {
   return list.includes(x) ? list.filter((y) => y !== x) : [...list, x];
 }
 
+/** Switch tier, dropping any ticked sub-topics (and emptied strands) that the new tier doesn't have. */
+export function withTier(o: SetOptions, tier: Tier): SetOptions {
+  const subs = subtopicsByStrand(tier);
+  const strands = o.strands.filter((s) => (subs.get(s) ?? []).length > 0);
+  const offered = strands.flatMap((s) => subs.get(s) ?? []);
+  const kept = o.subtopics.filter((x) => offered.includes(x));
+  // If none of the chosen sub-topics survive, fall back to every sub-topic in the chosen strands.
+  return { ...o, tier, strands, subtopics: kept.length === offered.length ? [] : kept };
+}
+
 export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: Props) {
-  const subs = useMemo(() => subtopicsByStrand(), []);
+  // Only the sub-topics taught at this tier (Edexcel Foundation / Higher content, KS3 programme of study).
+  const subs = useMemo(() => subtopicsByStrand(o.tier), [o.tier]);
   const available = eligibleTemplates(TEMPLATES, { ...o, styles: [] });
   const stylesInUse = new Set<StyleId>(available.flatMap((t) => [t.style, ...Object.values(t.styleByLevel ?? {})]));
   const matching = eligibleTemplates(TEMPLATES, o).length;
@@ -33,7 +44,7 @@ export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: 
         <legend>Key stage / tier</legend>
         <div className="seg" role="radiogroup" aria-label="Key stage or tier">
           {TIERS.map((t) => (
-            <button type="button" key={t.id} role="radio" aria-checked={o.tier === t.id} className={o.tier === t.id ? 'on' : ''} onClick={() => onChange({ ...o, tier: t.id })}>
+            <button type="button" key={t.id} role="radio" aria-checked={o.tier === t.id} className={o.tier === t.id ? 'on' : ''} onClick={() => onChange(withTier(o, t.id))}>
               {t.label}
             </button>
           ))}

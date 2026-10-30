@@ -138,6 +138,8 @@ export default defineTemplate<V>({
   strand: 'Geometry & Measures',
   subtopic: 'Transformations',
   tiers: ['KS3', 'F', 'H'],
+  // Combined transformations are Higher only (G8).
+  levelsByTier: { KS3: ['foundational', 'core'], F: ['foundational', 'core'] },
   levels: ['foundational', 'core', 'stretch'],
   style: 'geometry-chain',
   calculator: 'non-calc',

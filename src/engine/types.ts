@@ -209,8 +209,19 @@ export interface Template<V = any> {
   title: string;
   strand: Strand;
   subtopic: string;
+  /** Tiers this template is offered at (in the filter and in generated sets). */
   tiers: Tier[];
+  /**
+   * Tiers it used to be offered at but no longer is (the content is outside that
+   * tier's specification). Old links with these tiers still open.
+   */
+  formerTiers?: Tier[];
   levels: Level[];
+  /**
+   * Levels offered at a particular tier, when some levels need content from a
+   * higher tier (e.g. Foundation gets the foundational and core levels only).
+   */
+  levelsByTier?: Partial<Record<Tier, Level[]>>;
   /** Default style, optionally overridden per level. */
   style: StyleId;
   styleByLevel?: Partial<Record<Level, StyleId>>;
@@ -245,6 +256,11 @@ export interface Question {
   scheme: MarkStep[][];
   marks: number;
   key: string;
+}
+
+/** The levels a template offers at this tier. */
+export function levelsFor(t: Template, tier: Tier): Level[] {
+  return t.levelsByTier?.[tier] ?? t.levels;
 }
 
 export function defineTemplate<V>(t: Template<V>): Template<V> {

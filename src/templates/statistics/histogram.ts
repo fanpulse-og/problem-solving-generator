@@ -49,7 +49,7 @@ export default defineTemplate<V>({
   id: 'stats-histogram',
   title: 'Histograms with unequal class widths',
   strand: 'Statistics',
-  subtopic: 'Grouped data & histograms',
+  subtopic: 'Histograms',
   tiers: ['H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'data',

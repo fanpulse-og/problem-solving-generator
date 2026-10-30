@@ -7,6 +7,8 @@ mark schemes.
 - **Build:** choose a tier (KS3, KS4 Foundation, KS4 Higher), topics, difficulty
   (foundational / core / stretch), question style, calculator or non-calculator,
   and how many questions you want. Any question can be regenerated or shared as a link.
+  Topics follow the Edexcel Foundation/Higher specification and the KS3 programme of
+  study (see [docs/TIERS.md](docs/TIERS.md)).
 - **Board:** one question at a time, large enough for a projector. Reveal the
   answer, then the worked solution step by step. Keys: ← → change question,
   A answer, Space next step, R reset.

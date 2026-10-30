@@ -40,7 +40,9 @@ export default defineTemplate<V>({
   title: 'Solving inequalities',
   strand: 'Algebra',
   subtopic: 'Inequalities',
-  tiers: ['KS3', 'F', 'H'],
+  tiers: ['F', 'H'],
+  // Solving inequalities is not in the KS3 programme of study; old KS3 links still open.
+  formerTiers: ['KS3'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'form-solve',
   calculator: 'non-calc',

@@ -58,6 +58,8 @@ export default defineTemplate<V>({
   strand: 'Number',
   subtopic: 'Listing & counting',
   tiers: ['KS3', 'F', 'H'],
+  // The product rule for counting is Higher only (N5): KS3 and Foundation list systematically.
+  levelsByTier: { KS3: ['foundational'], F: ['foundational'] },
   levels: ['foundational', 'core', 'stretch'],
   style: 'multi-step',
   styleByLevel: { stretch: 'backwards' },
@@ -67,7 +69,8 @@ export default defineTemplate<V>({
     const [name] = names(rng, 1);
     const base: V = { level, name, ctx: 0, counts: [], L: 4, rule: 'evenEnd', teams: 0, twice: false };
     if (level === 'foundational') {
-      const counts = [rng.int(2, 6), rng.int(3, 8), rng.int(2, 6)];
+      // KS3 and Foundation list systematically, so keep the numbers small enough to list.
+      const counts = tier === 'H' ? [rng.int(2, 6), rng.int(3, 8), rng.int(2, 6)] : [rng.int(2, 4), rng.int(2, 5), rng.int(2, 4)];
       ensure(new Set(counts).size === 3, 'different numbers of each');
       return { ...base, ctx: rng.int(0, MENUS.length - 1), counts };
     }
@@ -122,7 +125,7 @@ export default defineTemplate<V>({
       const m = MENUS[v.ctx];
       const [a, b, c] = v.counts;
       return [
-        [step('M1', `${a} ${TIMES} ${b} ${TIMES} ${c}`, `Each of the ${a} ${m.a} can go with each of the ${b} ${m.b}, and so on: multiply.`), step('A1', int(a * b * c), 'Every possible combination is counted once.')],
+        [step('M1', `${a} ${TIMES} ${b} ${TIMES} ${c}`, `Each of the ${a} ${m.a} can go with each of the ${b} ${m.b}, and so on: multiply (or list them systematically).`), step('A1', int(a * b * c), 'Every possible combination is counted once.')],
         [step('M1', `${b} ${TIMES} ${a} + ${b} ${TIMES} ${c}`, `Two separate cases: with one of the ${m.a}, or with one of the ${m.c}. Add the cases.`), step('A1', int(b * (a + c)), `Not ${b} × ${a} × ${c}: you only choose one of the two.`)],
       ];
     }

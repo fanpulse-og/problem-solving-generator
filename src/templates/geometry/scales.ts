@@ -24,7 +24,7 @@ export default defineTemplate<V>({
   title: 'Maps and scale drawings',
   strand: 'Geometry & Measures',
   subtopic: 'Measures, time & money',
-  tiers: ['KS3', 'F'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'measures',
   calculator: 'either',

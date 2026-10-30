@@ -39,7 +39,7 @@ export default defineTemplate<V>({
   title: 'Reverse percentages',
   strand: 'Ratio & Proportion',
   subtopic: 'Percentages',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'backwards',
   calculator: 'either',

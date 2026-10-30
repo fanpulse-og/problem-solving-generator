@@ -39,8 +39,10 @@ export default defineTemplate<V>({
   id: 'stats-iqr-compare',
   title: 'Comparing distributions: median and interquartile range',
   strand: 'Statistics',
-  subtopic: 'Grouped data & histograms',
-  tiers: ['F', 'H'],
+  subtopic: 'Cumulative frequency & box plots',
+  tiers: ['H'],
+  // Not in the Foundation specification (quartiles and IQR are Higher only, S4); old Foundation links still open.
+  formerTiers: ['F'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'data',
   styleByLevel: { core: 'decide', stretch: 'decide' },

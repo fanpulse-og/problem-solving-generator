@@ -1,6 +1,6 @@
 import { buildQuestion, supportsCalc } from './generate';
 import { freshSeed } from './rng';
-import type { Question, Template } from './types';
+import { levelsFor, type Question, type Template } from './types';
 
 /**
  * Templates a worked example can use for this set: same tier as the set.
@@ -35,7 +35,8 @@ export function exampleFor(t: Template, set: Question[]): Question | null {
   if (set.length === 0) return null;
   const tier = set[0].tier;
   if (!t.tiers.includes(tier)) return null;
-  const level = t.levels.includes('foundational') ? 'foundational' : t.levels[0];
+  const levels = levelsFor(t, tier);
+  const level = levels.includes('foundational') ? 'foundational' : levels[0];
   const match = set.find((q) => q.template.subtopic === t.subtopic) ?? set[0];
   const calc = supportsCalc(t, match.calc) ? match.calc : t.calculator === 'either' ? 'non-calc' : t.calculator;
   const keys = new Set(set.map((q) => q.key));

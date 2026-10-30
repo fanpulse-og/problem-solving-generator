@@ -36,7 +36,7 @@ export default defineTemplate<V>({
   id: 'stats-grouped-mean',
   title: 'Estimating the mean from grouped data',
   strand: 'Statistics',
-  subtopic: 'Grouped data & histograms',
+  subtopic: 'Grouped data',
   tiers: ['F', 'H'],
   levels: ['foundational', 'core', 'stretch'],
   style: 'data',

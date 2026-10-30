@@ -2,7 +2,7 @@ import { Reject } from './format';
 import { lineIssues } from './arithmetic';
 import { Rng, freshSeed } from './rng';
 import type { Calc, Level, Question, StyleId, Strand, Template, Tier } from './types';
-import { LEVELS } from './types';
+import { LEVELS, levelsFor } from './types';
 
 // Raising this only affects codes that used to fail: earlier attempts, and so existing questions, are unchanged.
 const MAX_ATTEMPTS = 500;
@@ -34,7 +34,7 @@ export function supportsCalc(t: Template, calc: Calc): boolean {
  */
 export function buildQuestion(t: Template, level: Level, tier: Tier, calc: Calc, seed: string): Question {
   if (!t.levels.includes(level)) throw new Error(`${t.id} has no level ${level}`);
-  if (!t.tiers.includes(tier)) throw new Error(`${t.id} has no tier ${tier}`);
+  if (!t.tiers.includes(tier) && !t.formerTiers?.includes(tier)) throw new Error(`${t.id} has no tier ${tier}`);
   if (!supportsCalc(t, calc)) throw new Error(`${t.id} does not support ${calc}`);
   const code = questionCode(t.id, level, tier, calc, seed);
   let lastReason = '';
@@ -104,7 +104,7 @@ export function eligibleTemplates(all: Template[], o: Omit<SetOptions, 'count'>,
       t.tiers.includes(o.tier) &&
       (o.strands.length === 0 || o.strands.includes(t.strand)) &&
       (o.subtopics.length === 0 || o.subtopics.includes(t.subtopic)) &&
-      (level ? t.levels.includes(level) : o.levels.some((l) => t.levels.includes(l))) &&
+      (level ? levelsFor(t, o.tier).includes(level) : o.levels.some((l) => levelsFor(t, o.tier).includes(l))) &&
       (o.styles.length === 0 ||
         (level
           ? o.styles.includes(t.styleByLevel?.[level] ?? t.style)

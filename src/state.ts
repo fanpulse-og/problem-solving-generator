@@ -1,5 +1,5 @@
 import { buildQuestion, parseCode, type SetOptions } from './engine/generate';
-import { templateById } from './engine/registry';
+import { currentSubtopics, templateById } from './engine/registry';
 import type { Question } from './engine/types';
 
 export type View = 'build' | 'board' | 'worksheet';
@@ -62,6 +62,7 @@ export function readHash(hash = location.hash): UrlState {
   if (p.has('tier')) options.tier = p.get('tier') as SetOptions['tier'];
   if (p.has('strands')) options.strands = list('strands') as SetOptions['strands'];
   if (p.has('topics')) options.subtopics = list('topics');
+  options.subtopics = currentSubtopics(options.subtopics);
   if (p.has('levels')) options.levels = list('levels') as SetOptions['levels'];
   if (p.has('styles')) options.styles = list('styles') as SetOptions['styles'];
   if (p.has('calc')) options.calc = p.get('calc') as SetOptions['calc'];

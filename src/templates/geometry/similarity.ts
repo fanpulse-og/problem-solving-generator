@@ -10,6 +10,7 @@ import { Q } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
+  tier?: 'KS3' | 'F' | 'H';
   // foundational: triangle ABC ~ DEF with scale factor p/q
   p: number;
   q: number;
@@ -37,19 +38,25 @@ const texOf = (q: Q) => (q.terminatesWithin(6) ? dec(q) : fracTex(q));
 
 const k = (r: number) => (1 - Math.pow(1 - r / 100, 2 / 3)) * 100;
 
+/** Area scale factors are Higher only (G19): KS3 and Foundation find the perimeter instead. */
+const areaPart = (v: V) => v.tier === 'H';
+const perimeter = (v: V) => v.sides[0] + v.sides[1] + v.sides[2];
+
 export default defineTemplate<V>({
   id: 'geom-similarity',
-  title: 'Similar shapes: length, area and volume',
+  title: 'Similar shapes',
   strand: 'Geometry & Measures',
   subtopic: 'Similarity',
-  tiers: ['F', 'H'],
+  tiers: ['KS3', 'F', 'H'],
+  // Area and volume scale factors are Higher only (G19): KS3 and Foundation work with lengths.
+  levelsByTier: { KS3: ['foundational'], F: ['foundational'] },
   levels: ['foundational', 'core', 'stretch'],
   style: 'multi-step',
   styleByLevel: { stretch: 'backwards' },
   calculator: 'calc',
 
-  generate({ rng, level }) {
-    const base: V = { level, p: 1, q: 1, sides: [0, 0, 0], areaSmall: 0, areaUnit: 0, volSmall: 0, thing: rng.pick(THINGS), r: 0 };
+  generate({ rng, level, tier }) {
+    const base: V = { level, tier, p: 1, q: 1, sides: [0, 0, 0], areaSmall: 0, areaUnit: 0, volSmall: 0, thing: rng.pick(THINGS), r: 0 };
     if (level === 'stretch') {
       const r = rng.int(10, 60);
       ensure(!roundFloatSf(k(r), 3).endsWith('.0'), 'avoid answers like 20.0');
@@ -115,7 +122,7 @@ export default defineTemplate<V>({
         ],
         parts: [
           part('a', 2, text('Work out the value of $x$')),
-          part('b', 2, text(`The area of triangle ABC is ${v.areaSmall} cm²`), text('Work out the area of triangle DEF.')),
+          areaPart(v) ? part('b', 2, text(`The area of triangle ABC is ${v.areaSmall} cm²`), text('Work out the area of triangle DEF.')) : part('b', 2, text('Work out the perimeter of triangle DEF.')),
         ],
       };
     }
@@ -129,7 +136,7 @@ export default defineTemplate<V>({
   answer(v) {
     if (v.level === 'stretch') return [{ text: `$k$ = ${roundFloatSf(k(v.r), 3)}` }];
     const f = Q.of(v.p, v.q);
-    if (v.level === 'foundational') return [{ text: `$x$ = ${dec(f.mul(v.sides[2]))}` }, { text: `${dec(f.mul(f).mul(v.areaSmall))} cm²` }];
+    if (v.level === 'foundational') return [{ text: `$x$ = ${dec(f.mul(v.sides[2]))}` }, { text: areaPart(v) ? `${dec(f.mul(f).mul(v.areaSmall))} cm²` : `${dec(f.mul(perimeter(v)))} cm` }];
     return [{ text: `${int(f.mul(f).mul(f).mul(v.volSmall).toInt())} cm³` }];
   },
 
@@ -150,10 +157,13 @@ export default defineTemplate<V>({
       ];
     }
     if (v.level === 'foundational') {
-      const [a, , c] = v.sides;
+      const [a, b, c] = v.sides;
       return [
         [step('M1', `Scale factor = ${int((a * v.p) / v.q)} ${DIV} ${a} = ${show(f)}`, 'Divide a pair of matching sides: AB matches DE.'), step('A1', `$x$ = ${c} × ${show(f)} = ${dec(f.mul(c))}`, 'EF matches BC.')],
-        [step('M1', `Area scale factor = ${show(f)}² = ${show(f.mul(f))}`, 'Areas scale by the square of the length factor.'), step('A1', `${v.areaSmall} × ${show(f.mul(f))} = ${dec(f.mul(f).mul(v.areaSmall))} cm²`, 'Not just × the length factor!')],
+        areaPart(v) ? [step('M1', `Area scale factor = ${show(f)}² = ${show(f.mul(f))}`, 'Areas scale by the square of the length factor.'), step('A1', `${v.areaSmall} × ${show(f.mul(f))} = ${dec(f.mul(f).mul(v.areaSmall))} cm²`, 'Not just × the length factor!')] : [
+          step('M1', `DF = ${b} × ${show(f)} = ${dec(f.mul(b))}`, 'DF matches AC. You already have DE and EF.'),
+          step('A1', `${int((a * v.p) / v.q)} + ${dec(f.mul(c))} + ${dec(f.mul(b))} = ${dec(f.mul(perimeter(v)))} cm`, 'Add all three sides of DEF (or ABC’s perimeter × the scale factor).'),
+        ],
       ];
     }
     const A1 = v.areaUnit * v.p * v.p;
@@ -182,7 +192,12 @@ export default defineTemplate<V>({
       let found: Q | null = null;
       for (let a = 1; a <= 20; a++) for (let b = 1; b <= 20; b++) if (Q.of(a * a, b * b).eq(Q.of(A1, A2))) found = Q.of(a, b);
       if (!found || answers[0].text !== `${int(found.mul(found).mul(found).mul(v.volSmall).toInt())} cm³`) p.push('volume');
-    } else if (!Q.of(v.p * v.sides[2], v.q).eq(Q.of(dec(Q.of(v.p * v.sides[2], v.q))))) p.push('x');
+    } else {
+      if (!Q.of(v.p * v.sides[2], v.q).eq(Q.of(dec(Q.of(v.p * v.sides[2], v.q))))) p.push('x');
+      // Perimeter by adding the three enlarged sides one at a time.
+      const sum = v.sides.reduce((t, x) => t.add(Q.of(x * v.p, v.q)), Q.of(0));
+      if (!areaPart(v) && answers[1].text !== `${dec(sum)} cm`) p.push('perimeter');
+    }
     return p;
   },
 
