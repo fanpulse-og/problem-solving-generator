@@ -6,7 +6,7 @@ import { pickStrand, pickSubtopic, strandState, withTier } from '../src/componen
 import { DEFAULT_OPTIONS, questionFromCode, readHash } from '../src/state';
 
 // Content that is Higher only in the Edexcel GCSE (9–1) specification (bold, or Higher-only references).
-const HIGHER_ONLY = ['alg-completing-square', 'alg-quadratic-area', 'alg-iteration', 'alg-circles-lines', 'geom-circle-theorems', 'geom-pythagoras-3d', 'geom-sine-cosine-rule', 'geom-vectors', 'num-recurring-decimals', 'num-index-equations', 'num-bounds', 'stats-cumulative-frequency', 'stats-histogram', 'stats-iqr-compare'];
+const HIGHER_ONLY = ['alg-completing-square', 'alg-quadratic-area', 'alg-iteration', 'alg-circles-lines', 'geom-circle-theorems', 'geom-pythagoras-3d', 'geom-sine-cosine-rule', 'geom-vectors', 'num-recurring-decimals', 'num-index-equations', 'num-bounds', 'stats-cumulative-frequency', 'stats-histogram', 'stats-iqr-compare', 'num-surds', 'alg-functions', 'alg-quadratic-sequences'];
 // Higher-only levels of templates that are otherwise Foundation.
 const HIGHER_LEVELS: [string, string][] = [
   ['num-counting', 'core'],
@@ -38,6 +38,8 @@ describe('tiers follow the specification', () => {
 
   it('KS3 is limited to the KS3 programme of study', () => {
     for (const id of NOT_KS3) expect(templateById(id)!.tiers, id).not.toContain('KS3');
+    // Multiplying probabilities of independent events is GCSE content.
+    expect(levelsFor(templateById('prob-relative-frequency')!, 'KS3')).not.toContain('stretch');
   });
 
   it('Foundation sets never use a Higher-only level', () => {

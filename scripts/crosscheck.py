@@ -1618,6 +1618,182 @@ def alg_iteration(v, ans, level):
         n += 1
     return nums(ans[0])[0] == n and nums(ans[1])[0] == round_dp(L, 2), f"expected {n}, {float(L):.3f}"
 
+
+# ---------------------------------------------------------------- batch 7
+
+
+def nums7(text):
+    """nums(), with Edexcel thousands spaces (non-breaking) removed first."""
+    return nums(text.replace("\xa0", ""))
+
+
+def pence_of(text):
+    return nums7(text)[0] * 100
+
+
+def num_error_intervals(v, ans, level):
+    if level == "foundational":
+        val, u, t = q(v["value"]), q(v["unit"]), q(v["trunc"])
+        lo, hi = nums7(ans[0])[0], nums7(ans[0])[1]
+        tlo, thi = nums7(ans[1])[0], nums7(ans[1])[1]
+        return (lo, hi, tlo, thi) == (val - u / 2, val + u / 2, t, t + F(1, 10)), f"{val} ± {u / 2}"
+    if level == "core":
+        c, u = v["count"], v["unitN"]
+        ok = [n for n in range(c - u, c + u + 1) if (n + u // 2) // u * u == c]
+        got = [int(a.replace("\xa0", "")) for a in ans[:2]]
+        m = q(v["value"])
+        return got == [ok[0], ok[-1]] and ans[2].startswith("No") and nums7(ans[2])[:2] == [m + F(5, 100), m + F(45, 1000)], f"{ok[0]}..{ok[-1]}"
+    (s1, s2), (a, b) = v["s"], v["ab"]
+    want = [n for n in range(0, 100000) if int(Decimal(n / s1).quantize(0, ROUND_HALF_UP)) * s1 == a and int(Decimal(n / s2).quantize(0, ROUND_HALF_UP)) * s2 == b]
+    return ans[0] == ", ".join(map(str, want)), f"{want}"
+
+
+def num_hcf_problems(v, ans, level):
+    if level == "stretch":
+        P = [2, 3, 5, 7]
+        A = math.prod(p ** k for p, k in zip(P, v["ea"]))
+        B = math.prod(p ** k for p, k in zip(P, v["eb"]))
+        def val(t):
+            return math.prod(int(b) ** int(e or 1) for b, e in re.findall(r"(\d+)(?:\^\{(\d+)\})?", t.replace("$", "")))
+        return val(ans[0]) == math.gcd(A, B) and val(ans[1]) == A * B // math.gcd(A, B), f"{math.gcd(A, B)}"
+    g = math.gcd(*v["nums"])
+    want = g if level == "foundational" else sum(n // g for n in v["nums"])
+    return ans[0] == str(want), f"{want}"
+
+
+def stats_scatter_graph(v, ans, level):
+    ctx = [(0, 5), (10, 10), (0, 5), (0, 20)][v["ctx"]]
+    x0, ys = ctx
+    pts = v["pts"][:-1] if v["outlier"] else v["pts"]
+    n = len(pts)
+    mx, my = sum(p[0] for p in pts) / n, sum(p[1] for p in pts) / n
+    b = sum((p[0] - mx) * (p[1] - my) for p in pts) / sum((p[0] - mx) ** 2 for p in pts)
+    L = lambda x: q(v["m"]) * (x - x0) + q(v["c"])
+    if level == "foundational":
+        o = v["pts"][-1]
+        est = nums7(ans[2])[0]
+        return (ans[0].startswith("Positive") == (b > 0) and ans[1] == f"({o[0]}, {o[1]})" and est == L(v["x0"]) and abs(float(est) - (my + b * (v["x0"] - mx))) <= 2 * ys), f"LSQ {my + b * (v['x0'] - mx):.1f}"
+    if level == "core":
+        return nums7(ans[0])[0] == v["x0"] and nums7(ans[1])[0] == v["xFar"] > max(p[0] for p in pts), "reverse"
+    return nums7(ans[0])[0] == abs(q(v["m"])) and abs(float(nums7(ans[0])[0]) - abs(b)) <= abs(float(q(v["m"]))) * 0.5 and ans[1].startswith("No"), f"LSQ slope {b:.2f}"
+
+
+def prob_sample_space(v, ans, level):
+    pairs = [(x, y) for x in v["a"] for y in v["b"]]
+    n = len(pairs)
+    if level == "foundational":
+        totals = [x + y for x, y in pairs]
+        counts = {t: totals.count(t) for t in totals}
+        mode = max(counts, key=lambda t: (counts[t], -t))
+        return frac_of(ans[0]) == F(counts[v["target"]], n) and ans[1] == str(mode), f"{counts}"
+    if level == "core":
+        even = sum(1 for x, y in pairs if x * y % 2 == 0)
+        fr = [F(int(a), int(b)) for a, b in re.findall(r"\\frac\{(\d+)\}\{(\d+)\}", ans[0])]
+        winner = v["names"][0] if 2 * even > n else v["names"][1]
+        return ans[0].startswith("No") and 2 * even != n and fr == [F(even, n), F(n - even, n)] and winner in ans[0], f"{even}/{n}"
+    wins = F(sum(1 for x, y in pairs if x + y >= v["target"]), n) * v["plays"]
+    profit = F(v["plays"] * v["costP"]) - wins * v["prizeP"]
+    return pence_of(ans[0]) == profit, f"{profit}p"
+
+
+def alg_shape_expressions(v, ans, level):
+    x = v["x"]
+    if level == "foundational":
+        return ans[0] == f"$x = {x}$" and nums7(ans[1])[0] == (v["a"] * x + v["b"]) * (x + v["d"]), "rectangle"
+    if level == "core":
+        return 6 * x + v["p"] + v["q"] - v["r"] == 4 * (x + v["s"]) and nums7(ans[0])[0] == (x + v["s"]) ** 2, "square"
+    R, S = (2 * x + v["u"]) * (x - v["w"]), (x + v["t"]) ** 2
+    return ("rectangle" if R > S else "square") in ans[0] and nums7(ans[0])[0] == abs(R - S), f"{R} vs {S}"
+
+
+def geom_unit_conversion(v, ans, level):
+    if level == "foundational":
+        return nums7(ans[0])[0] == q(v["m2"]) * 10000 and nums7(ans[1])[0] == F(v["rug"][0] * v["rug"][1], 10000), "units"
+    if level == "core":
+        grams = F(v["lawn"][0], 100) * F(v["lawn"][1], 100) * v["rate"]
+        boxes = math.ceil(grams / v["boxG"])
+        return pence_of(ans[0]) == boxes * v["priceP"], f"{boxes} boxes"
+    l, w, h = q(v["tank"][0]), v["tank"][1], v["tank"][2]
+    mins = l * 100 * w * h / 1000 / v["flow"]
+    hh, mm = divmod(int(mins), 60)
+    got = re.findall(r"(\d+) (hour|minute)", ans[0])
+    total = sum(int(k) * (60 if u == "hour" else 1) for k, u in got)
+    return total == mins, f"{mins} min"
+
+
+def prob_relative_frequency(v, ans, level):
+    if level == "foundational":
+        N = sum(v["freq"])
+        rf = F(v["freq"][v["colour"]], N)
+        return frac_of(ans[0]) == rf and nums7(ans[1])[0] == rf * v["more"], f"{rf}"
+    if level == "core":
+        return ans[0].startswith("Probably not") and nums7(ans[0]) == [F(v["rolls"], 6), v["sixes"]] and F(v["sixes"], v["rolls"]) > F(1, 6) * F(3, 2) and v["rolls"] > v["small"][0] and ans[1].startswith(v["names"][0]), "fair"
+    (n1, r1), (n2, r2) = v["trials"]
+    p = F(r1 + r2, n1 + n2)
+    return frac_of(ans[0]) == p * p, f"{p}²"
+
+
+def num_surds(v, ans, level):
+    def val(t):
+        m = re.search(r"(\d*)\\sqrt\{(\d+)\}", t)
+        return int(m.group(1) or 1) * math.sqrt(int(m.group(2))) if m else float(nums(t)[0])
+    if level == "foundational":
+        side = math.sqrt(v["k"] ** 2 * v["m"])
+        return math.isclose(val(ans[0]), side) and math.isclose(val(ans[1]), 4 * side), "side"
+    if level == "core":
+        a, b = v["a"], v["b"]
+        return nums7(ans[0])[0] == a * a - b and nums7(ans[1])[0] == 4 * a, "area"
+    L = v["k"] * v["m"] / math.sqrt(v["m"])
+    simplest = all(int(i) % (f * f) for t in ans for i in re.findall(r"\\sqrt\{(\d+)\}", t) for f in range(2, 12) if f * f <= int(i))
+    return math.isclose(val(ans[0]), L) and math.isclose(val(ans[1]), math.hypot(L, math.sqrt(v["m"]))) and simplest, "length"
+
+
+def alg_functions(v, ans, level):
+    a, b = v["a"], v["b"]
+    sign = lambda t: -1 if "-" in t or "−" in t else 1
+    if level == "foundational":
+        fk = a * v["k"] + b
+        x = F(v["t"] - b, a)
+        return sign(ans[0]) * nums7(ans[0])[0] == fk and sign(ans[1]) * nums7(ans[1])[0] == x, f"{fk}, {x}"
+    if level == "core":
+        g = v["k"] ** 2 + v["c"]
+        inv_ok = ans[1].replace(" ", "") == f"$f^{{-1}}(x)=\\frac{{x{'-' if b > 0 else '+'}{abs(b)}}}{{{a}}}$"
+        return sign(ans[0]) * nums7(ans[0])[0] == a * g + b and inv_ok, f"{a * g + b}"
+    s = v["s"]
+    want = sorted([F(s - b, a), F(-s - b, a)], reverse=True)
+    got = [(-1 if m.group(1) else 1) * (F(int(m.group(2)), int(m.group(3))) if m.group(2) else F(int(m.group(4)))) for m in re.finditer(r"x = (-?)(?:\\frac\{(\d+)\}\{(\d+)\}|(\d+))", ans[0])]
+    return got == want, f"{want}"
+
+
+def alg_quadratic_sequences(v, ans, level):
+    a, b, c = v["a"], v["b"], v["c"]
+    T = lambda n: a * n * n + b * n + c
+    if level == "foundational":
+        t = [T(n) for n in range(1, 6)]
+        d2 = (t[2] - 2 * t[1] + t[0])
+        A = F(d2, 2)
+        lin = [t[i] - A * (i + 1) ** 2 for i in range(5)]
+        B = lin[1] - lin[0]
+        C = lin[0] - B
+        def poly(A, B, C):
+            out = ""
+            for k, pw in ((A, "n^2"), (B, "n"), (C, "")):
+                if k == 0:
+                    continue
+                body = f"{'' if abs(k) == 1 and pw else abs(k)}{pw}"
+                out += (("-" if k < 0 else "") + body) if not out else (f" {'-' if k < 0 else '+'} {body}")
+            return out
+        return ans[0] == f"${poly(A, B, C)}$", poly(A, B, C)
+    if level == "core":
+        k = next(n for n in range(1, 200) if T(n) >= v["N"])
+        want = f"Yes: it is the {k}th term" if T(k) == v["N"] else f"No: the {k - 1}th term is {T(k - 1)} and the {k}th term is {T(k)}"
+        return ans[0] == want, want
+    t2, t5 = T(2), T(5)
+    # 4a + 2b = t2, 25a + 5b = t5  ->  a = (2 t5 - 5 t2) / 30
+    A = F(2 * t5 - 5 * t2, 30)
+    B = (t2 - 4 * A) / 2
+    return ans[0] == f"$a = {A}$, $b = {B}$", f"a={A}, b={B}"
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -1694,6 +1870,16 @@ CHECKS = {
     "alg-travel-graph": alg_travel_graph,
     "alg-circles-lines": alg_circles_lines,
     "alg-iteration": alg_iteration,
+    "num-error-intervals": num_error_intervals,
+    "num-hcf-problems": num_hcf_problems,
+    "stats-scatter-graph": stats_scatter_graph,
+    "prob-sample-space": prob_sample_space,
+    "alg-shape-expressions": alg_shape_expressions,
+    "geom-unit-conversion": geom_unit_conversion,
+    "prob-relative-frequency": prob_relative_frequency,
+    "num-surds": num_surds,
+    "alg-functions": alg_functions,
+    "alg-quadratic-sequences": alg_quadratic_sequences,
 }
 
 

@@ -105,6 +105,18 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['alg-circles-lines.core.H.nc.p0', ['$7x + 4y - 47 = 0$'], 'radius gradient 4/7 → −7/4 through (5, 3)'],
   ['alg-circles-lines.stretch.H.nc.p0', ['$(-12, -5)$ and $(-5, -12)$'], 'x² + 17x + 60 = 0'],
   ['alg-iteration.stretch.H.c.p0', ['14 minutes', '26.32°C'], 'L = 5 ÷ 0.19'],
+  // Batch 7 (hand-verified)
+  ['num-error-intervals.stretch.F.nc.p0', ['313, 314'], '312.5 ≤ N < 317.5 and 305 ≤ N < 315'],
+  ['num-hcf-problems.core.F.nc.p0', ['19'], 'HCF(12, 48, 54) = 6: 2 + 8 + 9'],
+  ['num-hcf-problems.stretch.H.nc.p0', ['$2 \\times 3$', '$2^{2} \\times 3 \\times 7$'], 'A = 12, B = 42: HCF 6, LCM 84'],
+  ['prob-sample-space.stretch.F.nc.p0', ['£50'], 'P(total ≥ 6) = 3/12; 25 wins × £2 against £100'],
+  ['alg-shape-expressions.stretch.F.nc.p0', ['The rectangle, by 56 cm²'], '6x + 12 − (4x + 12) = 18 → x = 9; 25 × 8 − 12²'],
+  ['geom-unit-conversion.core.F.c.p0', ['£28.65'], '8.7 × 7.5 × 40 = 2610 g → 3 boxes × £9.55'],
+  ['geom-unit-conversion.stretch.F.nc.p0', ['1 hour 17 minutes'], '120 × 110 × 70 = 924 000 cm³ = 924 L ÷ 12'],
+  ['num-surds.stretch.H.nc.p0', ['$3\\sqrt{2}$ cm', '$2\\sqrt{5}$ cm'], '6 ÷ √2 = 3√2; √(18 + 2) = 2√5'],
+  ['alg-functions.stretch.H.nc.p0', ['$x = -\\frac{1}{5}$ or $x = -\\frac{9}{5}$'], '5x + 5 = ±4'],
+  ['alg-quadratic-sequences.foundational.H.nc.p0', ['$3n^2 - 5n + 7$'], '5, 9, 19, 35, 57: second difference 6'],
+  ['alg-quadratic-sequences.stretch.H.nc.p0', ['$a = 4$, $b = 2$'], '4a + 2b = 20, 25a + 5b = 110'],
 ];
 
 describe('golden questions (hand-verified)', () => {

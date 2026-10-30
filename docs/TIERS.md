@@ -19,6 +19,9 @@ Higher includes all Foundation content, so every Foundation template is offered 
 | Circles and lines (`alg-circles-lines`) | A16 |
 | Circle theorems, sine and cosine rules, 3D Pythagoras and trigonometry, vectors | G10, G22–G23, G20 (3D), G25 |
 | Cumulative frequency, histograms, IQR comparisons | S3, S4: box plots, quartiles and IQR |
+| Surds (`num-surds`) | N8: simplifying surds, rationalising denominators |
+| Functions (`alg-functions`) | A7: composite and inverse functions |
+| Quadratic sequences (`alg-quadratic-sequences`) | A25: nth term of a quadratic sequence |
 
 ## Higher-only levels or parts
 
@@ -37,7 +40,7 @@ Higher includes all Foundation content, so every Foundation template is offered 
 
 ## Not in the KS3 programme of study
 
-Tree diagrams, frequency trees, solving inequalities, simultaneous equations, compound interest, calculating with standard form, sectors and arcs, bearings, grouped-data estimates, capture–recapture, pressure, and everything Higher only.
+Tree diagrams, frequency trees, multiplying probabilities of independent events (the relative frequency stretch), solving inequalities, simultaneous equations, compound interest, calculating with standard form, sectors and arcs, bearings, grouped-data estimates, capture–recapture, pressure, and everything Higher only.
 
 KS3 now also includes topics the programme of study lists: reverse percentages and original value, density and exchange rates, right-angled trigonometry, circles and semicircles, the equation of a straight line, percentage profit, and similar triangles (lengths).
 
