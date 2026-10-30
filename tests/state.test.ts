@@ -24,7 +24,7 @@ describe('URL state', () => {
         strands: ['Ratio & Proportion', 'Number'],
         subtopics: ['Fractions, decimals & percentages', 'Sharing in a ratio'],
         levels: ['core', 'stretch'],
-        styles: ['decide', 'backwards'],
+        styles: [],
         calc: 'non-calc',
         count: 15,
         target: 'marks',
@@ -36,6 +36,12 @@ describe('URL state', () => {
       locked: [0],
     };
     expect(readHash(writeHash(s))).toEqual(s);
+  });
+
+  it('links made when there was a style filter open with every style', () => {
+    const s = readHash('#/build?tier=H&styles=decide|backwards');
+    expect(s.options.tier).toBe('H');
+    expect(s.options.styles).toEqual([]);
   });
 
   it('links shared before this change (one base64 "o" blob) still open with their settings', () => {

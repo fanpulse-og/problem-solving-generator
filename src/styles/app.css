@@ -90,6 +90,29 @@ input {
   display: flex;
   gap: 0.25rem;
 }
+.topbar-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+/* Buy me a coffee: a quiet pill, so it never competes with the tabs. */
+a.coffee {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  color: var(--brand-ink);
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+a.coffee:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--brand-ink);
+}
 .tab {
   background: transparent;
   color: var(--brand-ink);
@@ -230,15 +253,21 @@ button.big {
 }
 .check {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* a label that wraps keeps its box on the first line */
   gap: 0.5rem;
   padding: 0.15rem 0;
   cursor: pointer;
 }
-.check input {
+/* Every tick box the same size: fixed, and never squeezed by a long label beside it. */
+input[type='checkbox'] {
   width: 1.05rem;
   height: 1.05rem;
+  margin: 0;
+  flex: none;
   accent-color: var(--brand);
+}
+.check input[type='checkbox'] {
+  margin-top: 0.2em;
 }
 .check.small {
   font-size: 0.9rem;
@@ -466,8 +495,13 @@ details.more .menu > * {
   display: block;
 }
 .qlabel {
-  min-width: 2.6rem;
+  min-width: 1.8rem;
   font-weight: 600;
+}
+/* Sub-part numeral: i), ii) sit just after the letter column. */
+.qlabel.sub {
+  min-width: 1.8rem;
+  font-weight: 500;
 }
 .qpart-body {
   flex: 1;

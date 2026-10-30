@@ -1,3 +1,4 @@
+import { partLabel, splitLabel } from '../engine/labels';
 import type { Block, MarkStep, Question } from '../engine/types';
 import { Diagram } from '../diagrams/Diagram';
 import { MathText } from './Math';
@@ -87,17 +88,23 @@ export function QuestionView({ q, number }: { q: Question; number?: number }) {
         {stem.map((b, i) => (
           <BlockView key={i} block={b} />
         ))}
-        {parts.map((p, i) => (
-          <div key={i} className={single ? 'qpart single' : 'qpart'}>
-            {!single && <div className="qlabel">({p.label})</div>}
-            <div className="qpart-body">
-              {p.blocks.map((b, j) => (
-                <BlockView key={j} block={b} />
-              ))}
-              <div className="qmarks">{marksLabel(p.marks)}</div>
+        {parts.map((p, i) => {
+          const { letter, roman } = splitLabel(p.label ?? '');
+          // The letter shows once: on a plain part, or on the first of its sub-parts.
+          const showLetter = !roman || splitLabel(parts[i - 1]?.label ?? '').letter !== letter;
+          return (
+            <div key={i} className={single ? 'qpart single' : 'qpart'}>
+              {!single && <div className="qlabel">{showLetter ? `${letter})` : ''}</div>}
+              {!single && roman && <div className="qlabel sub">{roman})</div>}
+              <div className="qpart-body">
+                {p.blocks.map((b, j) => (
+                  <BlockView key={j} block={b} />
+                ))}
+                <div className="qmarks">{marksLabel(p.marks)}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -110,7 +117,7 @@ export function AnswerView({ q }: { q: Question }) {
     <div className="answers">
       {q.answers.map((a, i) => (
         <div key={i} className="answer-line">
-          {parts[i].label && <span className="qlabel">({parts[i].label})</span>}
+          {parts[i].label && <span className="qlabel">{partLabel(parts[i].label!)}</span>}
           <MathText text={a.text} />
         </div>
       ))}
@@ -137,7 +144,7 @@ export function MarkScheme({ q, upTo }: { q: Question; upTo?: number }) {
         if (visible.length === 0) return null;
         return (
           <div key={pi} className="scheme-part">
-            {parts[pi].label && <div className="scheme-label">({parts[pi].label})</div>}
+            {parts[pi].label && <div className="scheme-label">{partLabel(parts[pi].label!)}</div>}
             <ol className="scheme-steps">
               {visible.map((s, si) => (
                 <li key={si} className="scheme-step">

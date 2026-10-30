@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { eligibleTemplates, type SetOptions } from '../engine/generate';
 import { TEMPLATES, subtopicsByStrand } from '../engine/registry';
-import { LEVELS, STRANDS, STYLES, TIERS, type Level, type StyleId, type Strand, type Tier } from '../engine/types';
+import { LEVELS, STRANDS, TIERS, type Level, type Strand, type Tier } from '../engine/types';
 
 interface Props {
   options: SetOptions;
@@ -58,8 +58,6 @@ export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: 
   const subs = useMemo(() => subtopicsByStrand(o.tier), [o.tier]);
   // Strands start open when something in them is chosen.
   const [open, setOpen] = useState<Set<string>>(() => new Set(o.strands));
-  const available = eligibleTemplates(TEMPLATES, { ...o, styles: [] });
-  const stylesInUse = new Set<StyleId>(available.flatMap((t) => [t.style, ...Object.values(t.styleByLevel ?? {})]));
   const matching = eligibleTemplates(TEMPLATES, o).length;
 
   return (
@@ -135,19 +133,6 @@ export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: 
             {l.label}
           </label>
         ))}
-      </fieldset>
-
-      <fieldset>
-        <legend>Question style</legend>
-        <p className="hint">Leave all unticked for any style.</p>
-        {(Object.keys(STYLES) as StyleId[])
-          .filter((s) => stylesInUse.has(s))
-          .map((s) => (
-            <label key={s} className="check">
-              <input type="checkbox" checked={o.styles.includes(s)} onChange={() => onChange({ ...o, styles: toggle(o.styles, s) })} />
-              {STYLES[s]}
-            </label>
-          ))}
       </fieldset>
 
       <fieldset>

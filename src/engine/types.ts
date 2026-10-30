@@ -29,15 +29,15 @@ export type Strand = (typeof STRANDS)[number];
 
 /** Question styles seen in the reference papers. */
 export const STYLES = {
-  'multi-step': 'Multi-step “Work out”',
-  decide: 'Decide & justify / Show that',
-  backwards: 'Working backwards',
-  'ratio-reasoning': 'Ratio from a difference / linked ratios',
-  'form-solve': 'Form & solve from context',
-  averages: 'Averages as constraints',
+  'multi-step': 'Multi-step',
+  decide: 'Decide or show',
+  backwards: 'Work backwards',
+  'ratio-reasoning': 'Ratio reasoning',
+  'form-solve': 'Form and solve',
+  averages: 'Averages puzzle',
   'geometry-chain': 'Geometry chain',
-  measures: 'Measures & real-world rounding',
-  data: 'Data then reason',
+  measures: 'Real-world measures',
+  data: 'Interpret data',
 } as const;
 export type StyleId = keyof typeof STYLES;
 

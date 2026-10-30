@@ -84,7 +84,7 @@ export function BuilderView({ options, questions, locked, edit, saved, onOptions
                     <span className="badge">{q.calc === 'calc' ? 'Calculator' : 'Non-calculator'}</span>
                     {isLocked && <span className="badge lock-badge">Locked</span>}
                     <span className="meta-text">
-                      {q.template.strand} · {q.template.title} · {STYLES[q.style]}
+                      {q.template.subtopic} · {STYLES[q.style]}
                     </span>
                     <span className="meta-marks">{q.marks} marks</span>
                   </header>

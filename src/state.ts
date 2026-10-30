@@ -64,7 +64,8 @@ export function readHash(hash = location.hash): UrlState {
   if (p.has('topics')) options.subtopics = list('topics');
   options.subtopics = currentSubtopics(options.subtopics);
   if (p.has('levels')) options.levels = list('levels') as SetOptions['levels'];
-  if (p.has('styles')) options.styles = list('styles') as SetOptions['styles'];
+  // There is no style filter any more: older links that chose styles open with every style.
+  options.styles = [];
   if (p.has('calc')) options.calc = p.get('calc') as SetOptions['calc'];
   if (p.has('n')) options.count = Number(p.get('n')) || DEFAULT_OPTIONS.count;
   if (p.get('target') === 'marks') options.target = 'marks';
@@ -95,7 +96,6 @@ export function writeHash(s: UrlState): string {
   if (!sameList(o.strands, d.strands)) p.set('strands', o.strands.join(LIST));
   if (!sameList(o.subtopics, d.subtopics)) p.set('topics', o.subtopics.join(LIST));
   if (!sameList(o.levels, d.levels)) p.set('levels', o.levels.join(LIST));
-  if (!sameList(o.styles, d.styles)) p.set('styles', o.styles.join(LIST));
   if (o.calc !== d.calc) p.set('calc', o.calc);
   if (o.count !== d.count) p.set('n', String(o.count));
   if (o.target === 'marks') p.set('target', 'marks');

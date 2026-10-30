@@ -175,13 +175,18 @@ export default function App() {
           </span>
           <span>Problem Solving Generator</span>
         </div>
-        <nav aria-label="Views" className="tabs">
-          {tabs.map(([id, label]) => (
-            <button key={id} type="button" className={view === id ? 'tab on' : 'tab'} aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>
-              {label}
-            </button>
-          ))}
-        </nav>
+        <div className="topbar-right">
+          <nav aria-label="Views" className="tabs">
+            {tabs.map(([id, label]) => (
+              <button key={id} type="button" className={view === id ? 'tab on' : 'tab'} aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>
+                {label}
+              </button>
+            ))}
+          </nav>
+          <a className="coffee" href="https://buymeacoffee.com/zainhusayn" target="_blank" rel="noopener noreferrer">
+            <span aria-hidden="true">☕</span> Buy me a coffee
+          </a>
+        </div>
       </header>
       <main id="main">
         {view === 'build' && (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { partLabel } from '../engine/labels';
 import type { Block, Question } from '../engine/types';
 import { DEFAULT_OPTIONS, shareLink } from '../state';
 
@@ -19,10 +20,10 @@ const blockText = (b: Block): string =>
 /** The question, its link, answer and mark scheme as plain text, ready for an issue or an email. */
 export function problemReport(q: Question): { title: string; body: string } {
   const link = shareLink('board', [q.code], DEFAULT_OPTIONS);
-  const question = [...q.content.stem.map(blockText), ...q.content.parts.map((p) => `${p.label ? `(${p.label}) ` : ''}${p.blocks.map(blockText).join(' ')} [${p.marks}]`)].join('\n');
-  const answers = q.answers.map((a, i) => `${q.content.parts[i]?.label ? `(${q.content.parts[i].label}) ` : ''}${a.text}`).join('\n');
+  const question = [...q.content.stem.map(blockText), ...q.content.parts.map((p) => `${p.label ? `${partLabel(p.label)} ` : ''}${p.blocks.map(blockText).join(' ')} [${p.marks}]`)].join('\n');
+  const answers = q.answers.map((a, i) => `${q.content.parts[i]?.label ? `${partLabel(q.content.parts[i].label!)} ` : ''}${a.text}`).join('\n');
   const scheme = q.scheme
-    .map((steps, i) => `${q.content.parts[i]?.label ? `(${q.content.parts[i].label})\n` : ''}${steps.map((s) => `${s.code}  ${s.working}  (${s.note})`).join('\n')}`)
+    .map((steps, i) => `${q.content.parts[i]?.label ? `${partLabel(q.content.parts[i].label!)}\n` : ''}${steps.map((s) => `${s.code}  ${s.working}  (${s.note})`).join('\n')}`)
     .join('\n');
   const body = [
     '**What is wrong?**',
