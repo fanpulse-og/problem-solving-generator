@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SetOptions } from '../engine/generate';
 import { LEVELS, STYLES, type Question } from '../engine/types';
 import { Controls } from '../components/Controls';
@@ -40,6 +40,13 @@ export function BuilderView({ options, questions, locked, edit, saved, onOptions
   const marks = questions.reduce((s, q) => s + q.marks, 0);
   const nLocked = questions.filter((q) => locked.has(q.code)).length;
 
+  // Close an open "More" menu when clicking anywhere outside it.
+  useEffect(() => {
+    const close = (e: MouseEvent) => document.querySelectorAll('details.more[open]').forEach((d) => !d.contains(e.target as Node) && d.removeAttribute('open'));
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, []);
+
   const copy = async (q: Question) => {
     const url = shareLink('board', [q.code], options);
     try {
@@ -71,7 +78,7 @@ export function BuilderView({ options, questions, locked, edit, saved, onOptions
             {questions.map((q, i) => {
               const isLocked = locked.has(q.code);
               return (
-                <article key={q.code} className={`qcard-outer${isLocked ? ' locked' : ''}`}>
+                <article key={q.code} className={`qcard-outer accent-${i % 6}${isLocked ? ' locked' : ''}`}>
                   <header className="qmeta">
                     <span className={`badge level-${q.level}`}>{LEVELS.find((l) => l.id === q.level)!.label}</span>
                     <span className="badge">{q.calc === 'calc' ? 'Calculator' : 'Non-calculator'}</span>
@@ -95,10 +102,15 @@ export function BuilderView({ options, questions, locked, edit, saved, onOptions
                     <button type="button" onClick={() => onPresent(i)}>
                       Show on board
                     </button>
-                    <button type="button" onClick={() => copy(q)}>
-                      {copied === q.code ? 'Link copied' : 'Copy link'}
-                    </button>
-                    <ReportProblem q={q} />
+                    <details className="more">
+                      <summary>More</summary>
+                      <div className="menu">
+                        <button type="button" onClick={() => copy(q)}>
+                          {copied === q.code ? 'Link copied' : 'Copy link'}
+                        </button>
+                        <ReportProblem q={q} />
+                      </div>
+                    </details>
                     <span className="order-actions">
                       <button type="button" onClick={() => edit.move(i, -1)} disabled={i === 0} aria-label={`Move question ${i + 1} up`} title="Move up">
                         ↑

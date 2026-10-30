@@ -2,7 +2,7 @@
   --ink: #1b1f27;
   --ink-soft: #4a5263;
   --paper: #ffffff;
-  --bg: #f4f5f8;
+  --bg: #f5f6f9;
   --line: #d5d9e2;
   --brand: #1d3a6b;
   --brand-ink: #ffffff;
@@ -13,7 +13,8 @@
   --found: #2e7d4f;
   --core: #1d5fa8;
   --stretch: #8a3fa0;
-  --radius: 8px;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(27, 31, 39, 0.04), 0 2px 8px rgba(27, 31, 39, 0.04);
   --serif: 'STIX Two Text', 'Times New Roman', serif;
   --sans: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --handfont: 'Kalam', 'Comic Sans MS', cursive;
@@ -169,7 +170,8 @@ button.big {
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 1rem;
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.1rem 0.6rem;
   align-self: start;
   position: sticky;
   top: 1rem;
@@ -184,13 +186,20 @@ button.big {
 }
 .controls fieldset {
   border: 0;
-  padding: 0;
-  margin: 0 0 1.1rem;
+  padding: 0 0 1rem;
+  margin: 0 0 1rem;
+  border-bottom: 1px solid #eceef3;
+}
+.controls fieldset:last-of-type {
+  border-bottom: 0;
 }
 .controls legend {
   font-weight: 650;
-  margin-bottom: 0.35rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 .hint {
   color: var(--ink-soft);
@@ -234,8 +243,70 @@ button.big {
 .check.small {
   font-size: 0.9rem;
 }
+/* Topics: one dropdown per strand */
+.strand-list {
+  display: grid;
+  gap: 0.3rem;
+}
+details.strand {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+details.strand.all,
+details.strand.some {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+details.strand > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.95rem;
+}
+details.strand > summary::-webkit-details-marker {
+  display: none;
+}
+details.strand > summary::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--ink-soft);
+  border-bottom: 2px solid var(--ink-soft);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+  flex: none;
+}
+details.strand[open] > summary::before {
+  transform: rotate(45deg);
+}
+.strand-name {
+  flex: 1;
+}
+.strand-state {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--brand);
+}
 .subtopics {
-  margin-left: 1.55rem;
+  padding: 0.15rem 0.65rem 0.5rem 1.6rem;
+}
+.subtopics .all-row {
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.15rem;
+}
+button.link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--brand);
+  text-decoration: underline;
+  font-size: inherit;
 }
 .soon {
   color: var(--ink-soft);
@@ -267,11 +338,21 @@ button.big {
   margin-top: 0;
 }
 .qcard-outer {
+  --accent: var(--line);
   background: var(--paper);
-  border: 1px solid var(--line);
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
   border-radius: var(--radius);
-  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+  padding: 1rem 1.25rem 0.85rem;
 }
+/* A faint colour per question, so neighbouring questions are easy to tell apart. */
+.qcard-outer.accent-0 { --accent: #b9cdea; }
+.qcard-outer.accent-1 { --accent: #bfe0c9; }
+.qcard-outer.accent-2 { --accent: #f0d6a8; }
+.qcard-outer.accent-3 { --accent: #dcc4e6; }
+.qcard-outer.accent-4 { --accent: #f0c2c2; }
+.qcard-outer.accent-5 { --accent: #b5dedd; }
 .qmeta {
   display: flex;
   flex-wrap: wrap;
@@ -279,7 +360,7 @@ button.big {
   gap: 0.5rem;
   font-size: 0.82rem;
   color: var(--ink-soft);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid #eceef3;
   padding-bottom: 0.6rem;
   margin-bottom: 0.8rem;
 }
@@ -309,8 +390,52 @@ button.big {
 .qactions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.4rem;
   margin-top: 0.9rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid #eceef3;
+}
+.qactions button,
+.qactions a.button-link,
+.qactions summary {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.7rem;
+}
+/* "More": less-used actions in a small menu */
+details.more {
+  position: relative;
+}
+details.more > summary {
+  list-style: none;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+}
+details.more > summary::-webkit-details-marker {
+  display: none;
+}
+details.more > summary:hover {
+  border-color: var(--brand);
+}
+details.more .menu {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  left: 0;
+  display: grid;
+  gap: 0.25rem;
+  min-width: 12rem;
+  padding: 0.4rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(27, 31, 39, 0.12);
+}
+details.more .menu > * {
+  text-align: left;
+  border-color: transparent;
 }
 
 /* Questions (shared by every view) */
@@ -761,8 +886,7 @@ button.big {
   font-size: 0.9rem;
 }
 .qcard-outer.locked {
-  border-color: var(--brand);
-  box-shadow: inset 4px 0 0 var(--brand);
+  --accent: var(--brand);
 }
 .badge.lock-badge {
   background: var(--brand);

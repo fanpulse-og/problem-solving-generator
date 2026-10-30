@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildSet, eligibleTemplates } from '../src/engine/generate';
 import { TEMPLATES, subtopicsByStrand, templateById } from '../src/engine/registry';
 import { levelsFor, type Strand, type Tier } from '../src/engine/types';
-import { withTier } from '../src/components/Controls';
+import { pickStrand, pickSubtopic, strandState, withTier } from '../src/components/Controls';
 import { DEFAULT_OPTIONS, questionFromCode, readHash } from '../src/state';
 
 // Content that is Higher only in the Edexcel GCSE (9–1) specification (bold, or Higher-only references).
@@ -96,5 +96,32 @@ describe('renamed sub-topics', () => {
     const o = readHash('#/build?tier=H&strands=Probability&topics=Tree diagrams %26 Venn diagrams');
     expect(o.options.subtopics).toEqual(['Tree diagrams', 'Venn diagrams']);
     expect(eligibleTemplates(TEMPLATES, o.options).map((t) => t.id).sort()).toEqual(['prob-tree-diagram', 'prob-venn-diagram']);
+  });
+});
+
+describe('topic dropdowns', () => {
+  const alg = [...subtopicsByStrand('F').get('Algebra')!];
+  const num = [...subtopicsByStrand('F').get('Number')!];
+  const ids = (o: typeof DEFAULT_OPTIONS) => new Set(eligibleTemplates(TEMPLATES, o).map((t) => t.subtopic));
+
+  it('ticking one sub-topic from nothing chooses just that sub-topic', () => {
+    const o = pickSubtopic(DEFAULT_OPTIONS, 'Algebra', 'Inequalities', alg);
+    expect([...ids(o)]).toEqual(['Inequalities']);
+    expect(strandState(o, 'Algebra', alg)).toBe('some');
+  });
+
+  it('a whole strand and one sub-topic of another combine', () => {
+    const o = pickSubtopic(pickStrand(DEFAULT_OPTIONS, 'Number', num), 'Algebra', 'Inequalities', alg);
+    expect(ids(o)).toEqual(new Set([...num, 'Inequalities']));
+  });
+
+  it('unticking the last sub-topic, or "All", turns the strand off', () => {
+    const one = pickSubtopic(DEFAULT_OPTIONS, 'Algebra', 'Inequalities', alg);
+    expect(pickSubtopic(one, 'Algebra', 'Inequalities', alg)).toMatchObject({ strands: [], subtopics: [] });
+    const all = pickStrand(DEFAULT_OPTIONS, 'Algebra', alg);
+    expect(strandState(all, 'Algebra', alg)).toBe('all');
+    expect(pickStrand(all, 'Algebra', alg)).toMatchObject({ strands: [], subtopics: [] });
+    // "All" after some picks clears the picks.
+    expect(pickStrand(one, 'Algebra', alg)).toMatchObject({ strands: ['Algebra'], subtopics: [] });
   });
 });

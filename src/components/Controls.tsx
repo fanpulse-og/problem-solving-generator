@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { eligibleTemplates, type SetOptions } from '../engine/generate';
 import { TEMPLATES, subtopicsByStrand } from '../engine/registry';
-import { LEVELS, STRANDS, STYLES, TIERS, type Level, type StyleId, type Tier } from '../engine/types';
+import { LEVELS, STRANDS, STYLES, TIERS, type Level, type StyleId, type Strand, type Tier } from '../engine/types';
 
 interface Props {
   options: SetOptions;
@@ -15,19 +15,49 @@ function toggle<T>(list: T[], x: T): T[] {
   return list.includes(x) ? list.filter((y) => y !== x) : [...list, x];
 }
 
+const toggleSet = (set: Set<string>, x: string, on: boolean) => {
+  const next = new Set(set);
+  if (on) next.add(x);
+  else next.delete(x);
+  return next;
+};
+
+/** A strand is off, all of it ("All" ticked, no sub-topics picked) or some of it (picked sub-topics only). */
+export function strandState(o: SetOptions, s: Strand, list: string[]): 'off' | 'all' | 'some' {
+  if (!o.strands.includes(s)) return 'off';
+  return list.some((st) => o.subtopics.includes(st)) ? 'some' : 'all';
+}
+
+/** Tick or untick "All" for a strand. */
+export function pickStrand(o: SetOptions, s: Strand, list: string[]): SetOptions {
+  const subtopics = o.subtopics.filter((x) => !list.includes(x));
+  return strandState(o, s, list) === 'all' ? { ...o, strands: o.strands.filter((x) => x !== s), subtopics } : { ...o, strands: o.strands.includes(s) ? o.strands : [...o.strands, s], subtopics };
+}
+
+/** Tick or untick one sub-topic: ticking one from nothing chooses just that sub-topic. */
+export function pickSubtopic(o: SetOptions, s: Strand, st: string, list: string[]): SetOptions {
+  if (o.subtopics.includes(st)) {
+    const subtopics = o.subtopics.filter((x) => x !== st);
+    const left = list.some((x) => subtopics.includes(x));
+    return { ...o, subtopics, strands: left ? o.strands : o.strands.filter((x) => x !== s) };
+  }
+  return { ...o, strands: o.strands.includes(s) ? o.strands : [...o.strands, s], subtopics: [...o.subtopics, st] };
+}
+
 /** Switch tier, dropping any ticked sub-topics (and emptied strands) that the new tier doesn't have. */
 export function withTier(o: SetOptions, tier: Tier): SetOptions {
   const subs = subtopicsByStrand(tier);
   const strands = o.strands.filter((s) => (subs.get(s) ?? []).length > 0);
   const offered = strands.flatMap((s) => subs.get(s) ?? []);
-  const kept = o.subtopics.filter((x) => offered.includes(x));
-  // If none of the chosen sub-topics survive, fall back to every sub-topic in the chosen strands.
-  return { ...o, tier, strands, subtopics: kept.length === offered.length ? [] : kept };
+  // A strand whose picked sub-topics all disappear falls back to the whole strand.
+  return { ...o, tier, strands, subtopics: o.subtopics.filter((x) => offered.includes(x)) };
 }
 
 export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: Props) {
   // Only the sub-topics taught at this tier (Edexcel Foundation / Higher content, KS3 programme of study).
   const subs = useMemo(() => subtopicsByStrand(o.tier), [o.tier]);
+  // Strands start open when something in them is chosen.
+  const [open, setOpen] = useState<Set<string>>(() => new Set(o.strands));
   const available = eligibleTemplates(TEMPLATES, { ...o, styles: [] });
   const stylesInUse = new Set<StyleId>(available.flatMap((t) => [t.style, ...Object.values(t.styleByLevel ?? {})]));
   const matching = eligibleTemplates(TEMPLATES, o).length;
@@ -53,44 +83,48 @@ export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: 
 
       <fieldset>
         <legend>Topics</legend>
-        <p className="hint">Leave all unticked for a mix of everything.</p>
-        {STRANDS.map((s) => {
-          const list = subs.get(s) ?? [];
-          const on = o.strands.includes(s);
-          return (
-            <div key={s} className="strand">
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={on}
-                  disabled={list.length === 0}
-                  onChange={() => onChange({ ...o, strands: toggle(o.strands, s), subtopics: on ? o.subtopics.filter((x) => !list.includes(x)) : o.subtopics })}
-                />
-                {s}
-                {list.length === 0 && <span className="soon"> (coming soon)</span>}
-              </label>
-              {on && list.length > 0 && (
+        <p className="hint">
+          Leave all unticked for a mix of everything.
+          {o.strands.length > 0 && (
+            <>
+              {' '}
+              <button type="button" className="link" onClick={() => onChange({ ...o, strands: [], subtopics: [] })}>
+                Clear topics
+              </button>
+            </>
+          )}
+        </p>
+        <div className="strand-list">
+          {STRANDS.map((s) => {
+            const list = subs.get(s) ?? [];
+            if (list.length === 0) return null;
+            const state = strandState(o, s, list);
+            const picked = list.filter((st) => o.subtopics.includes(st)).length;
+            return (
+              <details key={s} className={`strand ${state}`} open={open.has(s)} onToggle={(e) => {
+                  const isOpen = e.currentTarget.open; // read now: the event is gone by the time the updater runs
+                  setOpen((prev) => toggleSet(prev, s, isOpen));
+                }}>
+                <summary>
+                  <span className="strand-name">{s}</span>
+                  <span className="strand-state">{state === 'all' ? 'All' : state === 'some' ? `${picked} of ${list.length}` : ''}</span>
+                </summary>
                 <div className="subtopics">
+                  <label className="check small all-row">
+                    <input type="checkbox" checked={state === 'all'} onChange={() => onChange(pickStrand(o, s, list))} />
+                    All {s.toLowerCase().replace('&', 'and')} topics
+                  </label>
                   {list.map((st) => (
                     <label key={st} className="check small">
-                      <input
-                        type="checkbox"
-                        checked={o.subtopics.length === 0 || o.subtopics.includes(st)}
-                        onChange={() => {
-                          // An empty list means "all sub-topics"; expand it before toggling one off.
-                          const all = o.strands.flatMap((x) => subs.get(x) ?? []);
-                          const next = toggle(o.subtopics.length ? o.subtopics : all, st);
-                          onChange({ ...o, subtopics: next.length === all.length ? [] : next });
-                        }}
-                      />
+                      <input type="checkbox" checked={o.subtopics.includes(st)} onChange={() => onChange(pickSubtopic(o, s, st, list))} />
                       {st}
                     </label>
                   ))}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              </details>
+            );
+          })}
+        </div>
       </fieldset>
 
       <fieldset>

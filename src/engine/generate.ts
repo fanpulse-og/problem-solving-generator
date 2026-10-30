@@ -88,7 +88,7 @@ export function buildQuestion(t: Template, level: Level, tier: Tier, calc: Calc,
 export interface SetOptions {
   tier: Tier;
   strands: Strand[];
-  subtopics: string[]; // empty = all within strands
+  subtopics: string[]; // narrows its own strand; a chosen strand with none picked = all of it
   levels: Level[];
   styles: StyleId[]; // empty = all
   calc: Calc | 'any';
@@ -103,7 +103,8 @@ export function eligibleTemplates(all: Template[], o: Omit<SetOptions, 'count'>,
     (t) =>
       t.tiers.includes(o.tier) &&
       (o.strands.length === 0 || o.strands.includes(t.strand)) &&
-      (o.subtopics.length === 0 || o.subtopics.includes(t.subtopic)) &&
+      // Sub-topics narrow their own strand only: a strand with none picked counts in full.
+      (o.subtopics.includes(t.subtopic) || !all.some((x) => x.strand === t.strand && o.subtopics.includes(x.subtopic))) &&
       (level ? levelsFor(t, o.tier).includes(level) : o.levels.some((l) => levelsFor(t, o.tier).includes(l))) &&
       (o.styles.length === 0 ||
         (level
