@@ -93,6 +93,9 @@ export interface SetOptions {
   styles: StyleId[]; // empty = all
   calc: Calc | 'any';
   count: number;
+  /** Build to a number of questions (count) or to an approximate total of marks. */
+  target?: 'count' | 'marks';
+  marks?: number;
 }
 
 export function eligibleTemplates(all: Template[], o: Omit<SetOptions, 'count'>, level?: Level): Template[] {
@@ -120,11 +123,11 @@ function pickCalc(t: Template, want: Calc | 'any', rng: Rng): Calc {
  * A set of questions ordered foundational → core → stretch, spread across the
  * eligible templates, with no duplicate maths (by key).
  */
-export function generateSet(all: Template[], o: SetOptions, setSeed = freshSeed()): Question[] {
+export function generateSet(all: Template[], o: SetOptions, setSeed = freshSeed(), avoid: Iterable<string> = []): Question[] {
   const rng = new Rng(`set:${setSeed}`);
   const levels = LEVELS.map((l) => l.id).filter((l) => o.levels.includes(l));
   const out: Question[] = [];
-  const keys = new Set<string>();
+  const keys = new Set<string>(avoid);
   // Spread the count over levels as evenly as possible, earlier levels first.
   const perLevel = levels.map((_, i) => Math.floor(o.count / levels.length) + (i < o.count % levels.length ? 1 : 0));
   levels.forEach((level, li) => {
@@ -160,4 +163,45 @@ function freshSeedFrom(rng: Rng): string {
   return Math.floor(rng.next() * 36 ** 6)
     .toString(36)
     .padStart(6, '0');
+}
+
+const levelOrder = (q: Question) => LEVELS.findIndex((l) => l.id === q.level);
+/** Stable sort into foundational → core → stretch, keeping the order within each level. */
+const byLevel = (qs: Question[]) => qs.map((q, i) => ({ q, i })).sort((a, b) => levelOrder(a.q) - levelOrder(b.q) || a.i - b.i).map((x) => x.q);
+export const totalMarks = (qs: Question[]) => qs.reduce((s, q) => s + q.marks, 0);
+
+/**
+ * A new set that keeps the locked questions. In "marks" mode it aims for the
+ * target total of marks (within 1–2 marks), choosing questions level by level.
+ */
+export function buildSet(all: Template[], o: SetOptions, setSeed = freshSeed(), locked: Question[] = []): Question[] {
+  const avoid = locked.map((q) => q.key);
+  if (o.target !== 'marks') {
+    const need = Math.max(0, o.count - locked.length);
+    return byLevel([...locked, ...(need ? generateSet(all, { ...o, count: need }, setSeed, avoid) : [])]);
+  }
+  const target = Math.max(1, (o.marks ?? 30) - totalMarks(locked));
+  // A generous pool (questions are worth 1–6 marks), then pick round-robin across the levels.
+  const pool = generateSet(all, { ...o, count: Math.min(60, Math.max(3, Math.ceil(target / 2) + 2)) }, setSeed, avoid);
+  const queues = LEVELS.map((l) => pool.filter((q) => q.level === l.id)).filter((qs) => qs.length);
+  const chosen: Question[] = [];
+  let total = 0;
+  for (let round = 0; total < target - 1 && queues.some((qs) => qs.length); round++) {
+    const qs = queues[round % queues.length];
+    const q = qs.shift();
+    if (!q) continue;
+    if (total + q.marks <= target + 2) {
+      chosen.push(q);
+      total += q.marks;
+    }
+  }
+  return byLevel([...locked, ...chosen]);
+}
+
+/** One more question for the set: at the level with the fewest questions so far, not repeating any. */
+export function addOne(all: Template[], o: SetOptions, existing: Question[], seed = freshSeed()): Question | null {
+  const levels = LEVELS.map((l) => l.id).filter((l) => o.levels.includes(l));
+  if (levels.length === 0) return null;
+  const level = levels.reduce((best, l) => (existing.filter((q) => q.level === l).length < existing.filter((q) => q.level === best).length ? l : best), levels[0]);
+  return generateSet(all, { ...o, levels: [level], count: 1 }, seed, existing.map((q) => q.key))[0] ?? null;
 }

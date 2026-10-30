@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_OPTIONS, DEFAULT_SHEET, readHash, writeHash, type UrlState } from '../src/state';
 
-const base: UrlState = { view: 'build', codes: [], index: 0, options: DEFAULT_OPTIONS, sheet: DEFAULT_SHEET };
+const base: UrlState = { view: 'build', codes: [], index: 0, options: DEFAULT_OPTIONS, sheet: DEFAULT_SHEET, locked: [] };
 
 describe('URL state', () => {
   it('a fresh visit with default settings keeps a clean address', () => {
@@ -27,10 +27,13 @@ describe('URL state', () => {
         styles: ['decide', 'backwards'],
         calc: 'non-calc',
         count: 15,
+        target: 'marks',
+        marks: 45,
       },
       example: 'ratio-parts.foundational.F.nc.ex1',
       title: 'Year 9 & 10 starter',
       sheet: { answers: 'answers', paper: true },
+      locked: [0],
     };
     expect(readHash(writeHash(s))).toEqual(s);
   });

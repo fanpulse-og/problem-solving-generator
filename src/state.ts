@@ -12,6 +12,8 @@ export const DEFAULT_OPTIONS: SetOptions = {
   styles: [],
   calc: 'any',
   count: 9,
+  target: 'count',
+  marks: 30,
 };
 
 /** Worksheet print settings. */
@@ -31,6 +33,8 @@ export interface UrlState {
   example?: string;
   title?: string;
   sheet?: SheetOptions;
+  /** Positions of locked questions (kept when the set is generated again). */
+  locked?: number[];
 }
 
 /**
@@ -62,6 +66,8 @@ export function readHash(hash = location.hash): UrlState {
   if (p.has('styles')) options.styles = list('styles') as SetOptions['styles'];
   if (p.has('calc')) options.calc = p.get('calc') as SetOptions['calc'];
   if (p.has('n')) options.count = Number(p.get('n')) || DEFAULT_OPTIONS.count;
+  if (p.get('target') === 'marks') options.target = 'marks';
+  if (p.has('m')) options.marks = Number(p.get('m')) || DEFAULT_OPTIONS.marks;
   return {
     view,
     codes: (p.get('q') ?? '').split(',').filter(Boolean),
@@ -69,6 +75,7 @@ export function readHash(hash = location.hash): UrlState {
     options,
     example: p.get('ex') ?? undefined,
     title: p.get('t') ?? undefined,
+    locked: (p.get('lk') ?? '').split(',').filter(Boolean).map(Number).filter((n) => Number.isInteger(n) && n >= 0),
     sheet: {
       answers: p.get('ans') === 'answers' || p.get('ans') === 'none' ? (p.get('ans') as SheetOptions['answers']) : 'scheme',
       paper: p.get('paper') === '1',
@@ -90,10 +97,13 @@ export function writeHash(s: UrlState): string {
   if (!sameList(o.styles, d.styles)) p.set('styles', o.styles.join(LIST));
   if (o.calc !== d.calc) p.set('calc', o.calc);
   if (o.count !== d.count) p.set('n', String(o.count));
+  if (o.target === 'marks') p.set('target', 'marks');
+  if ((o.marks ?? d.marks) !== d.marks) p.set('m', String(o.marks));
   if (s.example) p.set('ex', s.example);
   if (s.title) p.set('t', s.title);
   if (s.sheet && s.sheet.answers !== DEFAULT_SHEET.answers) p.set('ans', s.sheet.answers);
   if (s.sheet?.paper) p.set('paper', '1');
+  if (s.locked?.length) p.set('lk', s.locked.join(','));
   const query = p.toString().replace(/%2C/g, ',').replace(/%7C/g, '|');
   if (!query && s.view === 'build') return '';
   return `#/${s.view}${query ? `?${query}` : ''}`;

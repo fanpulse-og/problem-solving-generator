@@ -7,13 +7,15 @@ interface Props {
   options: SetOptions;
   onChange: (o: SetOptions) => void;
   onGenerate: () => void;
+  /** Locked questions are kept when generating again. */
+  lockedCount?: number;
 }
 
 function toggle<T>(list: T[], x: T): T[] {
   return list.includes(x) ? list.filter((y) => y !== x) : [...list, x];
 }
 
-export function Controls({ options: o, onChange, onGenerate }: Props) {
+export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: Props) {
   const subs = useMemo(() => subtopicsByStrand(), []);
   const available = eligibleTemplates(TEMPLATES, { ...o, styles: [] });
   const stylesInUse = new Set<StyleId>(available.flatMap((t) => [t.style, ...Object.values(t.styleByLevel ?? {})]));
@@ -121,14 +123,41 @@ export function Controls({ options: o, onChange, onGenerate }: Props) {
       </fieldset>
 
       <fieldset>
-        <legend>
-          <label htmlFor="count">Number of questions</label>
-        </legend>
-        <input id="count" type="number" min={1} max={30} value={o.count} onChange={(e) => onChange({ ...o, count: Math.max(1, Math.min(30, Number(e.target.value) || 1)) })} />
+        <legend>Size of the set</legend>
+        <div className="target-row">
+          <label className="check">
+            <input type="radio" name="target" checked={o.target !== 'marks'} onChange={() => onChange({ ...o, target: 'count' })} />
+            Number of questions
+          </label>
+          <input
+            aria-label="Number of questions"
+            type="number"
+            min={1}
+            max={30}
+            value={o.count}
+            disabled={o.target === 'marks'}
+            onChange={(e) => onChange({ ...o, count: Math.max(1, Math.min(30, Number(e.target.value) || 1)) })}
+          />
+        </div>
+        <div className="target-row">
+          <label className="check">
+            <input type="radio" name="target" checked={o.target === 'marks'} onChange={() => onChange({ ...o, target: 'marks' })} />
+            About this many marks
+          </label>
+          <input
+            aria-label="Total marks"
+            type="number"
+            min={5}
+            max={120}
+            value={o.marks ?? 30}
+            disabled={o.target !== 'marks'}
+            onChange={(e) => onChange({ ...o, marks: Math.max(5, Math.min(120, Number(e.target.value) || 5)) })}
+          />
+        </div>
       </fieldset>
 
       <button type="submit" className="primary big" disabled={matching === 0 || o.levels.length === 0}>
-        Generate questions
+        {lockedCount ? `Generate (keeping ${lockedCount} locked)` : 'Generate questions'}
       </button>
       <p className="hint" aria-live="polite">
         {matching === 0 || o.levels.length === 0 ? 'No templates match these choices yet.' : `${matching} question type${matching === 1 ? '' : 's'} match.`}
