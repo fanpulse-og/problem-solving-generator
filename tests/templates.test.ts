@@ -74,9 +74,11 @@ for (const t of TEMPLATES) {
     for (const tier of t.tiers as Tier[]) {
       for (const level of t.levels as Level[]) {
         for (const calc of calcs) {
-          it(`${tier} ${level} ${calc}: ${SEEDS} seeds valid, checked and well-formed`, () => {
+          it(`${tier} ${level} ${calc}: ${SEEDS} seeds valid, checked and well-formed`, async () => {
             const failures: string[] = [];
             for (let i = 0; i < SEEDS; i++) {
+              // Yield now and then, so a busy worker can still answer the test runner (slow CI machines time out otherwise).
+              if (i % 25 === 24) await new Promise((r) => setTimeout(r, 0));
               const seed = `t${i}`;
               let q: Question;
               try {
