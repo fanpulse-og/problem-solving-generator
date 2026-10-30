@@ -1,6 +1,11 @@
+/*
+ * No page margin, so the browser has nowhere to print its own headers and
+ * footers (date, URL, page title). The margins come from .sheet-body's
+ * padding instead, repeated on every printed page by box-decoration-break.
+ */
 @page {
   size: A4;
-  margin: 14mm 14mm 16mm;
+  margin: 0;
 }
 
 @media print {
@@ -18,11 +23,27 @@
   .worksheet-wrap {
     padding: 0;
   }
+  html,
+  body {
+    margin: 0;
+  }
   .sheet {
     box-shadow: none;
     margin: 0;
     padding: 0;
     max-width: none;
+  }
+  .sheet-body {
+    padding: 14mm 15mm 16mm;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  /* "Print questions only" leaves out the answer sheet. */
+  body.print-questions-only .answers-sheet {
+    display: none !important;
+  }
+  .section-head {
+    break-after: avoid;
   }
   /* The answer sheet always starts on a new page. */
   .answers-sheet {
@@ -45,6 +66,13 @@
   .hand {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  /* Other views have no .sheet-body: give their content the same page margins. */
+  .view-build main,
+  .view-board main {
+    padding: 14mm 15mm 16mm;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
   /* Printing from another view: show only the main content. */
   .view-build .sidebar,

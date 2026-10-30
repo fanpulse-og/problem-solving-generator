@@ -14,6 +14,15 @@ export const DEFAULT_OPTIONS: SetOptions = {
   count: 9,
 };
 
+/** Worksheet print settings. */
+export interface SheetOptions {
+  /** What goes on the answer sheet: the full mark scheme, final answers only, or nothing (questions only). */
+  answers: 'scheme' | 'answers' | 'none';
+  /** Non-calculator questions first, then calculator, each under its own heading. */
+  paper: boolean;
+}
+export const DEFAULT_SHEET: SheetOptions = { answers: 'scheme', paper: false };
+
 export interface UrlState {
   view: View;
   codes: string[];
@@ -21,6 +30,7 @@ export interface UrlState {
   options: SetOptions;
   example?: string;
   title?: string;
+  sheet?: SheetOptions;
 }
 
 /**
@@ -59,6 +69,10 @@ export function readHash(hash = location.hash): UrlState {
     options,
     example: p.get('ex') ?? undefined,
     title: p.get('t') ?? undefined,
+    sheet: {
+      answers: p.get('ans') === 'answers' || p.get('ans') === 'none' ? (p.get('ans') as SheetOptions['answers']) : 'scheme',
+      paper: p.get('paper') === '1',
+    },
   };
 }
 
@@ -78,6 +92,8 @@ export function writeHash(s: UrlState): string {
   if (o.count !== d.count) p.set('n', String(o.count));
   if (s.example) p.set('ex', s.example);
   if (s.title) p.set('t', s.title);
+  if (s.sheet && s.sheet.answers !== DEFAULT_SHEET.answers) p.set('ans', s.sheet.answers);
+  if (s.sheet?.paper) p.set('paper', '1');
   const query = p.toString().replace(/%2C/g, ',').replace(/%7C/g, '|');
   if (!query && s.view === 'build') return '';
   return `#/${s.view}${query ? `?${query}` : ''}`;

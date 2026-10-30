@@ -1,20 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { buildQuestion, generateSet, regenerate, type SetOptions } from './engine/generate';
+import { generateSet, regenerate, type SetOptions } from './engine/generate';
 import { TEMPLATES } from './engine/registry';
-import { freshSeed } from './engine/rng';
 import type { Question } from './engine/types';
 import { BuilderView } from './views/BuilderView';
 import { BoardView } from './views/BoardView';
 import { WorksheetView } from './views/WorksheetView';
-import { questionFromCode, readHash, writeHash, type View } from './state';
-
-function makeExample(set: Question[]): Question | null {
-  const first = set[0];
-  if (!first) return null;
-  const t = first.template;
-  const level = t.levels.includes('foundational') ? 'foundational' : t.levels[0];
-  return buildQuestion(t, level, first.tier, first.calc, freshSeed());
-}
+import { DEFAULT_SHEET, questionFromCode, readHash, writeHash, type SheetOptions, type View } from './state';
+import { defaultExample, exampleFor } from './engine/example';
 
 export default function App() {
   const initial = readHash();
@@ -24,13 +16,14 @@ export default function App() {
   const [index, setIndex] = useState(Math.min(initial.index, Math.max(0, initial.codes.length - 1)));
   const [example, setExample] = useState<Question | null>(() => (initial.example ? questionFromCode(initial.example) : null));
   const [title, setTitle] = useState(initial.title ?? 'Problem solving');
+  const [sheet, setSheet] = useState<SheetOptions>(initial.sheet ?? DEFAULT_SHEET);
 
   // Keep the URL in step with the state, so the page can be bookmarked or shared.
   useEffect(() => {
-    const hash = writeHash({ view, codes: questions.map((q) => q.code), index, options, example: example?.code, title: title === 'Problem solving' ? undefined : title });
+    const hash = writeHash({ view, codes: questions.map((q) => q.code), index, options, example: example?.code, title: title === 'Problem solving' ? undefined : title, sheet });
     // An empty hash means nothing to remember: keep the plain address.
     if (hash !== location.hash) history.replaceState(null, '', hash || location.pathname + location.search);
-  }, [view, questions, index, options, example, title]);
+  }, [view, questions, index, options, example, title, sheet]);
 
   useEffect(() => {
     const onHash = () => {
@@ -41,6 +34,7 @@ export default function App() {
       setIndex(s.index);
       setTitle(s.title ?? 'Problem solving');
       setExample(s.example ? questionFromCode(s.example) : null);
+      setSheet(s.sheet ?? DEFAULT_SHEET);
       if (s.codes.join() !== questions.map((q) => q.code).join()) setQuestions(s.codes.map(questionFromCode).filter((q): q is Question => q !== null));
     };
     window.addEventListener('hashchange', onHash);
@@ -51,7 +45,7 @@ export default function App() {
     const set = generateSet(TEMPLATES, options);
     setQuestions(set);
     setIndex(0);
-    setExample(makeExample(set));
+    setExample(defaultExample(set, TEMPLATES));
   }, [options]);
 
   const regen = useCallback(
@@ -102,7 +96,21 @@ export default function App() {
           />
         )}
         {view === 'board' && <BoardView questions={questions} index={index} onIndex={setIndex} onRegenerate={regen} />}
-        {view === 'worksheet' && <WorksheetView questions={questions} example={example} title={title} onTitle={setTitle} onNewExample={() => setExample(makeExample(questions))} />}
+        {view === 'worksheet' && (
+          <WorksheetView
+            questions={questions}
+            example={example}
+            title={title}
+            sheet={sheet}
+            onTitle={setTitle}
+            onSheet={setSheet}
+            onExampleTemplate={(id) => {
+              const t = TEMPLATES.find((x) => x.id === id);
+              if (t) setExample(exampleFor(t, questions));
+            }}
+            onNewExample={() => setExample(example ? exampleFor(example.template, questions) : defaultExample(questions, TEMPLATES))}
+          />
+        )}
       </main>
     </div>
   );
