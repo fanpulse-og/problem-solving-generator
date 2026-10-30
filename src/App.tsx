@@ -28,13 +28,19 @@ export default function App() {
   // Keep the URL in step with the state, so the page can be bookmarked or shared.
   useEffect(() => {
     const hash = writeHash({ view, codes: questions.map((q) => q.code), index, options, example: example?.code, title: title === 'Problem solving' ? undefined : title });
-    if (hash !== location.hash) history.replaceState(null, '', hash);
+    // An empty hash means nothing to remember: keep the plain address.
+    if (hash !== location.hash) history.replaceState(null, '', hash || location.pathname + location.search);
   }, [view, questions, index, options, example, title]);
 
   useEffect(() => {
     const onHash = () => {
+      // A link pasted into an open tab: take everything from it, not just the view and questions.
       const s = readHash();
       setView(s.view);
+      setOptions(s.options);
+      setIndex(s.index);
+      setTitle(s.title ?? 'Problem solving');
+      setExample(s.example ? questionFromCode(s.example) : null);
       if (s.codes.join() !== questions.map((q) => q.code).join()) setQuestions(s.codes.map(questionFromCode).filter((q): q is Question => q !== null));
     };
     window.addEventListener('hashchange', onHash);

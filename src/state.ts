@@ -23,18 +23,35 @@ export interface UrlState {
   title?: string;
 }
 
-/** Everything lives in the URL hash, so any set or question can be shared as a link. */
+/**
+ * Everything lives in the URL hash, so any set or question can be shared as a
+ * link. Settings are written only when they differ from DEFAULT_OPTIONS, as
+ * short readable parameters (tier=H&n=12); lists are separated by "|" because
+ * some sub-topic names contain commas. A fresh visit keeps a clean address.
+ */
+const LIST = '|';
+const sameList = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+
 export function readHash(hash = location.hash): UrlState {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
   const view: View = path === 'board' || path === 'worksheet' ? path : 'build';
   const p = new URLSearchParams(query);
-  let options = DEFAULT_OPTIONS;
+  let options: SetOptions = { ...DEFAULT_OPTIONS };
   try {
+    // Links made before readable settings: one base64 blob.
     const o = p.get('o');
-    if (o) options = { ...DEFAULT_OPTIONS, ...JSON.parse(decodeURIComponent(atob(o))) };
+    if (o) options = { ...options, ...JSON.parse(decodeURIComponent(atob(o))) };
   } catch {
     /* ignore bad options */
   }
+  const list = (k: string) => (p.get(k) ?? '').split(LIST).filter(Boolean);
+  if (p.has('tier')) options.tier = p.get('tier') as SetOptions['tier'];
+  if (p.has('strands')) options.strands = list('strands') as SetOptions['strands'];
+  if (p.has('topics')) options.subtopics = list('topics');
+  if (p.has('levels')) options.levels = list('levels') as SetOptions['levels'];
+  if (p.has('styles')) options.styles = list('styles') as SetOptions['styles'];
+  if (p.has('calc')) options.calc = p.get('calc') as SetOptions['calc'];
+  if (p.has('n')) options.count = Number(p.get('n')) || DEFAULT_OPTIONS.count;
   return {
     view,
     codes: (p.get('q') ?? '').split(',').filter(Boolean),
@@ -45,14 +62,25 @@ export function readHash(hash = location.hash): UrlState {
   };
 }
 
+/** The hash for a state, or '' when there is nothing to remember (a clean address). */
 export function writeHash(s: UrlState): string {
   const p = new URLSearchParams();
+  const o = s.options;
+  const d = DEFAULT_OPTIONS;
   if (s.codes.length) p.set('q', s.codes.join(','));
   if (s.index) p.set('i', String(s.index));
-  p.set('o', btoa(encodeURIComponent(JSON.stringify(s.options))));
+  if (o.tier !== d.tier) p.set('tier', o.tier);
+  if (!sameList(o.strands, d.strands)) p.set('strands', o.strands.join(LIST));
+  if (!sameList(o.subtopics, d.subtopics)) p.set('topics', o.subtopics.join(LIST));
+  if (!sameList(o.levels, d.levels)) p.set('levels', o.levels.join(LIST));
+  if (!sameList(o.styles, d.styles)) p.set('styles', o.styles.join(LIST));
+  if (o.calc !== d.calc) p.set('calc', o.calc);
+  if (o.count !== d.count) p.set('n', String(o.count));
   if (s.example) p.set('ex', s.example);
   if (s.title) p.set('t', s.title);
-  return `#/${s.view}?${p.toString().replace(/%2C/g, ',')}`;
+  const query = p.toString().replace(/%2C/g, ',').replace(/%7C/g, '|');
+  if (!query && s.view === 'build') return '';
+  return `#/${s.view}${query ? `?${query}` : ''}`;
 }
 
 export function questionFromCode(code: string): Question | null {
