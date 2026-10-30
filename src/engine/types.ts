@@ -152,6 +152,13 @@ export type DiagramSpec =
       notAccurate?: boolean;
     }
   | {
+      /** Pie chart drawn clockwise from 12 o'clock; showAngle prints the angle in the sector. */
+      type: 'pie';
+      title?: string;
+      sectors: { label: string; angle: number; showAngle?: boolean }[];
+      notAccurate?: boolean;
+    }
+  | {
       /** Two-set Venn diagram; '' leaves a region empty. Use \n to break a long list. */
       type: 'venn';
       sets: [string, string];

@@ -75,6 +75,20 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['prob-tree-diagram.core.H.nc.p0', ['After black: black $\\frac{5}{14}$, white $\\frac{9}{14}$. After white: black $\\frac{6}{14}$, white $\\frac{8}{14}$', '$\\frac{17}{35}$'], '(30 + 72) ÷ 210'],
   ['prob-tree-diagram.stretch.H.nc.p0', ['$\\frac{6}{n} \\times \\frac{5}{n - 1} = \\frac{5}{12}$, so $n^2 - n - 72 = 0$', '$n = 9$'], 'n(n − 1) = 72'],
   ['prob-venn-diagram.stretch.H.nc.p0', ['$\\frac{14}{31}$'], '2x + x + 31 − x + 11 = 70 → x = 14'],
+  // Batch 5
+  ['num-index-equations.core.H.nc.p0', ['$x = 5$'], '4(x + 1) = 3(x + 3)'],
+  ['num-index-equations.stretch.H.nc.p0', ['$x = 3$, $y = 1$'], 'x + 3y = 6, x − 2y = 1'],
+  ['num-recurring-decimals.stretch.H.nc.p0', ['$\\frac{356}{495}$'], '25/99 + 42/90 = 25/99 + 7/15'],
+  ['num-counting.core.F.nc.p0', ['4536'], '9 × 9 × 8 × 7'],
+  ['alg-inequalities.stretch.H.nc.p0', ['−1, 0, 1, 2'], '(x + 4)(x − 2) ⩽ 0 → −4 ⩽ x ⩽ 2; 2x ⩾ −2'],
+  ['alg-formulae.stretch.H.c.p0', ['$u = 11.2$'], 'u² = 237.16 − 111 = 126.16'],
+  ['alg-completing-square.stretch.H.nc.p0', ['$-2(x - 2)^2 - 9$', '$(2, -9)$, a maximum'], '−2((x − 2)² − 4) − 17'],
+  ['geom-volume.core.F.c.p0', ['3.1 cm'], 'π × 49 × 30 ÷ 1500 = 3.08'],
+  ['geom-volume.stretch.H.c.p0', ['46'], '4 × 8³ ÷ (2² × 11) = 46.5'],
+  ['geom-sectors.stretch.H.c.p0', ['72.6 cm'], 'r = √(327.9 × 360 ÷ 130π) = 17.0; arc 38.57 + 34.0'],
+  ['geom-bearings.stretch.H.c.p0', ['33.8 km', '144°'], '√(28² + 19²); 200° − tan⁻¹(28/19)'],
+  ['stats-frequency-table.stretch.F.nc.p0', ['$x = 17$, $y = 15$'], 'x + y = 32, x + 4y = 77'],
+  ['stats-pie-chart.core.F.nc.p0', ['12'], '360 − 288 = 72°; 60° is 10 students → 6° each'],
 ];
 
 describe('golden questions (hand-verified)', () => {

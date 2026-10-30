@@ -1189,6 +1189,221 @@ def prob_venn_diagram(v, ans, level):
     want = x / Bt if v["tier"] == "H" else (v["k"] * x + Bt - x) / n
     return frac_of(ans[0]) == want, f"expected {want}"
 
+
+# ---------------------------------------------------------------- batch 5
+
+
+def num_index_equations(v, ans, level):
+    P = v["P"]
+    if level == "foundational":
+        n = v["u"][0] * v["e"][0] + v["u"][1] * v["e"][1] - v["u"][2] * v["e"][2]
+        r, s_, q_, p_ = v["frac"]
+        val = F(s_, r) ** p_  # (r^q / s^q)^(-p/q) = (s/r)^p
+        ok = ans[0] == f"${P}^{{{n}}}$" and frac_of(ans[1]) == val and math.gcd(val.numerator, val.denominator) == 1
+        return ok, f"expected {P}^{n}, {val}"
+    if level == "core":
+        u, w = v["u"]
+        p_, q_ = v["shift"]
+        # u(x + p) = w(x + q)
+        x = F(w * q_ - u * p_, u - w)
+        return ans[0] == f"$x = {x}$", f"expected x = {x}"
+    u, w = v["u"][1], v["w"][1]
+    A = v["x"] + u * v["y"]
+    B = v["x"] - w * v["y"]
+    # x + u y = A, x - w y = B
+    y = F(A - B, u + w)
+    x = A - u * y
+    return ans[0] == f"$x = {x}$, $y = {y}$", f"expected x = {x}, y = {y}"
+
+
+def num_recurring_decimals(v, ans, level):
+    def frac_of_dec(d):
+        pre, rep = d["pre"], d["rep"]
+        # x = 0.pre(rep)… : 10^(len pre + len rep) x - 10^(len pre) x = int(pre+rep) - int(pre)
+        return F(int(pre + rep) - int(pre or "0"), 10 ** (len(pre) + len(rep)) - 10 ** len(pre))
+
+    want = frac_of_dec(v["a"]) + (frac_of_dec(v["b"]) if level == "stretch" else 0)
+    m = re.fullmatch(r"\$\\frac\{(\d+)\}\{(\d+)\}\$", ans[0])
+    return bool(m) and (int(m.group(1)), int(m.group(2))) == (want.numerator, want.denominator), f"expected {want}"
+
+
+def num_counting(v, ans, level):
+    if level == "foundational":
+        a, b, c = v["counts"]
+        return nums(ans[0]) + nums(ans[1]) == [a * b * c, b * (a + c)], f"expected {a * b * c}, {b * (a + c)}"
+    if level == "core":
+        L, rule = v["L"], v["rule"]
+        if rule == "evenEnd" or rule == "oddEnd":
+            want = 9 * 10 ** (L - 2) * 5
+        elif rule == "noRepeat":
+            want = 9 * math.perm(9, L - 1)
+        elif rule == "allOdd":
+            want = math.perm(5, L)
+        else:
+            want = math.perm(9, L - 1)
+        return int(ans[0].replace(" ", "").replace(" ", "")) == want, f"expected {want}"
+    n = v["teams"]
+    M = n * (n - 1) // (1 if v["twice"] else 2)
+    # Solve n^2 - n - k = 0 for k = M (twice) or 2M (once).
+    k = M if v["twice"] else 2 * M
+    root = (1 + math.isqrt(1 + 4 * k)) // 2
+    return ans[0] == str(root) and root * (root - 1) == k, f"expected {root}"
+
+
+def alg_inequalities(v, ans, level):
+    ops = {"<": lambda a, b: a < b, "<=": lambda a, b: a <= b, ">": lambda a, b: a > b, ">=": lambda a, b: a >= b}
+    tex = {"<": "<", "<=": "\\leqslant", ">": ">", ">=": "\\geqslant"}
+    if level == "foundational":
+        k = F(v["d"] - v["b"], v["a"] - v["c"])
+        n = {">": math.floor(k) + 1, ">=": math.ceil(k), "<": math.ceil(k) - 1, "<=": math.floor(k)}[v["op"]]
+        return ans[0] == f"$x {tex[v['op']]} {k}$" and ans[1] == f"$n = {n}$", f"expected x {v['op']} {k}, n = {n}"
+    got = [int(t) for t in ans[0].replace("−", "-").split(",")]
+    xs = range(-200, 201)
+    if level == "core":
+        want = [n for n in xs if ops[v["ops"][0]](v["lo"], v["q"] * n + v["r"]) and ops[v["ops"][1]](v["q"] * n + v["r"], v["hi"])]
+    elif v["tier"] != "H":
+        want = [x for x in xs if ops[v["op"]](v["a"] * x + v["b"], v["c"] * x + v["d"]) and ops[v["op2"]](v["r1"] * x + v["r2"], v["lo"])]
+    else:
+        want = [x for x in xs if ops[v["op"]]((x - v["r1"]) * (x - v["r2"]), 0) and ops[v["op2"]](v["a"] * x + v["b"], v["d"])]
+    return got == want, f"expected {want}"
+
+
+def alg_formulae(v, ans, level):
+    if level == "foundational":
+        rate, fixed = F(v["rate"], 100), F(v["fixed"], 100)
+        h1, h2 = v["h"]
+        cost2 = fixed + rate * h2
+        back = (cost2 - fixed) / rate
+        return last_num(ans[0]) == fixed + rate * h1 and nums(ans[1])[0] == back, f"expected £{float(fixed + rate * h1)}, {back}"
+    g = {k: q(x) for k, x in v["vals"].items()}
+    got = signed_nums(ans[0])[-1]
+    if level == "core":
+        want = [(g["v"] - g["u"]) / g["a"] if "t" in g else None, (g["F"] - 32) * 5 / 9 if "F" in g else None, 2 * g["A"] / (g["a"] + g["b"]) if "A" in g else None][v["ctx"]]
+        return got == want, f"expected {want}"
+    sq = g["v"] ** 2 - 2 * g["a"] * g["s"] if v["ctx"] == 0 else 2 * g["E"] / g["m"]
+    root = math.sqrt(sq)
+    if v["calc"]:
+        return got == round_sf(root, 3), f"expected {root:.4g}"
+    return got * got == sq, f"expected {root}"
+
+
+def alg_completing_square(v, ans, level):
+    a, p_, q_ = v["a"], v["p"], v["q"]
+    A, B, C = a, 2 * a * p_, a * p_ * p_ + q_
+    # Turning point from calculus-free symmetry: x = -B / 2A.
+    x0 = F(-B, 2 * A)
+    y0 = A * x0 * x0 + B * x0 + C
+    tp = f"$({x0}, {y0})$"
+    if level == "foundational":
+        lead = "" if a == 1 else "-" if a == -1 else str(a)
+        form = f"${lead}(x {'-' if x0 > 0 else '+'} {abs(x0)})^2 {'-' if y0 < 0 else '+'} {abs(y0)}$"
+        return ans[0] == form and ans[1] == tp, f"expected {form}, {tp}"
+    if level == "core":
+        crosses = B * B - 4 * A * C > 0
+        return ans[0] == tp and ans[1].startswith("Yes" if crosses else "No") and f"${y0}$" in ans[1], f"expected {tp}"
+    lead = "" if a == 1 else "-" if a == -1 else str(a)
+    form = f"${lead}(x {'-' if x0 > 0 else '+'} {abs(x0)})^2 {'-' if y0 < 0 else '+'} {abs(y0)}$"
+    kind = "minimum" if A > 0 else "maximum"
+    return ans[0] == form and ans[1] == f"{tp}, a {kind}", f"expected {form}, {tp} {kind}"
+
+
+def geom_volume(v, ans, level):
+    l, w, h = v["dims"]
+    if level == "foundational":
+        secs = F(l * w * h, 1000) / v["rate"] * 60
+        mm, ss = divmod(int(secs), 60)
+        want = f"{mm} minutes" + (f" {ss} seconds" if ss else "")
+        return secs.denominator == 1 and ans[0] == want, want
+    if level == "core":
+        depth = math.pi * v["r"] ** 2 * v["h"] / (l * w)
+        return last_num(ans[0]) == round_dp(depth, 1) and depth < h, f"expected {depth:.3f}"
+    if v["tier"] == "H":
+        n = (4 * v["r"] ** 3) // (v["R"] ** 2 * v["h"])  # pi and the thirds cancel
+        return ans[0] == str(n), f"expected {n}"
+    n = math.floor(l * w * h / (math.pi * v["r"] ** 2 * v["h"]))
+    return ans[0] == str(n), f"expected {n}"
+
+
+def geom_sectors(v, ans, level):
+    r, ang = v["r"], v["angle"]
+    if level == "foundational":
+        A = ang / 360 * math.pi * r * r
+        P = ang / 360 * 2 * math.pi * r + 2 * r
+        return nums(ans[0])[0] == round_dp(A, 1) and nums(ans[1])[0] == round_dp(P, 1), f"expected {A:.2f}, {P:.2f}"
+    if level == "core":
+        grass = v["a"] * v["b"] - math.pi * r * r / 4
+        n = math.ceil(grass / v["cover"])
+        return nums(ans[0])[0] == n, f"expected {n}"
+    if v["tier"] == "H":
+        rr = math.sqrt(v["given"] * 360 / (math.pi * ang))
+        P = ang / 360 * 2 * math.pi * rr + 2 * rr
+        return nums(ans[0])[0] == round_sf(P, 3), f"expected {P:.4g}"
+    a = v["given"] / (2 * math.pi * r) * 360
+    return nums(ans[0])[0] == round(a), f"expected {a:.2f}"
+
+
+def geom_bearings(v, ans, level):
+    if level == "foundational":
+        want = [f"{(b + 180) % 360:03d}°" for b in (v["b1"], v["b2"])]
+        return ans == want, f"expected {want}"
+    def comp(d, b):
+        return d * math.sin(math.radians(b)), d * math.cos(math.radians(b))
+    if level == "core":
+        e, n = comp(v["d1"], v["b1"])
+        return nums(ans[0])[0] == round_dp(abs(e), 1) and nums(ans[1])[0] == round_dp(abs(n), 1), f"expected {abs(e):.2f}, {abs(n):.2f}"
+    e1, n1 = comp(v["d1"], v["b1"])
+    e2, n2 = comp(v["d2"], v["b2"])
+    E, N = e1 + e2, n1 + n2
+    dist = math.hypot(E, N)
+    brg = math.degrees(math.atan2(-E, -N)) % 360
+    return nums(ans[0])[0] == round_dp(dist, 1) and ans[1] == f"{round(brg) % 360:03d}°", f"expected {dist:.2f}, {brg:.2f}"
+
+
+def stats_frequency_table(v, ans, level):
+    vals, f = v["values"], v["freqs"]
+    if level == "foundational":
+        data = [x for x, k in zip(vals, f) for _ in range(k)]
+        n = len(data)
+        med = F(data[n // 2]) if n % 2 else F(data[n // 2 - 1] + data[n // 2], 2)
+        mode = max(set(data), key=data.count)
+        mean = F(sum(data), n)
+        return [F(a) for a in ans] == [mode, med, mean], f"expected {mode}, {med}, {mean}"
+    unk = v["unknown"]
+    known_n = sum(k for i, k in enumerate(f) if i not in unk)
+    known_s = sum(x * k for i, (x, k) in enumerate(zip(vals, f)) if i not in unk)
+    mean = F(sum(x * k for x, k in zip(vals, f)), sum(f))  # the mean stated in the question
+    got = [int(t) for t in re.findall(r"= (\d+)", ans[0])]
+    if level == "core":
+        vx = vals[unk[0]]
+        x = (mean * known_n - known_s) / (vx - mean)
+        return got == [x], f"expected x = {x}"
+    total = sum(f)
+    va, vb = vals[unk[0]], vals[unk[1]]
+    T = total - known_n
+    S = mean * total - known_s
+    y = (S - va * T) / (vb - va)
+    x = T - y
+    return got == [x, y], f"expected {x}, {y}"
+
+
+def stats_pie_chart(v, ans, level):
+    N, f = v["N"], v["freqs"]
+    if level == "foundational":
+        a, b = v["ask"]
+        angle = F(f[a] * 360, N)
+        return nums(ans[0])[0] == angle and frac_of(ans[1]) == F(f[b], N), f"expected {angle}, {F(f[b], N)}"
+    if level == "core":
+        known, find = v["ask"]
+        angles = [F(k * 360, N) for k in f]
+        missing = 360 - sum(a for i, a in enumerate(angles) if i != find)
+        want = missing / (angles[known] / f[known])
+        return nums(ans[0])[0] == want, f"expected {want}"
+    i = v["ask"][0]
+    y7 = F(f[i] * 360, N) / 360 * N
+    y11 = F(v["freqs2"][i] * 360, v["N2"]) / 360 * v["N2"]
+    ok = ans[0].startswith("Yes" if y11 > y7 else "No") and nums(ans[0])[:4] == [y7, 7, y11, 11]
+    return ok, f"Y7 {y7}, Y11 {y11}"
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -1242,6 +1457,17 @@ CHECKS = {
     "stats-cumulative-frequency": stats_cumulative_frequency,
     "prob-tree-diagram": prob_tree_diagram,
     "prob-venn-diagram": prob_venn_diagram,
+    "num-index-equations": num_index_equations,
+    "num-recurring-decimals": num_recurring_decimals,
+    "num-counting": num_counting,
+    "alg-inequalities": alg_inequalities,
+    "alg-formulae": alg_formulae,
+    "alg-completing-square": alg_completing_square,
+    "geom-volume": geom_volume,
+    "geom-sectors": geom_sectors,
+    "geom-bearings": geom_bearings,
+    "stats-frequency-table": stats_frequency_table,
+    "stats-pie-chart": stats_pie_chart,
 }
 
 

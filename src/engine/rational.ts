@@ -50,6 +50,12 @@ export class Q {
     const q = toQ(o);
     return new Q(this.n * q.d, this.d * q.n);
   }
+  /** Integer power (negative powers allowed for non-zero values). */
+  pow(k: number): Q {
+    let out = Q.of(1);
+    for (let i = 0; i < Math.abs(k); i++) out = out.mul(this);
+    return k < 0 ? Q.of(1).div(out) : out;
+  }
   neg(): Q {
     return new Q(-this.n, this.d);
   }

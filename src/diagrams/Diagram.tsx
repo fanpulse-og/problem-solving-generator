@@ -23,6 +23,8 @@ export function Diagram({ spec }: { spec: DiagramSpec }) {
       <Tree spec={spec} />
     ) : spec.type === 'venn' ? (
       <Venn spec={spec} />
+    ) : spec.type === 'pie' ? (
+      <Pie spec={spec} />
     ) : (
       <Plate spec={spec} />
     );
@@ -627,6 +629,50 @@ function Venn({ spec }: { spec: Extract<DiagramSpec, { type: 'venn' }> }) {
       {block((ca[0] + cb[0]) / 2, ca[1], spec.regions.both, 'ab')}
       {block(cb[0] + 34, cb[1], spec.regions.b, 'b')}
       {block(Wd - 40, Hd - 26, spec.regions.neither, 'n')}
+    </svg>
+  );
+}
+
+function Pie({ spec }: { spec: Extract<DiagramSpec, { type: 'pie' }> }) {
+  const Wd = 380;
+  const Hd = spec.title ? 270 : 250;
+  const cx = Wd / 2;
+  const cy = spec.title ? 145 : 125;
+  const r = 100;
+  // Bearing-style angles: 0° at the top, clockwise.
+  const at = (deg: number, rr: number): [number, number] => [cx + rr * Math.sin((deg * Math.PI) / 180), cy - rr * Math.cos((deg * Math.PI) / 180)];
+  let start = 0;
+  return (
+    <svg viewBox={`0 0 ${Wd} ${Hd}`} role="img" aria-label="Pie chart">
+      {spec.title && (
+        <text x={cx} y={18} textAnchor="middle" className="dlabel" fontWeight={600}>
+          {spec.title}
+        </text>
+      )}
+      <circle cx={cx} cy={cy} r={r} className="dshape" />
+      {spec.sectors.map((s, i) => {
+        const a0 = start;
+        start += s.angle;
+        const [x, y] = at(a0, r);
+        const mid = a0 + s.angle / 2;
+        const small = s.angle < 40;
+        const [lx, ly] = at(mid, small ? r + 16 : r * 0.58);
+        const anchor = small ? (Math.sin((mid * Math.PI) / 180) >= 0 ? 'start' : 'end') : 'middle';
+        return (
+          <g key={i}>
+            <line x1={cx} y1={cy} x2={x} y2={y} className="dline" />
+            <text x={lx} y={ly + (s.showAngle && !small ? -3 : 5)} textAnchor={anchor} className="dlabel">
+              {s.label}
+              {small && s.showAngle ? ` ${s.angle}°` : ''}
+            </text>
+            {s.showAngle && !small && (
+              <text x={lx} y={ly + 15} textAnchor="middle" className="dtick">
+                {s.angle}°
+              </text>
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 }
