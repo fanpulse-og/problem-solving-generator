@@ -4,9 +4,15 @@ import { DEFAULT_OPTIONS, DEFAULT_SHEET, readHash, writeHash, type UrlState } fr
 const base: UrlState = { view: 'build', codes: [], index: 0, options: DEFAULT_OPTIONS, sheet: DEFAULT_SHEET, locked: [] };
 
 describe('URL state', () => {
-  it('a fresh visit with default settings keeps a clean address', () => {
-    expect(writeHash(base)).toBe('');
-    expect(readHash('')).toEqual({ ...base, example: undefined, title: undefined });
+  it('a fresh visit opens the home page at a clean address', () => {
+    expect(writeHash({ ...base, view: 'home' })).toBe('');
+    expect(readHash('')).toEqual({ ...base, view: 'home', example: undefined, title: undefined });
+    expect(writeHash(base)).toBe('#/build');
+    expect(readHash('#/build').view).toBe('build');
+  });
+
+  it('old links with settings but no view still open the builder', () => {
+    expect(readHash('#?tier=H').view).toBe('build');
   });
 
   it('only changed settings are written, readably', () => {

@@ -5,6 +5,10 @@ import type { Question } from './engine/types';
 import { BuilderView } from './views/BuilderView';
 import { BoardView } from './views/BoardView';
 import { WorksheetView } from './views/WorksheetView';
+import { HomeView } from './views/HomeView';
+import { TuitionButton } from './components/Tuition';
+import { withTier } from './components/Controls';
+import type { Tier } from './engine/types';
 import { DEFAULT_SHEET, questionFromCode, readHash, writeHash, type SheetOptions, type View } from './state';
 import { defaultExample, exampleFor } from './engine/example';
 import { loadSaved, storeSaved, type SavedSet } from './saved';
@@ -169,12 +173,20 @@ export default function App() {
         Skip to content
       </a>
       <header className="topbar no-print">
-        <div className="brand">
+        <a
+          className="brand"
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setView('home');
+            window.scrollTo(0, 0);
+          }}
+        >
           <span className="logo" aria-hidden="true">
             ∑
           </span>
           <span>Problem Solving Generator</span>
-        </div>
+        </a>
         <div className="topbar-right">
           <nav aria-label="Views" className="tabs">
             {tabs.map(([id, label]) => (
@@ -183,12 +195,30 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <a className="coffee" href="https://buymeacoffee.com/zainhusayn" target="_blank" rel="noopener noreferrer">
-            <span aria-hidden="true">☕</span> Buy me a coffee
+          <TuitionButton />
+          <a className="coffee" href="https://buymeacoffee.com/zainhusayn" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee">
+            <span aria-hidden="true">☕</span> <span className="wide-only">Buy me a coffee</span>
           </a>
         </div>
       </header>
       <main id="main">
+        {view === 'home' && (
+          <HomeView
+            onBuild={(tier: Tier) => {
+              setOptions((o) => withTier(o, tier));
+              setView('build');
+              window.scrollTo(0, 0);
+            }}
+            onWorksheet={(tier: Tier) => {
+              const o = withTier(options, tier);
+              setOptions(o);
+              setLocked(new Set());
+              generateWith(o, []);
+              setView('worksheet');
+              window.scrollTo(0, 0);
+            }}
+          />
+        )}
         {view === 'build' && (
           <BuilderView
             options={options}

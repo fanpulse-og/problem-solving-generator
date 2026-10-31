@@ -7,8 +7,8 @@ export type CalcSupport = Calc | 'either';
 
 export const TIERS: { id: Tier; label: string }[] = [
   { id: 'KS3', label: 'KS3' },
-  { id: 'F', label: 'KS4 Foundation' },
-  { id: 'H', label: 'KS4 Higher' },
+  { id: 'F', label: 'GCSE Foundation' },
+  { id: 'H', label: 'GCSE Higher' },
 ];
 
 export const LEVELS: { id: Level; label: string }[] = [

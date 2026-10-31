@@ -2,7 +2,7 @@ import { buildQuestion, parseCode, type SetOptions } from './engine/generate';
 import { currentSubtopics, templateById } from './engine/registry';
 import type { Question } from './engine/types';
 
-export type View = 'build' | 'board' | 'worksheet';
+export type View = 'home' | 'build' | 'board' | 'worksheet';
 
 export const DEFAULT_OPTIONS: SetOptions = {
   tier: 'F',
@@ -41,14 +41,15 @@ export interface UrlState {
  * Everything lives in the URL hash, so any set or question can be shared as a
  * link. Settings are written only when they differ from DEFAULT_OPTIONS, as
  * short readable parameters (tier=H&n=12); lists are separated by "|" because
- * some sub-topic names contain commas. A fresh visit keeps a clean address.
+ * some sub-topic names contain commas. The home page keeps a clean address.
  */
 const LIST = '|';
 const sameList = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 export function readHash(hash = location.hash): UrlState {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
-  const view: View = path === 'board' || path === 'worksheet' ? path : 'build';
+  // A bare address is the home page; links from before it existed (no path, but settings) open the builder.
+  const view: View = path === 'board' || path === 'worksheet' || path === 'build' ? path : query ? 'build' : 'home';
   const p = new URLSearchParams(query);
   let options: SetOptions = { ...DEFAULT_OPTIONS };
   try {
@@ -85,7 +86,7 @@ export function readHash(hash = location.hash): UrlState {
   };
 }
 
-/** The hash for a state, or '' when there is nothing to remember (a clean address). */
+/** The hash for a state, or '' for the home page (a clean address). */
 export function writeHash(s: UrlState): string {
   const p = new URLSearchParams();
   const o = s.options;
@@ -106,7 +107,7 @@ export function writeHash(s: UrlState): string {
   if (s.sheet?.paper) p.set('paper', '1');
   if (s.locked?.length) p.set('lk', s.locked.join(','));
   const query = p.toString().replace(/%2C/g, ',').replace(/%7C/g, '|');
-  if (!query && s.view === 'build') return '';
+  if (s.view === 'home') return '';
   return `#/${s.view}${query ? `?${query}` : ''}`;
 }
 
