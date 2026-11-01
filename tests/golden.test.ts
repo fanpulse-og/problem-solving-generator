@@ -131,6 +131,20 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['y13-general-binomial.stretch.Y13.c.p0', ['$1 - \\frac{3}{2}x - \\frac{9}{8}x^{2}$', '$-3$'], '4 × (−9/8) + (−1) × (−3/2)'],
   ['y13-functions.core.Y13.c.p0', ['$V(2, 1)$', '$x = 1$ or $x = 3$', '$-2 < c < 3$'], 'line from (0, 5) to V has gradient −2; right-hand branch has gradient 3'],
   ['y13-differentiation.core.Y13.c.p0', ['$a = 1$, $b = 10$, $c = 21$', '$-7 < x < -5$ and $-5 < x < -3$'], '2x(x + 5) − (x² − 21) = (x + 3)(x + 7); x = −5 excluded'],
+  // A-level Mechanics and Statistics
+  ['y12-speed-time.stretch.Y12.c.p0', ['$V = 8$', '$\\frac{2}{3}$ m s$^{-2}$', '$\\frac{35}{2}$ s'], '½(32 + 14)V = 184; half is 92 = 48 + 8(t − 12)'],
+  ['y12-suvat.stretch.Y12.c.p0', ['Acceleration 0.5 m s$^{-2}$; speed at $A$ 5 m s$^{-1}$', '8 m s$^{-1}$'], '(21.75 − 17.25) ÷ 9; 17.25 = 3u + 2.25; 5 + 0.5 × 6'],
+  ['y12-suvat.core.Y12.c.p0', ['12.1 m', '2.49 s', '15.4 m s$^{-1}$'], '8 + 81/19.6; (9 + √237.8)/9.8; √237.8'],
+  ['y12-connected.core.Y12.c.p0', ['$5g - T = 5a$', '$a = 4.45$ m s$^{-2}$, $T = 26.7$ N', '2.83 m s$^{-1}$', '0.141 s', 'The acceleration is less, since the resistance reduces the resultant force on the system.'], 'a = 49/11; T = 6a; v² = 2a × 0.9; 0.4 ÷ v'],
+  ['y12-connected.stretch.Y12.c.p0', ['$a = 1.96$ m s$^{-2}$, $T = 23.5$ N', '1.40 m s$^{-1}$', '1.10 m'], 'a = g/5; T = 2(g + a); v² = 1.96; 1 + 1.96/19.6'],
+  ['y12-variable-acceleration.core.Y12.c.p0', ['$t = 4$ and $t = 6$', '340 m'], 's(4) = 224, s(6) = 216, s(9) = 324: 224 + 8 + 108'],
+  ['y12-forces-vectors.stretch.Y12.c.p0', ['$p = 10$', '3.35 m s$^{-2}$'], 'R = (p − 7)i + 6j parallel to i + 2j; √45 ÷ 2'],
+  ['y12-hypothesis-test.foundational.Y12.c.p0', ['$\\mathrm{H}_0: p = 0.25$, $\\mathrm{H}_1: p > 0.25$', '0.0409', 'Reject $\\mathrm{H}_0$: there is evidence to support the belief.'], 'B(20, 0.25): P(X ≤ 8) = 0.9591 in the tables; 0.0409 < 0.05'],
+  ['y12-probability.stretch.Y12.c.p0', ['Shown', '$\\mathrm{P}(A) = 0.2$, $\\mathrm{P}(B) = 0.3$'], '2x + 0.1 − x(x + 0.1) = 0.44; x = 0.2 is the root below 1'],
+  ['y12-regression.core.Y12.c.p0', ['$b = -0.013$', '$a = 43.7$', '$m = 0$ is outside the range of the data.'], '−1.3 ÷ 100; 35.9 + 600 × 0.013'],
+  ['y12-data-measures.stretch.Y12.c.p0', ['Mean 8.96, standard deviation 2.10', 'Mean 60.84 minutes, standard deviation 8.39 minutes'], '224/25; √(84.68 − 80.2816); 4 × 8.96 + 25; 4 × 2.097'],
+  ['y12-straight-lines.stretch.Y12.c.p0', ['$x + 3y - 11 = 0$', '$(-7, 6)$', '$\\frac{245}{3}$'], 'y-intercepts 27 and 11/3, base 70/3, height 7'],
+  ['y13-double-angle.stretch.Y13.c.p0', ['Proof', '$\\theta = 63.4^\\circ$, $\\theta = 135.0^\\circ$'], 'tan²θ − tanθ − 2 = 0: tan θ = 2 or −1'],
 ];
 
 describe('golden questions (hand-verified)', () => {

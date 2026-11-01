@@ -6,8 +6,8 @@ mark schemes.
 
 - **Home:** pick a level — KS3 (Years 7–9), GCSE Foundation or Higher, or A-level
   (Y12 and Y13, each split into Pure, Mechanics and Statistics) — to open the builder
-  there, or get an instant worksheet. Y12 and Y13 Pure are live; Mechanics and
-  Statistics are coming. The header has a Tuition button that opens an email enquiry.
+  there, or get an instant worksheet. Y12 Pure, Mechanics and Statistics and Y13 Pure
+  are live; Y13 Mechanics and Statistics are coming. The header has a Tuition button that opens an email enquiry.
 - **Build:** choose a tier (KS3, GCSE Foundation, GCSE Higher, Year 12, Year 13), topics, difficulty
   (foundational / core / stretch), question style, calculator or non-calculator,
   and how many questions you want. Any question can be regenerated or shared as a link.

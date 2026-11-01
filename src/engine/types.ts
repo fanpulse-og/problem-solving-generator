@@ -175,6 +175,9 @@ export type DiagramSpec =
       type: 'graph';
       x: [number, number];
       y: [number, number];
+      /** Axis names, e.g. 'time (s)'. Default x and y; named axes are written upright. */
+      xLabel?: string;
+      yLabel?: string;
       curves: { points: [number, number][]; label?: string; labelAt?: [number, number] }[];
       /** Closed outline of the shaded region. */
       shade?: [number, number][];

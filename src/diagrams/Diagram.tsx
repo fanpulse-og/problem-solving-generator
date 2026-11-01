@@ -534,11 +534,11 @@ function SketchGraph({ spec }: { spec: Extract<DiagramSpec, { type: 'graph' }> }
       <line x1={X(0)} y1={Y(y0)} x2={X(0)} y2={Y(y1)} className="dline" />
       <polygon points={arrow(X(x1), Y(0), 1, 0)} fill="currentColor" />
       <polygon points={arrow(X(0), Y(y1), 0, -1)} fill="currentColor" />
-      <text x={X(x1) - 2} y={Y(0) + 16} textAnchor="end" className="dlabel" fontStyle="italic">
-        x
+      <text x={X(x1) - 2} y={Y(0) + 16} textAnchor="end" className="dlabel" fontStyle={spec.xLabel ? undefined : 'italic'}>
+        {spec.xLabel ?? 'x'}
       </text>
-      <text x={X(0) - 8} y={Y(y1) + 10} textAnchor="end" className="dlabel" fontStyle="italic">
-        y
+      <text x={spec.yLabel ? X(0) + 8 : X(0) - 8} y={Y(y1) + 10} textAnchor={spec.yLabel ? 'start' : 'end'} className="dlabel" fontStyle={spec.yLabel ? undefined : 'italic'}>
+        {spec.yLabel ?? 'y'}
       </text>
       <text x={X(0) - 6} y={Y(0) + 15} textAnchor="end" className="dlabel" fontStyle="italic">
         O

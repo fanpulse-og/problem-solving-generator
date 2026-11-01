@@ -5,7 +5,7 @@ Tiers follow two documents:
 - **KS4 Foundation / Higher:** the Pearson Edexcel GCSE (9–1) Mathematics (1MA1) specification. Bold content and the Higher-only references are Higher only.
 - **KS3:** the KS3 programme of study in the national curriculum for mathematics (DfE, 2013).
 - **Year 12:** the first-year content of Edexcel AS and A-level Mathematics, in the style of 8MA0 papers.
-- **Year 13:** the second-year content only, in the style of 9MA0 papers. The 9MA0 papers also assess Year 12 content, which is under Year 12 here, so a mixed revision set can use both. Each year group is split into the strands Pure, Mechanics and Statistics. A calculator is allowed on every A-level paper, so these tiers have no non-calculator option.
+- **Year 13:** the second-year content only, in the style of 9MA0 papers. The 9MA0 papers also assess Year 12 content, which is under Year 12 here, so a mixed revision set can use both. Each year group is split into the strands Pure, Mechanics and Statistics. A calculator is allowed on every A-level paper, so these tiers have no non-calculator option. Statistics questions use only data given in the question: the Edexcel large data set is not used, so questions that rely on familiarity with it are left out.
 
 Higher includes all Foundation content, so every Foundation template is offered at Higher as well (a test checks this). The topic filter lists only the sub-topics that have questions at the chosen tier. When you switch tier, any ticked sub-topic the new tier doesn't have is dropped.
 

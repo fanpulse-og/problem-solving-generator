@@ -2461,6 +2461,326 @@ def y13_vectors(v, ans, level):
     return signed_nums(ans[1]) == [p, r], f"{p} {r}"
 
 
+# ---------------------------------------------------------------- A-level: further Pure
+
+
+def frac_or_num(text):
+    return signed_nums(text)
+
+
+def y12_straight_lines(v, ans, level):
+    if level == "stretch":
+        p, c, m = v["r"][0], v["r"][1], v["m"]
+        c1 = c - m * p
+        c2 = c + F(p, m)
+        # Shoelace on (0, c1), (0, c2), (p, c).
+        area = abs(F(0 * (c2 - c) + 0 * (c - c1) + p * (c1 - c2), 2))
+        return signed_nums(ans[1]) == [p, c] and signed_nums(ans[2])[0] == area, f"area {area}"
+    a, b = v["a"], v["b"]
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    mx, my = F(a[0] + b[0], 2), F(a[1] + b[1], 2)
+    if level == "foundational":
+        return signed_nums(ans[0])[0] == F(dy, dx) and signed_nums(ans[2]) == [mx, my], "gradient, midpoint"
+    # C on the x-axis, the same distance from A and B.
+    x = F(b[0] ** 2 + b[1] ** 2 - a[0] ** 2 - a[1] ** 2, 2 * dx)
+    return signed_nums(ans[1])[0] == x, f"C at {x}"
+
+
+def scan_roots(g, lo, hi, steps=7200):
+    roots = []
+    for i in range(steps):
+        a = lo + (hi - lo) * (i + 0.137) / steps
+        b = lo + (hi - lo) * (i + 1.137) / steps
+        if g(a) * g(b) < 0 and abs(g(a)) < 50:
+            for _ in range(60):
+                c = (a + b) / 2
+                if g(a) * g(c) <= 0:
+                    b = c
+                else:
+                    a = c
+            roots.append(a)
+    return roots
+
+
+def y13_double_angle(v, ans, level):
+    if level == "foundational":
+        o, h = v["opp"], v["hyp"]
+        A = math.asin(o / h)
+        got = [float(signed_nums(x)[0]) for x in ans]
+        return all(near(g, w, 1e-9) for g, w in zip(got, [math.sin(2 * A), math.cos(2 * A), math.tan(2 * A)])), f"{got}"
+    shown = [float(x) for x in signed_nums(ans[1])]
+    if level == "core":
+        a, b, c = v["a"], v["b"], v["c"]
+        roots = scan_roots(lambda x: a * math.cos(math.radians(2 * x)) + b * math.sin(math.radians(x)) + c, 0, 360)
+    else:
+        t1 = v["t1"]
+        k = t1 * t1 - t1 + 1
+        g = lambda x: (1 - math.cos(math.radians(2 * x))) / math.sin(math.radians(2 * x)) - (1 / math.cos(math.radians(x)) ** 2 - k)
+        roots = scan_roots(g, 0.01, 89.99) + scan_roots(g, 90.01, 179.99)
+    return len(roots) == 2 and all(near(s, r, 0.051) for s, r in zip(shown, roots)), f"{roots}"
+
+
+def y13_trapezium(v, ans, level):
+    lo, h, n, c = v["lo"], float(q(v["h"])), v["strips"], v["c"]
+    f = (lambda x: math.sqrt(x ** 3 + c)) if level == "foundational" else (lambda x: x * math.log(x))
+    ys = [round(f(lo + i * h) + 0.0, 4) for i in range(n + 1)]
+    est = h / 2 * (ys[0] + ys[-1] + 2 * sum(ys[1:-1]))
+    if not near(F(ans[0]), f(lo + v["gap"] * h), 0.00006) or not near(F(ans[1]), est, max(est * 0.006, 0.006)):
+        return False, f"estimate {est}"
+    b = lo + n * h
+    if level == "core":
+        true = simpson(f, lo, b)
+        pct = abs(est - true) / true * 100
+        return near(F(ans[2].replace("%", "")), pct, max(pct * 0.1, 0.001)), f"{pct}%"
+    if level == "stretch":
+        val = v["add"] * n * h + 2 * est
+        return near(F(ans[3]), val, val * 0.01) and est > simpson(f, lo, b), f"{val}"
+    return True, "estimate"
+
+
+def y13_connected_rates(v, ans, level):
+    r, x = v["rate"], v["x"]
+    dt = 1e-5
+    if level == "foundational":
+        V = lambda t: (x + r * t) ** 3
+        A = lambda t: 6 * (x + r * t) ** 2
+        return near(signed_nums(ans[0])[0], (V(dt) - V(-dt)) / (2 * dt), 1e-2) and near(signed_nums(ans[1].split("cm")[0])[0], (A(dt) - A(-dt)) / (2 * dt), 1e-2), "rates"
+    if level == "core":
+        inv = lambda vol: (3 * vol / (4 * math.pi)) ** (1 / 3)
+        V0 = 4 / 3 * math.pi * x ** 3
+    else:
+        p, c = v["p"], v["q"]
+        k = math.pi * p * p / (3 * c * c)
+        inv = lambda vol: (vol / k) ** (1 / 3)
+        V0 = k * x ** 3
+    rate = (inv(V0 + r * dt) - inv(V0 - r * dt)) / (2 * dt)
+    return near(F(ans[-1].split()[0]), rate, rate * 0.006), f"{rate}"
+
+
+def y13_small_angles(v, ans, level):
+    t = 1e-3
+    a, b, c, d = v["a"], v["b"], v["c"], v["d"]
+    if level == "foundational":
+        co = ascending_coeffs(ans[0].replace("\\theta", "x"))
+        return near(co[0], a, 1e-9) and near(co[1], c * d, 1e-9) and near(co[2], -a * b * b / 2, 1e-9), f"{co}"
+    if level == "core":
+        val = (1 - math.cos(b * t)) / (t * math.tan(c * t))
+        return near(signed_nums(ans[0])[-1], val, 1e-3), f"{val}"
+    r = math.radians(v["deg"])
+    approx, true = 1 - (b * r) ** 2 / 2, math.cos(b * r)
+    pct = abs(approx - true) / true * 100
+    return near(F(ans[2].replace("%", "")), pct, max(pct * 0.06, 1e-5)), f"{pct}"
+
+
+# ---------------------------------------------------------------- A-level: Year 12 Mechanics
+
+
+def y12_speed_time(v, ans, level):
+    V, t1, t2, t3 = v["V"], v["t1"], v["t2"], v["t3"]
+    area = F(V * t1, 2) + V * t2 + F(V * t3, 2)
+    T = t1 + t2 + t3
+    if level == "foundational":
+        return signed_nums(ans[0])[0] == F(V, t1) and F(ans[1].split()[0]) == area, f"{area}"
+    if level == "core":
+        # T from the area of a trapezium with parallel sides T and T − t1 − t3.
+        got = (2 * area / V + t1 + t3) / 2
+        return signed_nums(ans[0])[0] == got == T and signed_nums(ans[1])[0] == F(V, t3), f"T {got}"
+    half = area / 2
+    t = t1 + (half - F(V * t1, 2)) / V
+    return signed_nums(ans[0])[0] == V and signed_nums(ans[2])[0] == t, f"t {t}"
+
+
+def y12_suvat(v, ans, level):
+    u, a = q(v["u"]), q(v["a"])
+    if level == "foundational":
+        t, T = v["t"], q(v["target"])
+        return F(ans[0].split()[0]) == u + a * t and F(ans[1].split()[0]) == u * t + a * t * t / 2 and F(ans[2].split()[0]) == (T - u) / a, "suvat"
+    if level == "core":
+        U, h, g = float(u), v["h"], 9.8
+        # Roots of h + Ut − 4.9t² = 0.
+        t = (-U - math.sqrt(U * U + 4 * 4.9 * h)) / (-2 * 4.9)
+        vel = abs(U - g * t)
+        top = h + U * U / (2 * g)
+        got = [float(F(x.split()[0])) for x in ans]
+        return near(got[0], top, top * 0.006) and near(got[1], t, t * 0.006) and near(got[2], vel, vel * 0.006), f"{top} {t} {vel}"
+    t = v["t"]
+    AB = u * t + a * t * t / 2
+    BC = AB + a * t * t
+    # From the two distances only.
+    acc = (BC - AB) / (t * t)
+    u0 = AB / t - acc * t / 2
+    nums = signed_nums(ans[0].replace("s$^{-2}$", "").replace("s$^{-1}$", ""))
+    return nums[0] == acc and nums[-1] == u0 and F(ans[1].split()[0]) == u0 + 2 * acc * t, f"a {acc} u {u0}"
+
+
+def ij_parts(text):
+    out = {}
+    t = text.replace("$", "").replace(" ", "")
+    for sign, num, unit in re.findall(r"([+-]?)(\d*\.?\d*)\\mathbf\{([ij])\}", t):
+        out[unit] = F(num or 1) * (-1 if sign == "-" else 1)
+    return out.get("i", F(0)), out.get("j", F(0))
+
+
+def y12_forces_vectors(v, ans, level):
+    f1, f2, m = v["f1"], v["f2"], q(v["m"])
+    r = (f1[0] + f2[0], f1[1] + f2[1])
+    size = math.hypot(r[0], r[1]) / float(m)
+    if level == "foundational":
+        return ij_parts(ans[0]) == r and near(F(ans[1].split()[0]), size, size * 0.006) and ij_parts(ans[2]) == (-r[0], -r[1]), f"{size}"
+    if level == "core":
+        u, t = v["u"], v["t"]
+        acc = (r[0] / m, r[1] / m)
+        vel = (u[0] + acc[0] * t, u[1] + acc[1] * t)
+        sp = math.hypot(vel[0], vel[1])
+        ang = math.degrees(math.atan2(abs(r[1]), abs(r[0])))
+        return ij_parts(ans[0]) == acc and ij_parts(ans[1]) == vel and near(F(ans[2].split()[0]), sp, sp * 0.006) and near(signed_nums(ans[3])[0], ang, 0.051), f"{sp} {ang}"
+    d = v["dir"]
+    # (f1x + p)/(f1y + f2y) = dx/dy
+    p = F(d[0] * (f1[1] + f2[1]), d[1]) - f1[0]
+    R = (f1[0] + p, f1[1] + f2[1])
+    a = math.hypot(R[0], R[1]) / float(m)
+    return signed_nums(ans[0])[0] == p and near(F(ans[1].split()[0]), a, a * 0.006), f"p {p} a {a}"
+
+
+def y12_connected(v, ans, level):
+    m1, m2 = v["m1"], v["m2"]
+    if level == "foundational":
+        D, r1, r2 = v["D"], v["r1"], v["r2"]
+        a = F(D - r1 - r2, m1 + m2)
+        # Tension from the car's equation.
+        T = D - r1 - m1 * a
+        return F(ans[0].split()[0]) == a and F(ans[1].split()[0].replace(" ", "")) == T, f"{a} {T}"
+    g, h = 9.8, float(q(v["h"]))
+    if level == "core":
+        # Energy for the speed; then a from v² = 2ah.
+        sp = math.sqrt(2 * m2 * g * h / (m1 + m2))
+        a = sp * sp / (2 * h)
+        T = m2 * (g - a)
+        k = float(q(v["d"]) - q(v["h"])) / sp
+        nums = signed_nums(ans[1].replace("s$^{-2}$", ""))
+        return near(nums[0], a, a * 0.006) and near(nums[-1], T, T * 0.006) and near(F(ans[2].split()[0]), sp, sp * 0.006) and near(F(ans[3].split()[0]), k, k * 0.006), f"{a} {T} {sp} {k}"
+    sp = math.sqrt(2 * (m1 - m2) * g * h / (m1 + m2))
+    a = sp * sp / (2 * h)
+    T = m1 * (g - a)
+    top = 2 * h + sp * sp / (2 * g)
+    nums = signed_nums(ans[0].replace("s$^{-2}$", ""))
+    return near(nums[0], a, a * 0.006) and near(nums[-1], T, T * 0.006) and near(F(ans[2].split()[0]), top, top * 0.006), f"{a} {T} {top}"
+
+
+def y12_variable_acceleration(v, ans, level):
+    a, p, c, r, s0 = v["a"], v["p"], v["q"], v["r"], v["s0"]
+    co = [a, F(-3 * a * (p + c), 2), 3 * a * p * c, s0]
+    vel = lambda t: 3 * co[0] * t * t + 2 * co[1] * t + co[2]
+    s = lambda t: poly_eval(co, t)
+    if level == "foundational":
+        return signed_nums(ans[2])[0] == vel(r), "velocity"
+    if level == "core":
+        rests = [t for t in range(0, r + 1) if vel(t) == 0]
+        pts = [0] + rests + [r]
+        tot = sum(abs(s(y) - s(x)) for x, y in zip(pts, pts[1:]))
+        return rests == [p, c] and signed_nums(ans[0]) == [p, c] and signed_nums(ans[1])[0] == tot, f"{rests} {tot}"
+    best = max(abs(vel(p + (c - p) * F(i, 2000))) for i in range(2001))
+    return signed_nums(ans[1])[0] == best and signed_nums(ans[2])[0] == s(r), f"{best} {s(r)}"
+
+
+# ---------------------------------------------------------------- A-level: Year 12 Statistics
+
+
+def bpmf(n, p, k):
+    return math.comb(n, k) * p ** k * (1 - p) ** (n - k) if 0 <= k <= n else 0.0
+
+
+def bcdf(n, p, k):
+    return sum(bpmf(n, p, i) for i in range(0, min(k, n) + 1))
+
+
+def y12_binomial_distribution(v, ans, level):
+    n, p, k = v["n"], float(q(v["p"])), v["k"]
+    close3 = lambda s, w: near(F(s), w, max(abs(w) * 0.006, 1e-5))
+    if level == "foundational":
+        return close3(ans[0], bpmf(n, p, k)) and close3(ans[1], bcdf(n, p, k)) and close3(ans[2], bcdf(n, p, k) - bcdf(n, p, v["low"])), "probabilities"
+    if level == "core":
+        return close3(ans[1], bpmf(n, p, k)) and close3(ans[2], bpmf(v["m"], bcdf(n, p, k), v["j"])), "second binomial"
+    # Solve for p from the table.
+    pr = (1 - q(v["c"])) / (1 + v["mult"])
+    a = 0
+    while bcdf(n, float(pr), a) <= 0.9:
+        a += 1
+    return pr == q(v["p"]) and close3(ans[1], bcdf(n, p, k) - bcdf(n, p, v["low"])) and signed_nums(ans[2])[-1] == a, f"p {pr} a {a}"
+
+
+def y12_hypothesis_test(v, ans, level):
+    n, p, x, alpha = v["n"], float(q(v["p"])), v["x"], v["alpha"]
+    if level == "stretch":
+        t = alpha / 200
+        lo = max((k for k in range(n + 1) if bcdf(n, p, k) <= t), default=-1)
+        hi = min((k for k in range(n + 1) if 1 - bcdf(n, p, k - 1) <= t), default=n + 1)
+        actual = bcdf(n, p, lo) + (1 - bcdf(n, p, hi - 1))
+        inside = x <= lo or x >= hi
+        nums = signed_nums(ans[1])
+        return nums == [lo, hi] and near(F(ans[2]), actual, max(actual * 0.006, 1e-5)) and (("In the critical" in ans[3]) == inside), f"{lo} {hi} {actual}"
+    pv = 1 - bcdf(n, p, x - 1) if v["up"] else bcdf(n, p, x)
+    text = ans[1] if level == "foundational" else ans[0]
+    verdict = ans[2] if level == "foundational" else ans[0]
+    shown = F(text) if level == "foundational" else F(re.search(r"value (\d*\.?\d+)", text).group(1))
+    reject = pv < alpha / 100
+    return near(shown, pv, max(pv * 0.006, 1e-5)) and (("Do not reject" not in verdict) == reject), f"{pv}"
+
+
+def y12_data_measures(v, ans, level):
+    if level == "core":
+        data = []
+        for i, f in enumerate(v["freq"]):
+            data += [(v["edges"][i] + v["edges"][i + 1]) / 2] * f
+        N = len(data)
+        mean = sum(data) / N
+        sd = math.sqrt(sum((x - mean) ** 2 for x in data) / N)
+        # Median: walk through the classes.
+        run, med = 0, None
+        for i, f in enumerate(v["freq"]):
+            if run + f >= N / 2:
+                med = v["edges"][i] + (N / 2 - run) / f * (v["edges"][i + 1] - v["edges"][i])
+                break
+            run += f
+        g = [float(F(a.split()[0])) for a in ans[:3]]
+        return near(g[0], med, 0.0051) and near(g[1], mean, mean * 0.006) and near(g[2], sd, sd * 0.006), f"{med} {mean} {sd}"
+    n, sx, sxx = v["n"], v["sx"], v["sxx"]
+    mean = F(sx, n)
+    sd = math.sqrt(float(F(sxx, n) - mean * mean))
+    if level == "foundational":
+        out = abs(float(v["test"] - mean)) > 2 * sd
+        return F(ans[0].split()[0]) == mean and near(F(ans[1].split()[0]), sd, sd * 0.006) and (("Yes" in ans[2]) == out), f"{mean} {sd}"
+    a, b = v["a"], v["b"]
+    nums = signed_nums(ans[1])
+    return nums[0] == mean * b + a and near(nums[1], sd * b, sd * b * 0.006), f"{mean * b + a} {sd * b}"
+
+
+def y12_regression(v, ans, level):
+    if level == "foundational":
+        return signed_nums(ans[1])[0] == q(v["a"]) + q(v["b"]) * v["x1"], "prediction"
+    if level == "core":
+        b = -q(v["drop"]) / v["step"]
+        a = q(v["y1"]) - b * v["x1"]
+        return signed_nums(ans[0])[0] == b and signed_nums(ans[1])[0] == a, f"{a} {b}"
+    r, c = q(v["r"]), q(v["crit"])
+    return (("Do not reject" not in ans[0]) == (abs(r) > c)) and ((">" in ans[0]) == (r > 0)), f"{r} {c}"
+
+
+def y12_probability(v, ans, level):
+    a, b = q(v["pa"]), q(v["pb"])
+    if level == "foundational":
+        return [F(x) for x in ans] == [a * b, a + b - a * b, (1 - a) * (1 - b)], "rules"
+    if level == "core":
+        return signed_nums(ans[0])[0] == a * b and signed_nums(ans[1]) == [a * (1 - b), b * (1 - a)] and signed_nums(ans[2])[0] == (1 - a) * (1 - b) and F(ans[3]) == 1 - b * (1 - a), "regions"
+    u, d = a + b - a * b, q(v["d"])
+    # x + (x + d) − x(x + d) = u by the quadratic formula.
+    B, C = -(2 - d), u - d
+    disc = B * B - 4 * C
+    root = F(math.isqrt(disc.numerator), math.isqrt(disc.denominator))
+    x = (-B - root) / 2
+    return root * root == disc and signed_nums(ans[1]) == [x, x + d] and x == a, f"{x}"
+
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -2574,6 +2894,21 @@ CHECKS = {
     "y13-radians": y13_radians,
     "y13-proof": y13_proof,
     "y13-vectors": y13_vectors,
+    "y12-straight-lines": y12_straight_lines,
+    "y13-double-angle": y13_double_angle,
+    "y13-trapezium": y13_trapezium,
+    "y13-connected-rates": y13_connected_rates,
+    "y13-small-angles": y13_small_angles,
+    "y12-speed-time": y12_speed_time,
+    "y12-suvat": y12_suvat,
+    "y12-forces-vectors": y12_forces_vectors,
+    "y12-connected": y12_connected,
+    "y12-variable-acceleration": y12_variable_acceleration,
+    "y12-binomial-distribution": y12_binomial_distribution,
+    "y12-hypothesis-test": y12_hypothesis_test,
+    "y12-data-measures": y12_data_measures,
+    "y12-regression": y12_regression,
+    "y12-probability": y12_probability,
 }
 
 
