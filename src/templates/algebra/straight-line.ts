@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { single, step, text, DIV, MINUS } from '../../engine/blocks';
 import { ensure, fracTex } from '../../engine/format';
 import { Q } from '../../engine/rational';
@@ -10,7 +10,7 @@ import { Q } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier: 'KS3' | 'F' | 'H';
+  tier: Tier;
   A: [number, number];
   B: [number, number];
   // core: L is ay = bx + c; the parallel line passes through P; is R on it?

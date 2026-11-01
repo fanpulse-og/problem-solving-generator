@@ -289,6 +289,21 @@ button.big {
 .seg button + button {
   border-left: 1px solid var(--line);
 }
+/* Three GCSE-and-below tiers on the first row, the two A-level years below. */
+.seg.tiers {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+.seg.tiers button {
+  grid-column: span 2;
+}
+.seg.tiers button:nth-child(n + 4) {
+  grid-column: span 3;
+  border-top: 1px solid var(--line);
+}
+.seg.tiers button:nth-child(4) {
+  border-left: 0;
+}
 .seg button.on {
   background: var(--brand);
   color: var(--brand-ink);
@@ -1269,6 +1284,18 @@ a.cta:hover {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: auto;
+}
+.year-group + .year-group {
+  margin-top: 1.75rem;
+}
+.year-group > h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.year-spec {
+  margin: 0.15rem 0 0.9rem;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
 }
 .soon-card {
   border-style: dashed;

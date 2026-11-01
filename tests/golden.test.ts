@@ -117,6 +117,20 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['alg-functions.stretch.H.nc.p0', ['$x = -\\frac{1}{5}$ or $x = -\\frac{9}{5}$'], '5x + 5 = ±4'],
   ['alg-quadratic-sequences.foundational.H.nc.p0', ['$3n^2 - 5n + 7$'], '5, 9, 19, 35, 57: second difference 6'],
   ['alg-quadratic-sequences.stretch.H.nc.p0', ['$a = 4$, $b = 2$'], '4a + 2b = 20, 25a + 5b = 110'],
+  // A-level Pure
+  ['y12-factor-theorem.core.Y12.c.p0', ['$k = -3$', '$\\mathrm{f}(x) = (x + 3)(2x - 3)(x - 3)$', '$x = -3$, $x = 3$, $x = \\frac{3}{2}$'], 'f(−3) = 27 + 9k = 0; (x² − 9)(2x − 3) expands back to f'],
+  ['y12-circle.stretch.Y12.c.p0', ['$x + 3y = 23$', '$(-1, 8)$', '$(x - 5)^2 + (y - 6)^2 = 40$', '$k = -29$'], 'radius from (5, 6) to (−1, 8): 36 + 4; far end (11, 4): 4 = 33 + k'],
+  ['y12-trig-equations.stretch.Y12.c.p0', ['Shown', '$x = 50.8^\\circ$, $x = 129.2^\\circ$'], '3 − 3c² = −14c + 2c²; (5c + 1)(c − 3) = 0; 2x = 101.54°, 258.46°'],
+  ['y12-integration.core.Y12.c.p0', ['$A(4, 0)$ and $B(6, 0)$', '$\\frac{4}{3}$'], '∫(x − 4)(6 − x) from 4 to 6 = 2³ ÷ 6'],
+  ['y12-quadratic-roots.core.Y12.c.p0', ['Shown', '$0 < k < 4$ or $k > 16$'], '256 − 4k(20 − k) > 0 → (k − 4)(k − 16) > 0, k positive'],
+  ['y12-logs.core.Y12.c.p0', ['$x = 8$ (logs of negative numbers are not defined)'], 'x(x + 56) = 512: 8 × 64; the other root is −64'],
+  ['y13-series.stretch.Y13.c.p0', ['Shown', '$144$'], 'k = 6: 72, 36, 18, r = ½; 11k² − 6k − 360 = 0 has other root −60/11'],
+  ['y13-partial-fractions.core.Y13.c.p0', ['$A = -2$, $B = -6$', '$-2\\ln 3 - 6\\ln \\left(\\frac{9}{7}\\right)$'], 'cover-up: −12 ÷ 6, 36 ÷ −6; limits 4 and 6 give ln(3/1), ln(9/7)'],
+  ['y13-integration.core.Y13.c.p0', ['$4\\ln 2 - \\frac{15}{16}$'], '[x⁴/4 ln x − x⁴/16] from 1 to 2 = 4 ln 2 − 1 + 1/16'],
+  ['y13-implicit-parametric.stretch.Y13.c.p0', ['$\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\frac{1}{t}$', '$x - y - 15 = 0$', '$(45, 30)$'], 'P(5, −10), normal gradient 1; 5T² − 10T − 15 = 0, T = 3'],
+  ['y13-general-binomial.stretch.Y13.c.p0', ['$1 - \\frac{3}{2}x - \\frac{9}{8}x^{2}$', '$-3$'], '4 × (−9/8) + (−1) × (−3/2)'],
+  ['y13-functions.core.Y13.c.p0', ['$V(2, 1)$', '$x = 1$ or $x = 3$', '$-2 < c < 3$'], 'line from (0, 5) to V has gradient −2; right-hand branch has gradient 3'],
+  ['y13-differentiation.core.Y13.c.p0', ['$a = 1$, $b = 10$, $c = 21$', '$-7 < x < -5$ and $-5 < x < -3$'], '2x(x + 5) − (x² − 21) = (x + 3)(x + 7); x = −5 excluded'],
 ];
 
 describe('golden questions (hand-verified)', () => {

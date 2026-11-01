@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { single, step, text } from '../../engine/blocks';
 import { ensure, polyTex } from '../../engine/format';
 import { gcdInt } from '../../engine/rational';
@@ -11,7 +11,7 @@ import { gcdInt } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier?: 'KS3' | 'F' | 'H';
+  tier?: Tier;
   kind: 'consec-int' | 'consec-even' | 'consec-odd' | 'diff-squares' | 'odd-squares' | 'general' | 'odd-square' | 'sum-squares';
   k: number; // number of consecutive terms
   a: number; // (an + b)² − (cn + d)²

@@ -1,13 +1,13 @@
 # Question quality report
 
-Generated 2026-10-30 by `scripts/quality-report.ts` with about 2000 seeds per template (170793 questions).
+Generated 2026-11-01 by `scripts/quality-report.ts` with about 2000 seeds per template (224820 questions).
 
 - **(a) Untidy answer:** a number with more decimal places than the question asks for, a “…”, or a fraction with a denominator over 1000.
 - **(b) Non-calc too heavy:** non-calculator questions only. The mark-scheme working multiplies or divides numbers whose significant digits multiply to more than 6 (3-digit × 2-digit is the most allowed; a 1-digit divisor is always fine), or uses a number with more than 6 significant digits.
 - **(c) Marks wrong:** the mark-scheme steps do not match the marks shown, or an answer is missing.
 - **(d) Throws:** the generator could not make a question.
 
-**0 of 85 templates flagged.**
+**0 of 112 templates flagged.**
 
 | Template | Seeds | (a) Untidy answer | (b) Non-calc too heavy | (c) Marks wrong | (d) Throws | First example |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -96,3 +96,30 @@ Generated 2026-10-30 by `scripts/quality-report.ts` with about 2000 seeds per te
 | stats-median-range | 2016 | 0 | 0 | 0 | 0 | OK |
 | stats-pie-chart | 2007 | 0 | 0 | 0 | 0 | OK |
 | stats-scatter-graph | 2007 | 0 | 0 | 0 | 0 | OK |
+| y12-binomial | 2001 | 0 | – | 0 | 0 | OK |
+| y12-circle | 2001 | 0 | – | 0 | 0 | OK |
+| y12-differentiation | 2001 | 0 | – | 0 | 0 | OK |
+| y12-exponential-model | 2001 | 0 | – | 0 | 0 | OK |
+| y12-factor-theorem | 2001 | 0 | – | 0 | 0 | OK |
+| y12-first-principles | 2001 | 0 | – | 0 | 0 | OK |
+| y12-integration | 2001 | 0 | – | 0 | 0 | OK |
+| y12-logs | 2001 | 0 | – | 0 | 0 | OK |
+| y12-proof | 2001 | 0 | – | 0 | 0 | OK |
+| y12-quadratic-model | 2001 | 0 | – | 0 | 0 | OK |
+| y12-quadratic-roots | 2001 | 0 | – | 0 | 0 | OK |
+| y12-triangles | 2001 | 0 | – | 0 | 0 | OK |
+| y12-trig-equations | 2001 | 0 | – | 0 | 0 | OK |
+| y12-vectors | 2001 | 0 | – | 0 | 0 | OK |
+| y13-differential-equations | 2001 | 0 | – | 0 | 0 | OK |
+| y13-differentiation | 2001 | 0 | – | 0 | 0 | OK |
+| y13-functions | 2001 | 0 | – | 0 | 0 | OK |
+| y13-general-binomial | 2001 | 0 | – | 0 | 0 | OK |
+| y13-implicit-parametric | 2001 | 0 | – | 0 | 0 | OK |
+| y13-integration | 2001 | 0 | – | 0 | 0 | OK |
+| y13-numerical | 2001 | 0 | – | 0 | 0 | OK |
+| y13-partial-fractions | 2001 | 0 | – | 0 | 0 | OK |
+| y13-proof | 2001 | 0 | – | 0 | 0 | OK |
+| y13-r-form | 2001 | 0 | – | 0 | 0 | OK |
+| y13-radians | 2001 | 0 | – | 0 | 0 | OK |
+| y13-series | 2001 | 0 | – | 0 | 0 | OK |
+| y13-vectors | 2001 | 0 | – | 0 | 0 | OK |

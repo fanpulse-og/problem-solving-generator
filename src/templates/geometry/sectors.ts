@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { lines, part, single, step, text, DIV, TIMES } from '../../engine/blocks';
 import { ensure, roundFloatDp, roundFloatSf } from '../../engine/format';
 import { names } from '../../contexts/names';
@@ -11,7 +11,7 @@ import { names } from '../../contexts/names';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier: 'KS3' | 'F' | 'H';
+  tier: Tier;
   name: string;
   r: number;
   angle: number;

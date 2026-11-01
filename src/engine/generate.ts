@@ -2,7 +2,7 @@ import { Reject } from './format';
 import { lineIssues } from './arithmetic';
 import { Rng, freshSeed } from './rng';
 import type { Calc, Level, Question, StyleId, Strand, Template, Tier } from './types';
-import { LEVELS, levelsFor } from './types';
+import { LEVELS, TIERS, levelsFor } from './types';
 
 // Raising this only affects codes that used to fail: earlier attempts, and so existing questions, are unchanged.
 const MAX_ATTEMPTS = 500;
@@ -18,7 +18,7 @@ export function parseCode(code: string): { templateId: string; level: Level; tie
   if (parts.length !== 5) return null;
   const [templateId, level, tier, c, seed] = parts;
   if (!LEVELS.some((l) => l.id === level)) return null;
-  if (!['KS3', 'F', 'H'].includes(tier)) return null;
+  if (!TIERS.some((t) => t.id === tier)) return null;
   if (c !== 'nc' && c !== 'c') return null;
   return { templateId, level: level as Level, tier: tier as Tier, calc: c === 'nc' ? 'non-calc' : 'calc', seed };
 }

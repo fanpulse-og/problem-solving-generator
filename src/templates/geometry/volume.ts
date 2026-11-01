@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { lines, single, step, text, DIV, TIMES } from '../../engine/blocks';
 import { dec, ensure, int, roundFloatDp } from '../../engine/format';
 import { Q } from '../../engine/rational';
@@ -13,7 +13,7 @@ import { names } from '../../contexts/names';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier: 'KS3' | 'F' | 'H';
+  tier: Tier;
   name: string;
   dims: [number, number, number]; // cuboid l, w, h (cm)
   rate: number; // foundational: litres per minute

@@ -105,9 +105,11 @@ export function WorksheetView({ questions, example, title, sheet, onTitle, onShe
               <input type="checkbox" checked={sheet.answers === 'answers'} onChange={(e) => onSheet({ ...sheet, answers: e.target.checked ? 'answers' : 'scheme' })} /> Answers only
             </label>
           </fieldset>
+          {questions.some((q) => q.calc === 'non-calc') && (
           <label className="check">
             <input type="checkbox" checked={sheet.paper} onChange={(e) => onSheet({ ...sheet, paper: e.target.checked })} /> Paper mode (non-calculator first)
           </label>
+          )}
         </div>
         <div className="tool-row">
           <button type="button" className="primary" onClick={() => window.print()}>

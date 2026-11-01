@@ -66,7 +66,7 @@ describe('tiers follow the specification', () => {
 });
 
 describe('topic filter', () => {
-  for (const tier of ['KS3', 'F', 'H'] as Tier[]) {
+  for (const tier of ['KS3', 'F', 'H', 'Y12', 'Y13'] as Tier[]) {
     it(`${tier}: lists only sub-topics with questions at that tier`, () => {
       for (const [, subs] of subtopicsByStrand(tier)) {
         for (const st of subs) expect(eligibleTemplates(TEMPLATES, { ...DEFAULT_OPTIONS, tier, subtopics: [st] }).length, `${tier} ${st}`).toBeGreaterThan(0);
@@ -90,6 +90,26 @@ describe('topic filter', () => {
     const o = withTier({ ...DEFAULT_OPTIONS, tier: 'H', strands: [strand as Strand], subtopics: [st] }, 'F');
     expect(o.tier).toBe('F');
     expect(o.subtopics).not.toContain(st);
+  });
+});
+
+describe('A-level', () => {
+  it('Year 12 and Year 13 are Pure, Mechanics and Statistics only, and GCSE sets stay GCSE', () => {
+    for (const tier of ['Y12', 'Y13'] as Tier[]) {
+      const strands = [...subtopicsByStrand(tier).keys()];
+      expect(strands.length).toBeGreaterThan(0);
+      for (const s of strands) expect(['Pure', 'Mechanics', 'Statistics']).toContain(s);
+    }
+    for (const t of TEMPLATES) if (t.tiers.includes('Y12') || t.tiers.includes('Y13')) expect(t.tiers.every((x) => x === 'Y12' || x === 'Y13'), t.id).toBe(true);
+  });
+
+  it('every A-level question allows a calculator, and choosing A-level clears a non-calculator filter', () => {
+    for (const t of TEMPLATES) if (t.tiers.includes('Y12') || t.tiers.includes('Y13')) expect(t.calculator, t.id).toBe('calc');
+    expect(withTier({ ...DEFAULT_OPTIONS, calc: 'non-calc' }, 'Y12').calc).toBe('any');
+  });
+
+  it('a Year 13 share link round-trips', () => {
+    expect(readHash('#/build?tier=Y13&strands=Pure').options).toMatchObject({ tier: 'Y13', strands: ['Pure'] });
   });
 });
 

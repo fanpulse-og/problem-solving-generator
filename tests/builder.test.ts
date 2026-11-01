@@ -20,7 +20,7 @@ describe('editing a set', () => {
     }
   });
 
-  for (const tier of ['KS3', 'F', 'H'] as Tier[]) {
+  for (const tier of ['KS3', 'F', 'H', 'Y12', 'Y13'] as Tier[]) {
     it(`${tier}: "about N marks" lands within 2 marks of the target`, () => {
       for (const target of [12, 20, 30, 45, 60]) {
         for (let i = 0; i < 10; i++) {

@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { diagram, part, single, step, text, TIMES } from '../../engine/blocks';
 import { dec, ensure, frac, fracTex } from '../../engine/format';
 import { Q } from '../../engine/rational';
@@ -12,7 +12,7 @@ import { names } from '../../contexts/names';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier: 'KS3' | 'F' | 'H';
+  tier: Tier;
   name: string;
   ctx: number;
   p: Q; // independent: P(first event)

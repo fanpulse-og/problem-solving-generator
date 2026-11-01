@@ -45,7 +45,7 @@ export default defineTemplate<V>({
   generate({ rng, tier, level, calc }) {
     const [name] = names(rng, 1);
     const usePercent = level === 'stretch';
-    const childShare = usePercent ? Q.of(rng.pick(PERCENTS), 100) : rng.pick(FRACTIONS[tier]);
+    const childShare = usePercent ? Q.of(rng.pick(PERCENTS), 100) : rng.pick(FRACTIONS[tier as 'KS3' | 'F' | 'H']);
     const d = Number(childShare.d);
     const [lo, hi] = tier === 'KS3' ? [40, 300] : tier === 'F' ? [200, 800] : [300, 1200];
     const total = rng.step(lo, hi, d * (calc === 'non-calc' ? 10 : 2) * (usePercent ? 1 : 1));

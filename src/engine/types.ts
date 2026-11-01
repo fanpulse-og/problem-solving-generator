@@ -1,6 +1,6 @@
 import type { Rng } from './rng';
 
-export type Tier = 'KS3' | 'F' | 'H';
+export type Tier = 'KS3' | 'F' | 'H' | 'Y12' | 'Y13';
 export type Level = 'foundational' | 'core' | 'stretch';
 export type Calc = 'non-calc' | 'calc';
 export type CalcSupport = Calc | 'either';
@@ -9,7 +9,12 @@ export const TIERS: { id: Tier; label: string }[] = [
   { id: 'KS3', label: 'KS3' },
   { id: 'F', label: 'GCSE Foundation' },
   { id: 'H', label: 'GCSE Higher' },
+  { id: 'Y12', label: 'Year 12' },
+  { id: 'Y13', label: 'Year 13' },
 ];
+
+/** A-level tiers: every Edexcel A-level paper allows a calculator, so there is no non-calculator choice. */
+export const isALevel = (tier: Tier) => tier === 'Y12' || tier === 'Y13';
 
 export const LEVELS: { id: Level; label: string }[] = [
   { id: 'foundational', label: 'Foundational' },
@@ -24,6 +29,8 @@ export const STRANDS = [
   'Geometry & Measures',
   'Probability',
   'Statistics',
+  'Pure',
+  'Mechanics',
 ] as const;
 export type Strand = (typeof STRANDS)[number];
 
@@ -161,6 +168,18 @@ export type DiagramSpec =
       type: 'pie';
       title?: string;
       sectors: { label: string; angle: number; showAngle?: boolean }[];
+      notAccurate?: boolean;
+    }
+  | {
+      /** Sketch graph: axes through O with no scale, one or more curves, labelled points and a shaded region. */
+      type: 'graph';
+      x: [number, number];
+      y: [number, number];
+      curves: { points: [number, number][]; label?: string; labelAt?: [number, number] }[];
+      /** Closed outline of the shaded region. */
+      shade?: [number, number][];
+      /** Text placed beside a point; dot draws a marker there. */
+      marks?: { at: [number, number]; label: string; dot?: boolean; dx?: number; dy?: number }[];
       notAccurate?: boolean;
     }
   | {

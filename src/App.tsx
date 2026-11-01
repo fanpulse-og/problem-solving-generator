@@ -8,11 +8,14 @@ import { WorksheetView } from './views/WorksheetView';
 import { HomeView } from './views/HomeView';
 import { TuitionButton } from './components/Tuition';
 import { withTier } from './components/Controls';
-import type { Tier } from './engine/types';
+import type { Strand, Tier } from './engine/types';
 import { DEFAULT_SHEET, questionFromCode, readHash, writeHash, type SheetOptions, type View } from './state';
 import { defaultExample, exampleFor } from './engine/example';
 import { loadSaved, storeSaved, type SavedSet } from './saved';
 import { freshSeed } from './engine/rng';
+
+/** Settings for a card on the home page: its tier, and for A-level just its strand. */
+const forCard = (o: SetOptions, tier: Tier, strand?: Strand): SetOptions => (strand ? { ...withTier(o, tier), strands: [strand], subtopics: [] } : withTier(o, tier));
 
 const fromCodes = (codes: string[]) => codes.map(questionFromCode).filter((q): q is Question => q !== null);
 
@@ -204,13 +207,13 @@ export default function App() {
       <main id="main">
         {view === 'home' && (
           <HomeView
-            onBuild={(tier: Tier) => {
-              setOptions((o) => withTier(o, tier));
+            onBuild={(tier: Tier, strand?: Strand) => {
+              setOptions((o) => forCard(o, tier, strand));
               setView('build');
               window.scrollTo(0, 0);
             }}
-            onWorksheet={(tier: Tier) => {
-              const o = withTier(options, tier);
+            onWorksheet={(tier: Tier, strand?: Strand) => {
+              const o = forCard(options, tier, strand);
               setOptions(o);
               setLocked(new Set());
               generateWith(o, []);

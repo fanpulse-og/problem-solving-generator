@@ -1,13 +1,14 @@
 # Problem Solving Generator
 
-A static web app that generates fresh, Edexcel-style GCSE maths **problem-solving**
-questions (AO2/AO3) for KS3 and KS4 lessons, complete with worked, student-friendly
+A static web app that generates fresh, Edexcel-style maths **problem-solving**
+questions for KS3, GCSE and A-level lessons, complete with worked, student-friendly
 mark schemes.
 
-- **Home:** pick a level — KS3 (Years 7–9), GCSE Foundation or Higher — to open the
-  builder at that tier, or get an instant worksheet. A-level (Edexcel 9MA0) is coming.
-  The header has a Tuition button that opens an email enquiry.
-- **Build:** choose a tier (KS3, GCSE Foundation, GCSE Higher), topics, difficulty
+- **Home:** pick a level — KS3 (Years 7–9), GCSE Foundation or Higher, or A-level
+  (Y12 and Y13, each split into Pure, Mechanics and Statistics) — to open the builder
+  there, or get an instant worksheet. Y12 and Y13 Pure are live; Mechanics and
+  Statistics are coming. The header has a Tuition button that opens an email enquiry.
+- **Build:** choose a tier (KS3, GCSE Foundation, GCSE Higher, Year 12, Year 13), topics, difficulty
   (foundational / core / stretch), question style, calculator or non-calculator,
   and how many questions you want. Any question can be regenerated or shared as a link.
   Topics follow the Edexcel Foundation/Higher specification and the KS3 programme of

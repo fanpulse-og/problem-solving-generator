@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { lines, single, step, text, DIV, TIMES } from '../../engine/blocks';
 import { approx, dec, ensure, roundFloatSf } from '../../engine/format';
 import { Q } from '../../engine/rational';
@@ -13,7 +13,7 @@ import { Q } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier: 'KS3' | 'F' | 'H';
+  tier: Tier;
   len: Q; // m
   wid: Q; // m
   force: Q; // N

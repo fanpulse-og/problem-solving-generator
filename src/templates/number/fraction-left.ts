@@ -37,7 +37,7 @@ export default defineTemplate<V>({
   generate({ rng, tier, level }) {
     const [giver, ...others] = names(rng, 4);
     const nFracs = level === 'foundational' ? 1 : 2;
-    const denoms = rng.sample(DENOMS[tier], nFracs);
+    const denoms = rng.sample(DENOMS[tier as 'KS3' | 'F' | 'H'], nFracs);
     const fracs = denoms.map((d) => {
       const maxN = Math.max(1, Math.floor((d - 1) / (nFracs + 1)));
       return Q.of(rng.int(1, maxN), d);

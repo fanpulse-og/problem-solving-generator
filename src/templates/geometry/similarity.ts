@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { diagram, lines, part, single, step, text, DIV, MINUS } from '../../engine/blocks';
 import { dec, ensure, fracTex, int, roundFloatSf } from '../../engine/format';
 import { Q } from '../../engine/rational';
@@ -10,7 +10,7 @@ import { Q } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier?: 'KS3' | 'F' | 'H';
+  tier?: Tier;
   // foundational: triangle ABC ~ DEF with scale factor p/q
   p: number;
   q: number;

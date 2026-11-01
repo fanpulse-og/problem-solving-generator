@@ -1,19 +1,21 @@
 import type React from 'react';
 import { TEMPLATES, subtopicsByStrand } from '../engine/registry';
-import type { Tier } from '../engine/types';
+import type { Strand, Tier } from '../engine/types';
 import { tuitionHref } from '../components/Tuition';
 
 interface Props {
-  /** Open the builder at this tier. */
-  onBuild: (tier: Tier) => void;
+  /** Open the builder at this tier, optionally narrowed to one strand. */
+  onBuild: (tier: Tier, strand?: Strand) => void;
   /** Generate a default set at this tier and open it as a printable worksheet. */
-  onWorksheet: (tier: Tier) => void;
+  onWorksheet: (tier: Tier, strand?: Strand) => void;
 }
 
 interface Card {
   tier: Tier;
   title: string;
   sub: string;
+  /** A-level cards are one strand of a year group. */
+  strand?: Strand;
 }
 
 // In-page links scroll instead of changing the hash, which holds the app's state.
@@ -22,27 +24,28 @@ const jump = (id: string) => (e: React.MouseEvent) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 };
 
-const typesAt = (tier: Tier) => TEMPLATES.filter((t) => t.tiers.includes(tier)).length;
-const strandsAt = (tier: Tier) => [...subtopicsByStrand(tier).keys()];
+const typesAt = ({ tier, strand }: Card) => TEMPLATES.filter((t) => t.tiers.includes(tier) && (!strand || t.strand === strand)).length;
+/** Chips: the strands of a key stage, or the topics of one A-level strand. */
+const chipsFor = ({ tier, strand }: Card) => (strand ? (subtopicsByStrand(tier).get(strand) ?? []) : [...subtopicsByStrand(tier).keys()]);
 
 function LevelCard({ card, onBuild, onWorksheet }: { card: Card } & Props) {
   return (
     <article className="level-card">
       <div className="level-card-head">
         <h3>{card.title}</h3>
-        <span className="count">{typesAt(card.tier)} question types</span>
+        <span className="count">{typesAt(card)} question types</span>
       </div>
       <p>{card.sub}</p>
-      <ul className="chips" aria-label="Strands">
-        {strandsAt(card.tier).map((s) => (
+      <ul className="chips" aria-label={card.strand ? 'Topics' : 'Strands'}>
+        {chipsFor(card).map((s) => (
           <li key={s}>{s}</li>
         ))}
       </ul>
       <div className="level-card-actions">
-        <button type="button" className="primary" onClick={() => onBuild(card.tier)}>
+        <button type="button" className="primary" onClick={() => onBuild(card.tier, card.strand)}>
           Build a set
         </button>
-        <button type="button" onClick={() => onWorksheet(card.tier)}>
+        <button type="button" onClick={() => onWorksheet(card.tier, card.strand)}>
           Instant worksheet
         </button>
       </div>
@@ -50,10 +53,28 @@ function LevelCard({ card, onBuild, onWorksheet }: { card: Card } & Props) {
   );
 }
 
-const SOON = [
-  { title: 'Pure Mathematics', sub: 'Papers 1 and 2: algebra, calculus, trigonometry, sequences, vectors.' },
-  { title: 'Statistics', sub: 'Paper 3, section A: distributions, hypothesis testing, data.' },
-  { title: 'Mechanics', sub: 'Paper 3, section B: kinematics, forces, moments, projectiles.' },
+/** Year groups of the A-level section. A card with no question types yet shows "Coming soon". */
+const A_LEVEL: { year: string; spec: string; tier: Tier; cards: { strand: Strand; title: string; sub: string }[] }[] = [
+  {
+    year: 'Year 12',
+    spec: 'First-year content, in the style of Edexcel AS papers (8MA0).',
+    tier: 'Y12',
+    cards: [
+      { strand: 'Pure', title: 'Y12 Pure', sub: 'Algebra, coordinate geometry, trigonometry, calculus, logarithms, vectors and proof.' },
+      { strand: 'Mechanics', title: 'Y12 Mechanics', sub: 'Kinematics, forces and Newton’s laws, connected particles.' },
+      { strand: 'Statistics', title: 'Y12 Statistics', sub: 'Sampling, data, probability, the binomial distribution and hypothesis tests.' },
+    ],
+  },
+  {
+    year: 'Year 13',
+    spec: 'Second-year content, in the style of Edexcel A-level papers (9MA0).',
+    tier: 'Y13',
+    cards: [
+      { strand: 'Pure', title: 'Y13 Pure', sub: 'Functions, series, further calculus, differential equations and numerical methods.' },
+      { strand: 'Mechanics', title: 'Y13 Mechanics', sub: 'Moments, friction, projectiles and forces in two dimensions.' },
+      { strand: 'Statistics', title: 'Y13 Statistics', sub: 'Regression, conditional probability and the normal distribution.' },
+    ],
+  },
 ];
 
 export function HomeView({ onBuild, onWorksheet }: Props) {
@@ -112,21 +133,32 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
 
       <section id="alevel" className="level alevel" aria-labelledby="alevel-h">
         <header>
-          <span className="level-tag">Years 12–13 · Edexcel 9MA0</span>
+          <span className="level-tag">Years 12–13 · Edexcel</span>
           <h2 id="alevel-h">A-level</h2>
-          <p>Edexcel-style A-level questions are on the way.</p>
+          <p>Questions in the style of Edexcel AS and A-level papers. A calculator is allowed on every paper.</p>
         </header>
-        <div className="level-grid three">
-          {SOON.map((c) => (
-            <article key={c.title} className="level-card soon-card" aria-disabled="true">
-              <div className="level-card-head">
-                <h3>{c.title}</h3>
-                <span className="count">Coming soon</span>
-              </div>
-              <p>{c.sub}</p>
-            </article>
-          ))}
-        </div>
+        {A_LEVEL.map((y) => (
+          <div key={y.tier} className="year-group">
+            <h3>{y.year}</h3>
+            <p className="year-spec">{y.spec}</p>
+            <div className="level-grid three">
+              {y.cards.map((c) => {
+                const card: Card = { tier: y.tier, strand: c.strand, title: c.title, sub: c.sub };
+                return typesAt(card) > 0 ? (
+                  <LevelCard key={c.title} card={card} onBuild={onBuild} onWorksheet={onWorksheet} />
+                ) : (
+                  <article key={c.title} className="level-card soon-card" aria-disabled="true">
+                    <div className="level-card-head">
+                      <h3>{c.title}</h3>
+                      <span className="count">Coming soon</span>
+                    </div>
+                    <p>{c.sub}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </section>
 
       <section className="how" aria-labelledby="how-h">

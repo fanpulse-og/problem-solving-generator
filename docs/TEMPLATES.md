@@ -10,7 +10,7 @@ Start from [`src/templates/_skeleton.ts`](../src/templates/_skeleton.ts).
 |---|---|
 | `id` | Unique kebab-case id, e.g. `ratio-difference`. It appears in share links, so **never rename or reuse one**. |
 | `title`, `strand`, `subtopic` | How the template is listed in the topic picker. |
-| `tiers` | Any of `'KS3'`, `'F'`, `'H'`. KS3 should get easier numbers (check `tier === 'KS3'` in `generate`). |
+| `tiers` | Any of `'KS3'`, `'F'`, `'H'`, or `'Y12'`, `'Y13'` for A-level. KS3 should get easier numbers (check `tier === 'KS3'` in `generate`). A-level templates use `calculator: 'calc'`, since every paper allows one. |
 | `formerTiers` | Optional. Tiers the template is no longer offered at (see [TIERS.md](TIERS.md)); old links with them still open. |
 | `levelsByTier` | Optional. Levels offered at a tier when the other levels need Higher-only content, e.g. `{ F: ['foundational', 'core'] }`. |
 | `levels` | Any of `'foundational'`, `'core'`, `'stretch'`. Levels should change the **question**, not just the numbers: foundational adds scaffolding parts; core is the paper-style problem; stretch reverses it, adds a step or asks for a decision. |
@@ -35,12 +35,14 @@ Start from [`src/templates/_skeleton.ts`](../src/templates/_skeleton.ts).
   Types: `polygon`, `figure` (named points: triangles, circles, cuboids, vectors),
   `histogram`, `grid` (coordinate grid for transformations and cumulative frequency
   graphs), `tree` (two-stage probability tree; `''` draws a blank, `'a/b'` a fraction),
-  `venn` (two sets), `pie` (pie chart, optional angle labels), plus the special-purpose `squareSemicircles`, `plateCutouts` and
+  `venn` (two sets), `pie` (pie chart, optional angle labels), `graph` (sketch graph with axes through O, curves, marked points and a shaded region), plus the special-purpose `squareSemicircles`, `plateCutouts` and
   `parallelTriangle`.
 - `single(marks, …blocks)` for a one-part question; `part('a', marks, …blocks)` for multi-part.
 - `step('M1', working, note)`: codes are `P1` (process), `M1` (method), `A1` (accuracy), `B1` (independent) and `C1` (communication). Write the working as a student would, and the note in plain, friendly language.
 
-### Numbers and formatting (`src/engine/format.ts`, `rational.ts`)
+### Numbers and formatting (`src/engine/format.ts`, `rational.ts`, `pure.ts`)
+
+- A-level algebra helpers are in `pure.ts`: `terms` and `polyQ` for rational coefficients, `coef` and `signedCoef` so a coefficient of 1 is not written, `circleTex`, `lineTex`, `surdTex`, `nCr`, `gCr`, and `sf3` (3 significant figures, retrying rather than showing "52.0").
 
 - Never do arithmetic on decimals with floating point. Use `Q` (exact fractions), integers, or pence for money.
 - `money(pence)` gives £7200, £13.60 or £18 000. `int(n)` gives Edexcel spacing. `dec(q)` gives an exact decimal. `frac(q)` gives a KaTeX fraction.

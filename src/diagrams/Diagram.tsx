@@ -19,6 +19,8 @@ export function Diagram({ spec }: { spec: DiagramSpec }) {
       <Histogram spec={spec} />
     ) : spec.type === 'grid' ? (
       <Grid spec={spec} />
+    ) : spec.type === 'graph' ? (
+      <SketchGraph spec={spec} />
     ) : spec.type === 'tree' ? (
       <Tree spec={spec} />
     ) : spec.type === 'venn' ? (
@@ -515,6 +517,48 @@ function Grid({ spec }: { spec: Extract<DiagramSpec, { type: 'grid' }> }) {
 }
 
 /** A probability on a branch: 'a/b' stacked as a fraction, '' as a dotted blank. */
+function SketchGraph({ spec }: { spec: Extract<DiagramSpec, { type: 'graph' }> }) {
+  const [x0, x1] = spec.x;
+  const [y0, y1] = spec.y;
+  const Wd = 360;
+  const Hd = 250;
+  const m = 22;
+  const X = (x: number) => m + ((x - x0) / (x1 - x0)) * (Wd - 2 * m);
+  const Y = (y: number) => m + ((y1 - y) / (y1 - y0)) * (Hd - 2 * m);
+  const pts = (p: [number, number][]) => p.map(([x, y]) => `${X(x)},${Y(y)}`).join(' ');
+  const arrow = (x: number, y: number, dx: number, dy: number) => `${x},${y} ${x - 7 * dx - 4 * dy},${y - 7 * dy - 4 * dx} ${x - 7 * dx + 4 * dy},${y - 7 * dy + 4 * dx}`;
+  return (
+    <svg viewBox={`0 0 ${Wd} ${Hd}`} role="img" aria-label="Sketch graph">
+      {spec.shade && <polygon points={pts(spec.shade)} style={{ fill: '#dce4f2', stroke: 'none' }} />}
+      <line x1={X(x0)} y1={Y(0)} x2={X(x1)} y2={Y(0)} className="dline" />
+      <line x1={X(0)} y1={Y(y0)} x2={X(0)} y2={Y(y1)} className="dline" />
+      <polygon points={arrow(X(x1), Y(0), 1, 0)} fill="currentColor" />
+      <polygon points={arrow(X(0), Y(y1), 0, -1)} fill="currentColor" />
+      <text x={X(x1) - 2} y={Y(0) + 16} textAnchor="end" className="dlabel" fontStyle="italic">
+        x
+      </text>
+      <text x={X(0) - 8} y={Y(y1) + 10} textAnchor="end" className="dlabel" fontStyle="italic">
+        y
+      </text>
+      <text x={X(0) - 6} y={Y(0) + 15} textAnchor="end" className="dlabel" fontStyle="italic">
+        O
+      </text>
+      {spec.curves.map((c, i) => (
+        <g key={i}>
+          <polyline points={pts(c.points)} className="dshape" style={{ fill: 'none' }} />
+          {c.label && c.labelAt && <MathSvgText x={X(c.labelAt[0])} y={Y(c.labelAt[1])} text={c.label} />}
+        </g>
+      ))}
+      {spec.marks?.map((p, i) => (
+        <g key={i}>
+          {p.dot && <circle cx={X(p.at[0])} cy={Y(p.at[1])} r={2.6} fill="currentColor" />}
+          <MathSvgText x={X(p.at[0]) + (p.dx ?? 0)} y={Y(p.at[1]) + (p.dy ?? -8)} text={p.label} />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function ProbSvg({ x, y, p }: { x: number; y: number; p: string }) {
   if (p === '') return <line x1={x - 16} y1={y + 2} x2={x + 16} y2={y + 2} stroke="currentColor" strokeDasharray="2 3" />;
   const m = /^(\d+)\/(\d+)$/.exec(p);

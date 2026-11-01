@@ -1794,6 +1794,673 @@ def alg_quadratic_sequences(v, ans, level):
     B = (t2 - 4 * A) / 2
     return ans[0] == f"$a = {A}$, $b = {B}$", f"a={A}, b={B}"
 
+# ---------------------------------------------------------------- A-level: Year 12 Pure
+
+
+def signed_nums(text):
+    """Every number in an answer, keeping minus signs; fractions read exactly. Exponents are skipped."""
+    t = re.sub(r"\^\{(?:[^{}]|\{[^{}]*\})*\}|\^\d", " ", text.replace("$", " ").replace("−", "-"))
+    out = []
+    for m in re.finditer(r"(-\s*)?\\frac\{(\d+)\}\{(\d+)\}|(-\s*)?(\d+(?:\.\d+)?)", t):
+        if m.group(2):
+            x = F(int(m.group(2)), int(m.group(3)))
+            out.append(-x if m.group(1) else x)
+        else:
+            x = F(m.group(5))
+            out.append(-x if m.group(4) else x)
+    return out
+
+
+def near(a, b, tol):
+    return abs(float(a) - float(b)) <= tol
+
+
+def poly_eval(co, x):
+    out = 0
+    for c in co:
+        out = out * x + c
+    return out
+
+
+def y12_quadratic_roots(v, ans, level):
+    if level == "foundational":
+        d = v["b"] ** 2 - 4 * v["a"] * v["c"]
+        ok = signed_nums(ans[0])[0] == d and signed_nums(ans[2])[-1] == F(d, 4 * v["a"]) and (("2" in ans[1]) == (d > 0))
+        return ok, f"discriminant {d}"
+    if level == "core":
+        al, be, b = v["alpha"], v["beta"], v["b"]
+        c = al + be
+        # Scan k: two distinct roots when the discriminant of kx² + 2bx + (c − k) is positive.
+        lo = hi = None
+        for i in range(1, 2000):
+            k = F(i, 100)
+            two = (2 * b) ** 2 - 4 * k * (c - k) > 0
+            if not two and lo is None:
+                lo = k
+            if not two:
+                hi = k
+        nums = signed_nums(ans[1])
+        return abs(float(lo) - float(nums[1])) < 0.02 and abs(float(hi) - float(nums[2])) < 0.02, f"{lo} {hi}"
+    b, c = v["b"], v["c"]
+    # Try every whole k: the line y = kx − 1 is a tangent when the quadratic has one root.
+    ks = [k for k in range(-200, 200) if (b - k) ** 2 - 4 * (c + 1) == 0]
+    k = max(ks)
+    x = F(k - b, 2)
+    y = k * x - 1
+    nums = signed_nums(ans[2])
+    return signed_nums(ans[1]) == sorted(ks) and nums == [x, y], f"k {ks} contact {x},{y}"
+
+
+def y12_quadratic_model(v, ans, level):
+    a, p, top = q(v["a"]), v["p"], v["top"]
+    if level == "foundational":
+        c = top - a * p * p
+        # The maximum from −b/2a of the expanded form.
+        x = F(2 * a * p, 2 * a)
+        return x == p and -a * x * x + 2 * a * p * x + c == top and signed_nums(ans[1]) == [top, p], "vertex"
+    if level == "core":
+        start = v["start"]
+        if top - a * p * p != start:
+            return False, "start height"
+        d = float(a)
+        # Quadratic formula on the expanded form −ax² + 2apx + start.
+        x = (-(2 * d * p) - math.sqrt((2 * d * p) ** 2 + 4 * d * start)) / (-2 * d)
+        return close(F(ans[1].split()[0]), round_sf(x, 3), F(1, 1000)), f"landing {x}"
+    target = v["target"]
+    w = math.sqrt(float((top - target) / a))
+    pen = math.ceil((p - w) * 100) / 100
+    nums = signed_nums(ans[1])
+    return near(nums[0], p - w, 0.0051) and near(nums[-1], p + w, 0.0051) and near(F(ans[2].replace("£", "")), pen, 1e-9), f"{p - w} {p + w} {pen}"
+
+
+def y12_factor_theorem(v, ans, level):
+    co = v["coeffs"]
+    r = v["r"]
+    if poly_eval(co, r) != 0:
+        return False, "r is not a root"
+    # Synthetic division gives the quadratic, independently of how it was built.
+    q2 = [co[0], co[1] + r * co[0], co[2] + r * (co[1] + r * co[0])]
+    if level == "stretch":
+        disc = q2[1] ** 2 - 4 * q2[0] * q2[2]
+        return disc < 0 and signed_nums(ans[3])[-1] == round(math.log2(r)), f"disc {disc}"
+    disc = q2[1] ** 2 - 4 * q2[0] * q2[2]
+    root = math.isqrt(disc)
+    if root * root != disc:
+        return False, "the quadratic does not factorise"
+    roots = sorted([F(-q2[1] + root, 2 * q2[0]), F(-q2[1] - root, 2 * q2[0]), F(r)])
+    if level == "core":
+        return sorted(signed_nums(ans[2])) == roots and signed_nums(ans[0])[0] == co[1], f"roots {roots}"
+    return True, "roots"
+
+
+def y12_binomial(v, ans, level):
+    n, a, b = v["n"], v["a"], v["b"]
+    if level == "foundational":
+        co = [math.comb(n, r) * b ** r for r in range(4)]
+        return signed_nums(ans[0]) == co[:3][0:1] + co[1:3] and signed_nums(ans[1])[0] == co[3], f"{co}"
+    if level == "core":
+        co = [math.comb(n, r) * a ** (n - r) * b ** r for r in range(3)]
+        est = sum(F(co[r], 100 ** r) for r in range(3))
+        return signed_nums(ans[0]) == co and near(signed_nums(ans[1])[0], est, 0.0051), f"{co} {float(est)}"
+    k, c, d = v["k"], v["c"], v["d"]
+    T = c * n * k + d
+    # Recover k from the coefficient of x alone.
+    found = F(T - d, c * n)
+    x2 = c * math.comb(n, 2) * found ** 2 + d * n * found
+    return signed_nums(ans[1])[-1] == found and signed_nums(ans[2])[0] == x2, f"k {found} x2 {x2}"
+
+
+def y12_circle(v, ans, level):
+    p, c, r2 = v["p"], v["q"], v["r2"]
+    if level == "stretch":
+        px, py, m = p + v["ux"], c + v["uy"], v["m"]
+        k0 = py - m * px
+        # Foot of the perpendicular from the centre to y = mx + k0.
+        fx = F(p + m * (c - k0), m * m + 1)
+        fy = m * fx + k0
+        r = (fx - p) ** 2 + (fy - c) ** 2
+        # Parallel tangents are equidistant from the centre.
+        k = 2 * (c - m * p) - k0
+        return (fx, fy) == (px, py) and r == r2 and signed_nums(ans[3])[-1] == k and signed_nums(ans[1]) == [px, py], f"P {fx},{fy} k {k}"
+    r = math.isqrt(r2)
+    if r * r != r2 or signed_nums(ans[0]) != [p, c, r]:
+        return False, f"centre {p},{c} radius {r}"
+    if level == "foundational":
+        t = v["test"]
+        d = (t[0] - p) ** 2 + (t[1] - c) ** 2
+        return ("Inside" in ans[1]) == (d < r2), f"distance² {d}"
+    px, py = p + v["ux"], c + v["uy"]
+    m = re.search(r"(-?\d*)x\s*([+-])\s*(\d*)y(?:\s*([+-])\s*(\d+))?\s*=\s*0", ans[1].replace("$", ""))
+    A = int(m.group(1) or 1) if m.group(1) != "-" else -1
+    B = int(m.group(3) or 1) * (1 if m.group(2) == "+" else -1)
+    C = (int(m.group(5)) * (1 if m.group(4) == "+" else -1)) if m.group(5) else 0
+    onLine = A * px + B * py + C == 0
+    # Tangent: distance from the centre equals the radius.
+    dist2 = F((A * p + B * c + C) ** 2, A * A + B * B)
+    return onLine and dist2 == r2, f"line {A},{B},{C}"
+
+
+def y12_differentiation(v, ans, level):
+    if level == "stretch":
+        co = v["co"]
+        d = [3 * co[0], 2 * co[1], co[2]]
+        disc = d[1] ** 2 - 4 * d[0] * d[2]
+        s = math.isqrt(disc)
+        al, be = sorted([F(-d[1] - s, 2 * d[0]), F(-d[1] + s, 2 * d[0])])
+        return signed_nums(ans[0]) == [al, poly_eval(co, al), be, poly_eval(co, be)] and signed_nums(ans[2]) == [al, be], f"{al} {be}"
+    h = 1e-6
+    if level == "core":
+        f = lambda x: v["a"] * x * x + v["b"] / x + v["c"]
+    else:
+        f = lambda x: poly_eval(v["co"], x)
+    p = v["p"]
+    m = (f(p + h) - f(p - h)) / (2 * h)
+    return near(signed_nums(ans[1])[0], m, 1e-3), f"gradient {m}"
+
+
+def y12_first_principles(v, ans, level):
+    h = F(1, 10 ** 9)
+    if level == "foundational":
+        p, b = v["p"], v["b"]
+        g = lambda x: x * x + b * x
+        return near((g(p + h) - g(p)) / h, signed_nums(ans[1])[-1], 1e-6), "chord"
+    a = v["a"]
+    if level == "core":
+        f = lambda x: a * x * x + v["b"] * x + v["c"]
+        return near((f(3 + h) - f(3)) / h, 2 * a * 3 + v["b"], 1e-6) and signed_nums(ans[0])[0] == 2 * a, "core limit"
+    f = lambda x: a * x ** 3
+    return near((f(3 + h) - f(3)) / h, 27 * a, 1e-6) and signed_nums(ans[0])[0] == 3 * a, "stretch limit"
+
+
+def y12_integration(v, ans, level):
+    if level == "foundational":
+        a, b, p, y = v["a"], v["b"], v["p"], v["q"]
+        c = y - a * p ** 3 - 2 * b * math.isqrt(p) ** 3
+        want = ([a] if a != 1 else []) + [2 * b] + ([c] if c else [])
+        return signed_nums(ans[1]) == want, f"c = {c}"
+    if level == "core":
+        al, be = v["alpha"], v["beta"]
+        # Term by term from the expanded form, with exact fractions.
+        F_ = lambda x: F(-x ** 3, 3) + F((al + be) * x * x, 2) - al * be * x
+        return signed_nums(ans[1])[0] == F_(be) - F_(al), f"area {F_(be) - F_(al)}"
+    k, m = v["k"], v["m"]
+    d = k - m
+    G = lambda x: F(k - m, 2) * x * x - F(x ** 3, 3)
+    area = G(d) - G(0)
+    return area == F(d ** 3, 6) and signed_nums(ans[2])[-1] == k, f"area {area}"
+
+
+def y12_trig_equations(v, ans, level):
+    shown = [float(x) for x in signed_nums(ans[-1])]
+    if len(shown) != 2:
+        return False, "two solutions expected"
+    n, m, w = v.get("n"), v.get("m"), v.get("w")
+    # Scan the whole interval for sign changes, without using inverse trig.
+    if level == "foundational":
+        s = float(q(v["s"]))
+        fn = math.sin if v["fn"] == "sin" else math.cos
+        g = lambda x: fn(math.radians(x + v["alpha"])) - s
+        lo, hi = 0.0, 360.0
+    elif level == "core":
+        B, R = n * w + m, n + m * w
+        g = lambda x: n * math.cos(math.radians(x)) ** 2 + B * math.sin(math.radians(x)) - R
+        lo, hi = 0.0, 360.0
+    else:
+        s = F(m, n)
+        g = lambda x: math.cos(math.radians(2 * x)) - float(s)
+        lo, hi = 0.0, 180.0
+    roots = []
+    steps = 7200
+    for i in range(steps):
+        # The offset keeps the grid off exact roots such as 30°.
+        a = lo + (hi - lo) * (i + 0.137) / steps
+        b = lo + (hi - lo) * (i + 1.137) / steps
+        if g(a) * g(b) < 0:
+            for _ in range(60):
+                c = (a + b) / 2
+                if g(a) * g(c) <= 0:
+                    b = c
+                else:
+                    a = c
+            roots.append(a)
+    return len(roots) == 2 and all(near(x, y, 0.051) for x, y in zip(shown, roots)), f"roots {roots}"
+
+
+def y12_triangles(v, ans, level):
+    if level == "foundational":
+        a, b, c = v["a"], v["b"], v["c"]
+        s = F(a + b + c, 2)
+        area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+        angle = math.degrees(math.acos((a * a + b * b - c * c) / (2 * a * b)))
+        return near(F(ans[1].split()[0]), area, max(area * 0.005, 0.06)) and near(signed_nums(ans[0])[0], angle, 0.051), f"area {area} angle {angle}"
+    if level == "core":
+        a, c, A = v["a"], v["c"], math.radians(v["angle"])
+        # Solve for AC with the cosine rule: b² − 2bc cos A + c² − a² = 0; the shorter b has the obtuse angle at C.
+        disc = (2 * c * math.cos(A)) ** 2 - 4 * (c * c - a * a)
+        b = (2 * c * math.cos(A) - math.sqrt(disc)) / 2
+        return near(F(ans[1].split()[0]), 0.5 * b * c * math.sin(A), max(0.5 * b * c * math.sin(A) * 0.005, 0.06)), f"b {b}"
+    p, c, s = v["p"], v["q"], v["s"]
+    # Search for x from the cosine rule directly.
+    g = lambda x: (x + p) ** 2 + (x + c) ** 2 - (x + p) * (x + c) - (2 * x + s) ** 2
+    lo = max(-p, -c, -s / 2) + 1e-9
+    hi = lo + 1000
+    if g(lo) * g(hi) > 0:
+        return False, "no root in range"
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if g(lo) * g(mid) <= 0:
+            hi = mid
+        else:
+            lo = mid
+    area = 0.5 * (lo + p) * (lo + c) * math.sin(math.radians(60))
+    return near(F(ans[1].split()[0]), area, max(area * 0.005, 0.06)), f"x {lo} area {area}"
+
+
+def y12_exponential_model(v, ans, level):
+    if level == "foundational":
+        A, B, k, t1, T = v["A"], v["B"], float(q(v["k"])), v["t1"], v["target"]
+        return (
+            signed_nums(ans[0])[0] == A + B
+            and near(signed_nums(ans[1])[0], B + A * math.exp(-k * t1), max(0.06, 0.005 * A))
+            and near(signed_nums(ans[2])[0], math.log(A / (T - B)) / k, 0.051)
+        ), "cooling"
+    if level == "core":
+        A, t1, y1, t2, T = v["A"], v["t1"], v["y1"], v["t2"], v["target"]
+        k = math.log(y1 / A) / t1
+        N = A * (y1 / A) ** (t2 / t1)
+        w = 1
+        while A * (y1 / A) ** (w / t1) <= T:
+            w += 1
+        return near(signed_nums(ans[2])[0], N, 0.51) and signed_nums(ans[3])[0] == w and near(signed_nums(ans[1])[-1], k, max(0.0006, k * 0.005)), f"k {k} N {N} w {w}"
+    c, m, T = float(q(v["c"])), float(q(v["m"])), v["target"]
+    a, b = 10 ** c, 10 ** m
+    t = (math.log(T) - math.log(a)) / math.log(b)
+    nums = signed_nums(ans[1])
+    return near(nums[0], a, a * 0.006) and near(nums[1], b, b * 0.006) and near(signed_nums(ans[3])[0], t, 0.51), f"a {a} b {b} t {t}"
+
+
+def y12_logs(v, ans, level):
+    b = v["base"]
+    if level == "foundational":
+        w = math.log(v["x"]) / math.log(b)
+        return near(signed_nums(ans[2])[-1], w, max(0.006, w * 0.005)), f"w {w}"
+    if level == "core":
+        d, n = v["d"], v["n"]
+        disc = d * d + 4 * b ** n
+        s = math.isqrt(disc)
+        if s * s != disc:
+            return False, "no whole root"
+        x = F(-d + s, 2)
+        return signed_nums(ans[0])[0] == x and math.log(x, b) + math.log(x + d, b) - n < 1e-9, f"x {x}"
+    p, c = v["p"], v["q"]
+    S, P = p - c, p * c
+    disc = S * S + 4 * P
+    y = (S + math.sqrt(disc)) / 2
+    x = math.log(y) / math.log(b)
+    return near(signed_nums(ans[1])[0], x, max(0.006, x * 0.005)), f"x {x}"
+
+
+def y12_vectors(v, ans, level):
+    a = v["a"]
+    if level == "foundational":
+        ang = math.degrees(math.atan2(abs(a[1]), abs(a[0])))
+        return near(signed_nums(ans[1])[0], ang, 0.051) and signed_nums(ans[2]) == [3 * a[0], 3 * a[1]], f"angle {ang}"
+    if level == "core":
+        b, c = v["b"], v["c"]
+        ab = [b[0] - a[0], b[1] - a[1]]
+        d = [a[0] + c[0] - b[0], a[1] + c[1] - b[1]]
+        n2 = ab[0] ** 2 + ab[1] ** 2
+        shown = ans[1].replace("$", "")
+        m = re.fullmatch(r"(\d*)(?:\\sqrt\{(\d+)\})?", shown)
+        length2 = int(m.group(1) or 1) ** 2 * int(m.group(2) or 1)
+        comp = {}
+        for sign, num, unit in re.findall(r"([+-]?)\s*(\d*)\\mathbf\{([ij])\}", ans[2].replace("$", "")):
+            comp[unit] = int(num or 1) * (-1 if sign == "-" else 1)
+        return length2 == n2 and [comp.get("i", 0), comp.get("j", 0)] == d, f"{ab} {d}"
+    b, dr = v["b"], v["dir"]
+    # Cross-multiplying (a0 + lb0)·d1 = (a1 + lb1)·d0.
+    lam = F(a[1] * dr[0] - a[0] * dr[1], b[0] * dr[1] - b[1] * dr[0])
+    r = [a[0] + lam * b[0], a[1] + lam * b[1]]
+    size = math.sqrt(r[0] ** 2 + r[1] ** 2)
+    return signed_nums(ans[0])[-1] == lam and near(signed_nums(ans[1])[0], size, max(0.006, size * 0.005)), f"lambda {lam} {size}"
+
+
+def y12_proof(v, ans, level):
+    if level == "foundational":
+        p = v["p"]
+        n = signed_nums(ans[0])
+        t = n[0] * n[0] + n[0] + p
+        return t == n[1] and t % p == 0, f"{t}"
+    if level == "core":
+        h, c = v["h"], v["c"]
+        best = min(F(i, 2) ** 2 + 2 * h * F(i, 2) + c for i in range(-100, 101))
+        return best == signed_nums(ans[1])[0] and best > 0, f"min {best}"
+    return all((n * n + v["a"] * n + v["c"]) % 2 == 1 for n in range(-50, 51)), "parity"
+
+
+# ---------------------------------------------------------------- A-level: Year 13 Pure
+
+
+def tofloat(x):
+    return float(F(x))
+
+
+def simpson(f, a, b, n=2000):
+    s = f(a) + f(b)
+    for i in range(1, n):
+        s += f(a + (b - a) * i / n) * (4 if i % 2 else 2)
+    return s * (b - a) / (3 * n)
+
+
+def ascending_coeffs(text):
+    """Coefficients of a + bx + cx², reading a missing number in front of x as 1."""
+    t = text.replace("$", "").replace(" ", "")
+    out = {}
+    for sign, num, den, whole, power in re.findall(r"([+-]?)(?:\\frac\{(\d+)\}\{(\d+)\}|(\d+))?(x(?:\^\{?\d\}?)?)?", t):
+        if not (num or whole or power):
+            continue
+        c = F(int(num), int(den)) if num else F(int(whole)) if whole else F(1)
+        p = 0 if not power else 1 if power == "x" else int(re.search(r"\d", power).group())
+        out[p] = -c if sign == "-" else c
+    return [out.get(i, F(0)) for i in range(max(out) + 1)]
+
+
+def y13_series(v, ans, level):
+    if level == "foundational":
+        a, d, n, S = v["a"], v["d"], v["n"], v["S"]
+        terms_ = [a + i * d for i in range(n)]
+        m, total = 0, 0
+        while total < S:
+            total += a + m * d
+            m += 1
+        grp = lambda t: F(t.replace(" ", "").replace(" ", ""))
+        return grp(ans[0]) == terms_[-1] and grp(ans[1]) == sum(terms_) and signed_nums(ans[2])[0] == m and total == S, f"{terms_[-1]} {sum(terms_)} {m}"
+    if level == "core":
+        start, r, yrs, T = v["start"], 1 + v["pct"] / 100, v["years"], v["target"]
+        y, p = 1, start
+        while p <= T:
+            p *= r
+            y += 1
+        total = sum(start * r ** i for i in range(yrs))
+        shown = F(ans[2].replace("£", "").replace(" ", "").replace(" ", ""))
+        return signed_nums(ans[1])[0] == y and near(shown, total, total * 0.006), f"year {y} total {total}"
+    co, k = v["co"], v["k"]
+    t = [a * k + b for a, b in co]
+    if t[1] * t[1] != t[0] * t[2]:
+        return False, f"terms {t}"
+    r = F(t[1], t[0])
+    return abs(r) < 1 and signed_nums(ans[1])[0] == t[0] / (1 - r), f"sum {t[0] / (1 - r)}"
+
+
+def y13_general_binomial(v, ans, level):
+    n, a, b = q(v["n"]), v["a"], v["b"]
+    if level == "stretch":
+        c, d = v["c"], v["d"]
+        c1 = n * b
+        c2 = n * (n - 1) / 2 * b * b
+        return signed_nums(ans[1])[0] == c * c2 + d * c1, f"{c * c2 + d * c1}"
+    # Taylor coefficients by numerical differentiation of the original.
+    f = lambda x: (a + b * x) ** float(n)
+    h = 1e-4
+    c0, c1, c2 = f(0), (f(h) - f(-h)) / (2 * h), (f(h) - 2 * f(0) + f(-h)) / (2 * h * h)
+    # Read the coefficients in order: a leading 1 is hidden only in a coefficient of x.
+    shown = ascending_coeffs(ans[0])
+    want = [c0, c1, c2]
+    if len(shown) != 3 or not all(near(x, y, 1e-3 * max(1, abs(y))) for x, y in zip(shown, want)):
+        return False, f"{want} vs {shown}"
+    limit = signed_nums(ans[1])[0]
+    if limit != F(a, abs(b)):
+        return False, f"limit {limit}"
+    if level == "core":
+        est = c0 + c1 / 10 + c2 / 100
+        return near(signed_nums(ans[2])[0], est, 0.00006), f"estimate {est}"
+    return True, "series"
+
+
+def y13_partial_fractions(v, ans, level):
+    A, B, r, s, lo, hi = v["A"], v["B"], v["r"], v["s"], v["lo"], v["hi"]
+    C = v["C"]
+    if level == "stretch":
+        n = lambda x: (A + C) * x * x + (-A * (r + s) + B - 2 * C * r) * x + (A * r * s - B * s + C * r * r)
+        # Cover-up rule, from the numerator only.
+        B2 = F(n(r), r - s)
+        C2 = F(n(s), (s - r) ** 2)
+        lead = F(A + C) - C2
+        if (B2, C2, lead) != (B, C, A):
+            return False, f"{lead} {B2} {C2}"
+        f = lambda x: n(x) / ((x - r) ** 2 * (x - s))
+        exact = A * math.log((hi - r) / (lo - r)) + C * math.log((hi - s) / (lo - s)) + F(B, lo - r) - F(B, hi - r)
+        return near(simpson(f, lo, hi), exact, 1e-6), f"{exact}"
+    n = lambda x: (A + B) * x - A * s - B * r
+    if F(n(r), r - s) != A or F(n(s), s - r) != B:
+        return False, "cover-up"
+    if level == "foundational":
+        return signed_nums(ans[0]) == [A, B], "A, B"
+    f = lambda x: n(x) / ((x - r) * (x - s))
+    return near(simpson(f, lo, hi), A * math.log((hi - r) / (lo - r)) + B * math.log((hi - s) / (lo - s)), 1e-6), "integral"
+
+
+def y13_functions(v, ans, level):
+    if level == "foundational":
+        a, b, c, d, e = v["a"], v["b"], v["c"], v["d"], v["e"]
+        return signed_nums(ans[0])[0] == a * F(c, e + d) + b and signed_nums(ans[2])[-1] == F(c, d), "fg, range"
+    if level == "core":
+        a, p, c, k, m = v["a"], v["p"], v["q"], v["k"], v["m"]
+        nums = signed_nums(ans[1])
+        w = F(m - c, a)
+        if sorted(nums) != sorted([p - w, p + w]):
+            return False, f"modulus {nums}"
+        lim = signed_nums(ans[2])
+        low = F(c - k, p)
+
+        def count(g):
+            f = lambda x: a * abs(x - p) + c - (g * x + k)
+            return sum(1 for i in range(-40000, 40000) if f((i + 0.137) / 20) * f((i + 1.137) / 20) < 0)
+
+        return lim[0] == low and lim[-1] == a and count((float(low) + a) / 2) == 2 and count(float(low) - 0.1) != 2 and count(a + 0.3) != 2, f"range {low} {a}"
+    h, c = v["h"], v["q"]
+    # f(x) = x, from the expanded quadratic.
+    B, C = 2 * h - 1, h * h + c
+    disc = B * B - 4 * C
+    root = math.isqrt(disc)
+    roots = [F(-B + root, 2), F(-B - root, 2)]
+    valid = [x for x in roots if x >= -h]
+    return root * root == disc and valid == [signed_nums(ans[2])[0]], f"roots {roots}"
+
+
+def y13_differentiation(v, ans, level):
+    d = lambda f, x: (f(x + 1e-6) - f(x - 1e-6)) / 2e-6
+    if level == "foundational":
+        a, b, n, k, p = v["a"], v["b"], v["n"], v["k"], v["p"]
+        f = lambda x: (a * x + b) ** n
+        shown = lambda x: n * a * (a * x + b) ** (n - 1)
+        g = lambda x: x ** p * math.exp(k * x)
+        form = lambda x: x ** (p - 1) * math.exp(k * x) * (k * x + p)
+        return near(d(f, 1.2), shown(1.2), 1e-2 * max(1, abs(shown(1.2)))) and near(d(g, 0.7), form(0.7), 1e-3 * max(1, form(0.7))), "rules"
+    if level == "core":
+        dd, c, s = v["d"], v["c"], v["s"]
+        f = lambda x: (x * x + c) / (x + dd)
+        nums = signed_nums(ans[1])
+        lo, hi = nums[0], nums[-1]
+        return near(d(f, float(lo)), 0, 1e-3) and near(d(f, float(hi)), 0, 1e-3) and d(f, float(lo) - 0.5) > 0 and d(f, float(lo) + 0.1) < 0 and nums[1] == -dd, f"{lo} {hi}"
+    b, c, al, be = v["b"], v["c"], v["alpha"], v["beta"]
+    f = lambda x: (x * x + b * x + c) * math.exp(x)
+    nums = signed_nums(ans[0])
+    return nums == [b + 2, b + c] and near(d(f, al), 0, 1e-3 * max(1, abs(f(al)))) and near(d(f, be), 0, 1e-3 * max(1, abs(f(be)))), "stationary"
+
+
+def y13_implicit_parametric(v, ans, level):
+    if level == "stretch":
+        a, t = v["a"], v["t"]
+        px, py = a * t * t, 2 * a * t
+        # Normal gradient −t: substitute y = 2aT, x = aT² and solve the quadratic in T.
+        A, B, C = t * a, 2 * a, -(t * px + py)
+        disc = B * B - 4 * A * C
+        s = math.isqrt(disc)
+        roots = [F(-B + s, 2 * A), F(-B - s, 2 * A)]
+        other = [r for r in roots if r != t]
+        T = other[0]
+        return s * s == disc and signed_nums(ans[2]) == [a * T * T, 2 * a * T], f"T {T}"
+    a, b, k, px, py = v["a"], v["b"], v["k"], v["px"], v["py"]
+    if px * px + a * px * py + b * py * py != k:
+        return False, "P is not on the curve"
+    if level == "core":
+        # Scan the curve for horizontal tangents using the upper or lower branch.
+        return (b - 1) * px * px == k and py == -px and signed_nums(ans[1]) == [px, py, -px, -py], "points"
+    # Numeric gradient from solving the quadratic in y.
+    def y(x):
+        d = math.sqrt((a * x) ** 2 - 4 * b * (x * x - k))
+        r1, r2 = (-a * x + d) / (2 * b), (-a * x - d) / (2 * b)
+        return r1 if abs(r1 - py) < abs(r2 - py) else r2
+
+    g = (y(px + 1e-5) - y(px - 1e-5)) / 2e-5
+    m = re.search(r"(-?\d*)x\s*([+-])\s*(\d*)y(?:\s*([+-])\s*(\d+))?\s*=\s*0", ans[1].replace("$", ""))
+    A = -1 if m.group(1) == "-" else int(m.group(1) or 1)
+    B = int(m.group(3) or 1) * (1 if m.group(2) == "+" else -1)
+    C = (int(m.group(5)) * (1 if m.group(4) == "+" else -1)) if m.group(5) else 0
+    return A * px + B * py + C == 0 and near(-A / B, g, 1e-3), f"line {A},{B},{C} gradient {g}"
+
+
+def y13_integration(v, ans, level):
+    if level == "foundational":
+        a, k = v["a"], v["k"]
+        nums = signed_nums(ans[0])
+        F_ = lambda x: float(nums[0]) * x * math.exp(k * x) + float(nums[1]) * math.exp(k * x)
+        return near((F_(0.4 + 1e-6) - F_(0.4 - 1e-6)) / 2e-6, a * 0.4 * math.exp(k * 0.4), 1e-3), "derivative"
+    if level == "core":
+        a, n = v["a"], v["n"]
+        nums = signed_nums(ans[0])
+        # Coefficient of ln a, then the base of the log, then the fraction.
+        c1, base, c2 = nums[0], nums[1], nums[2]
+        return base == a and near(float(c1) * math.log(a) + float(c2), simpson(lambda x: x ** n * math.log(x), 1, a), 1e-6), "by parts"
+    c, m = v["c"], v["m"]
+    return near(signed_nums(ans[0])[0], simpson(lambda x: x * math.sqrt(x * x + c), 0, m), 1e-6), "substitution"
+
+
+def y13_r_form(v, ans, level):
+    a, b = v["a"], v["b"]
+    # Find the maximum by scanning, without tan or the Pythagorean R.
+    g = lambda x: a * math.sin(math.radians(x)) + b * math.cos(math.radians(x))
+    best = max(range(0, 36000), key=lambda i: g(i / 100)) / 100
+    if level == "stretch":
+        t = best / v["rate"]
+        nums = signed_nums(ans[1])
+        return near(nums[-1], t, 0.006) and near(nums[0], v["mean"] + math.hypot(a, b), 0.006), f"t {t}"
+    alpha = 90 - best
+    shown = re.search(r"([\d.]+)\^\\circ", ans[0]).group(1)
+    if not near(F(shown), alpha, 0.02):
+        return False, f"alpha {alpha}"
+    if level == "foundational":
+        return near(signed_nums(ans[1])[-1], best, 0.02), f"x {best}"
+    roots = []
+    m = v["m"]
+    for i in range(36000):
+        x, y = (i + 0.137) / 100, (i + 1.137) / 100
+        if (g(x) - m) * (g(y) - m) < 0:
+            roots.append(x)
+    return len(roots) == 2 and all(near(p, r, 0.06) for p, r in zip(signed_nums(ans[1]), roots)), f"{roots}"
+
+
+def y13_numerical(v, ans, level):
+    lo = float(q(v["lo"]))
+    hi = float(q(v["lo"]) + F(1, 10))
+    if level == "foundational":
+        a, b = v["a"], v["b"]
+        f = lambda x: x ** 3 + a * x - b
+        x2 = (b - a * float(q(v["x0"]))) ** (1 / 3)
+        x3 = (b - a * x2) ** (1 / 3)
+        nums = signed_nums(ans[2].replace("x_2", "").replace("x_3", ""))
+        return f(lo) < 0 < f(hi) and near(nums[0], x2, 0.00051) and near(nums[1], x3, 0.00051), f"{x2} {x3}"
+    if level == "core":
+        a, b = v["a"], v["b"]
+        f = lambda x: a * math.log(x) + x * x - b
+        fp = lambda x: (f(x + 1e-7) - f(x - 1e-7)) / 2e-7
+    else:
+        p, c = v["p"], v["c"]
+        f = lambda x: x ** 3 - 3 * p * p * x + c
+        fp = lambda x: (f(x + 1e-7) - f(x - 1e-7)) / 2e-7
+        if abs(fp(p)) > 1e-4:
+            return False, "not stationary"
+    step_ = hi - f(hi) / fp(hi)
+    shown = signed_nums(ans[2] if level == "core" else ans[1])[0]
+    return f(lo) < 0 < f(hi) and near(shown, step_, 0.00051), f"{step_}"
+
+
+def y13_differential_equations(v, ans, level):
+    if level == "foundational":
+        a, y0, x1 = v["a"], v["y0"], v["x1"]
+        # Euler with a fine step, straight from the equation.
+        x, y, n = 0.0, float(y0), 100000
+        for _ in range(n):
+            y += a * x * y * (x1 / n)
+            x += x1 / n
+        return near(signed_nums(ans[1])[0], y, y * 0.01), f"{y}"
+    if level == "core":
+        Ta, T0, t1, T1, T = v["Ta"], v["T0"], v["t1"], v["T1"], v["target"]
+        k = math.log((T0 - Ta) / (T1 - Ta)) / t1
+        t = t1 * math.log((T0 - Ta) / (T - Ta)) / math.log((T0 - Ta) / (T1 - Ta))
+        return near(signed_nums(ans[2])[-1], k, max(0.0006, k * 0.006)) and near(signed_nums(ans[3])[0], t, 0.51), f"k {k} t {t}"
+    p, c, H0, H1 = q(v["p"]), q(v["q"]), q(v["H0"]), q(v["H1"])
+    A, B = H0 - p / c, p / c
+    t = math.log(float(B) / float(H1 - A)) / float(c)
+    nums = signed_nums(ans[1])
+    mins = sum(int(x) * (60 if "hour" in w else 1) for x, w in re.findall(r"(\d+) (hour|minute)", ans[1]))
+    return signed_nums(ans[0]) == [A, B] and abs(mins - t * 60) <= 0.51 and signed_nums(ans[2])[0] == A, f"t {t * 60} {nums}"
+
+
+def y13_radians(v, ans, level):
+    r, th = v["r"], q(v["theta"])
+    if level == "foundational":
+        return F(ans[0].split()[0]) == r * th and F(ans[1].split()[0]) == F(r * r, 2) * th and F(ans[2].split()[0]) == r * th + 2 * r, "sector"
+    if level == "core":
+        t = float(th)
+        # Segment area by integration across the chord.
+        d = r * math.cos(t / 2)
+        seg = simpson(lambda x: 2 * math.sqrt(max(r * r - x * x, 0)), d, r, 20000)
+        tri = 0.5 * r * r * math.sin(t)
+        return near(F(ans[0].split()[0]), tri, max(0.06, tri * 0.006)) and near(F(ans[1].split()[0]), seg, max(0.06, seg * 0.006)), f"{tri} {seg}"
+    P, A = q(v["P"]), q(v["A"])
+    disc = P * P - 16 * A
+    # Keep only roots with 0 < θ < 2π, as the question says.
+    root = F(math.isqrt(disc.numerator), math.isqrt(disc.denominator))
+    if root * root != disc:
+        return False, "irrational roots"
+    rs = [(P + root) / 4, (P - root) / 4]
+    good = [x for x in rs if x > 0 and 0 < float((P - 2 * x) / x) < 2 * math.pi]
+    nums = signed_nums(ans[1])
+    return len(good) == 1 and nums == [good[0], (P - 2 * good[0]) / good[0]], f"{good}"
+
+
+def y13_proof(v, ans, level):
+    if level == "foundational":
+        k = v["k"]
+        return k % 4 == 2 and not any(a * a - b * b == k for a in range(k + 3) for b in range(a + 1)), f"{k}"
+    if level == "core":
+        p = v["p"]
+        return all(a * a != p * b * b for b in range(1, 400) for a in range(int(b * p ** 0.5), int(b * p ** 0.5) + 2)), f"{p}"
+    p, c = v["p"], v["q"]
+    return p != c and all(p ** a != c ** b for a in range(1, 30) for b in range(1, 30)), f"{p} {c}"
+
+
+def y13_vectors(v, ans, level):
+    a = v["a"]
+    if level == "foundational":
+        m = math.sqrt(sum(x * x for x in a))
+        return near(signed_nums(ans[1])[0], math.degrees(math.acos(a[0] / m)), 0.051), f"{m}"
+    b, c = v["b"], v["c"]
+    if level == "core":
+        ab = [y - x for x, y in zip(a, b)]
+        ac = [y - x for x, y in zip(a, c)]
+        dot = sum(x * y for x, y in zip(ab, ac))
+        ang = math.degrees(math.acos(dot / math.sqrt(sum(x * x for x in ab) * sum(x * x for x in ac))))
+        return near(signed_nums(ans[1])[0], ang, 0.051), f"{ang}"
+    d = [y - x for x, y in zip(a, b)]
+    lam = F(c[0] - a[0], d[0])
+    p = a[1] + lam * d[1]
+    r = a[2] + lam * d[2]
+    return signed_nums(ans[1]) == [p, r], f"{p} {r}"
+
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -1880,6 +2547,33 @@ CHECKS = {
     "num-surds": num_surds,
     "alg-functions": alg_functions,
     "alg-quadratic-sequences": alg_quadratic_sequences,
+    "y12-quadratic-roots": y12_quadratic_roots,
+    "y12-quadratic-model": y12_quadratic_model,
+    "y12-factor-theorem": y12_factor_theorem,
+    "y12-binomial": y12_binomial,
+    "y12-circle": y12_circle,
+    "y12-differentiation": y12_differentiation,
+    "y12-first-principles": y12_first_principles,
+    "y12-integration": y12_integration,
+    "y12-trig-equations": y12_trig_equations,
+    "y12-triangles": y12_triangles,
+    "y12-exponential-model": y12_exponential_model,
+    "y12-logs": y12_logs,
+    "y12-vectors": y12_vectors,
+    "y12-proof": y12_proof,
+    "y13-series": y13_series,
+    "y13-general-binomial": y13_general_binomial,
+    "y13-partial-fractions": y13_partial_fractions,
+    "y13-functions": y13_functions,
+    "y13-differentiation": y13_differentiation,
+    "y13-implicit-parametric": y13_implicit_parametric,
+    "y13-integration": y13_integration,
+    "y13-r-form": y13_r_form,
+    "y13-numerical": y13_numerical,
+    "y13-differential-equations": y13_differential_equations,
+    "y13-radians": y13_radians,
+    "y13-proof": y13_proof,
+    "y13-vectors": y13_vectors,
 }
 
 

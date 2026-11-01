@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { eligibleTemplates, type SetOptions } from '../engine/generate';
 import { TEMPLATES, subtopicsByStrand } from '../engine/registry';
-import { LEVELS, STRANDS, TIERS, type Level, type Strand, type Tier } from '../engine/types';
+import { LEVELS, STRANDS, TIERS, isALevel, type Level, type Strand, type Tier } from '../engine/types';
 
 interface Props {
   options: SetOptions;
@@ -50,7 +50,7 @@ export function withTier(o: SetOptions, tier: Tier): SetOptions {
   const strands = o.strands.filter((s) => (subs.get(s) ?? []).length > 0);
   const offered = strands.flatMap((s) => subs.get(s) ?? []);
   // A strand whose picked sub-topics all disappear falls back to the whole strand.
-  return { ...o, tier, strands, subtopics: o.subtopics.filter((x) => offered.includes(x)) };
+  return { ...o, tier, strands, subtopics: o.subtopics.filter((x) => offered.includes(x)), calc: isALevel(tier) ? 'any' : o.calc };
 }
 
 export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: Props) {
@@ -70,7 +70,7 @@ export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: 
     >
       <fieldset>
         <legend>Key stage / tier</legend>
-        <div className="seg" role="radiogroup" aria-label="Key stage or tier">
+        <div className="seg tiers" role="radiogroup" aria-label="Key stage or tier">
           {TIERS.map((t) => (
             <button type="button" key={t.id} role="radio" aria-checked={o.tier === t.id} className={o.tier === t.id ? 'on' : ''} onClick={() => onChange(withTier(o, t.id))}>
               {t.label}
@@ -135,6 +135,7 @@ export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: 
         ))}
       </fieldset>
 
+      {!isALevel(o.tier) && (
       <fieldset>
         <legend>Calculator</legend>
         <div className="seg" role="radiogroup" aria-label="Calculator">
@@ -151,6 +152,7 @@ export function Controls({ options: o, onChange, onGenerate, lockedCount = 0 }: 
           ))}
         </div>
       </fieldset>
+      )}
 
       <fieldset>
         <legend>Size of the set</legend>

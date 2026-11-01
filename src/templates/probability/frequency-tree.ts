@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { diagram, part, step, text, MINUS } from '../../engine/blocks';
 import { ensure, frac } from '../../engine/format';
 import { Q } from '../../engine/rational';
@@ -12,7 +12,7 @@ import { Q } from '../../engine/rational';
  */
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier?: 'KS3' | 'F' | 'H';
+  tier?: Tier;
   ctx: number;
   a: number; // group 1 size
   b: number; // group 2 size

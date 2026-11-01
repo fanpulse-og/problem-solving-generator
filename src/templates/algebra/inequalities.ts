@@ -1,4 +1,4 @@
-import { defineTemplate } from '../../engine/types';
+import { defineTemplate, type Tier } from '../../engine/types';
 import { part, single, step, text } from '../../engine/blocks';
 import { ensure, polyTex } from '../../engine/format';
 
@@ -11,7 +11,7 @@ import { ensure, polyTex } from '../../engine/format';
 type Op = '<' | '<=' | '>' | '>=';
 interface V {
   level: 'foundational' | 'core' | 'stretch';
-  tier: 'KS3' | 'F' | 'H';
+  tier: Tier;
   // foundational: ax + b op cx + d
   a: number;
   b: number;
