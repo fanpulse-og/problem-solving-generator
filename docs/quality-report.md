@@ -1,13 +1,13 @@
 # Question quality report
 
-Generated 2026-11-01 by `scripts/quality-report.ts` with about 2000 seeds per template (254835 questions).
+Generated 2026-11-01 by `scripts/quality-report.ts` with about 2000 seeds per template (280848 questions).
 
 - **(a) Untidy answer:** a number with more decimal places than the question asks for, a “…”, or a fraction with a denominator over 1000.
 - **(b) Non-calc too heavy:** non-calculator questions only. The mark-scheme working multiplies or divides numbers whose significant digits multiply to more than 6 (3-digit × 2-digit is the most allowed; a 1-digit divisor is always fine), or uses a number with more than 6 significant digits.
 - **(c) Marks wrong:** the mark-scheme steps do not match the marks shown, or an answer is missing.
 - **(d) Throws:** the generator could not make a question.
 
-**0 of 127 templates flagged.**
+**0 of 140 templates flagged.**
 
 | Template | Seeds | (a) Untidy answer | (b) Non-calc too heavy | (c) Marks wrong | (d) Throws | First example |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -102,13 +102,17 @@ Generated 2026-11-01 by `scripts/quality-report.ts` with about 2000 seeds per te
 | y12-connected | 2001 | 0 | – | 0 | 0 | OK |
 | y12-data-measures | 2001 | 0 | – | 0 | 0 | OK |
 | y12-differentiation | 2001 | 0 | – | 0 | 0 | OK |
+| y12-exponential-gradient | 2001 | 0 | – | 0 | 0 | OK |
 | y12-exponential-model | 2001 | 0 | – | 0 | 0 | OK |
 | y12-factor-theorem | 2001 | 0 | – | 0 | 0 | OK |
 | y12-first-principles | 2001 | 0 | – | 0 | 0 | OK |
 | y12-forces-vectors | 2001 | 0 | – | 0 | 0 | OK |
+| y12-graphs | 2001 | 0 | – | 0 | 0 | OK |
 | y12-hypothesis-test | 2001 | 0 | – | 0 | 0 | OK |
+| y12-inequalities | 2001 | 0 | – | 0 | 0 | OK |
 | y12-integration | 2001 | 0 | – | 0 | 0 | OK |
 | y12-logs | 2001 | 0 | – | 0 | 0 | OK |
+| y12-optimisation | 2001 | 0 | – | 0 | 0 | OK |
 | y12-probability | 2001 | 0 | – | 0 | 0 | OK |
 | y12-proof | 2001 | 0 | – | 0 | 0 | OK |
 | y12-quadratic-model | 2001 | 0 | – | 0 | 0 | OK |
@@ -116,11 +120,14 @@ Generated 2026-11-01 by `scripts/quality-report.ts` with about 2000 seeds per te
 | y12-regression | 2001 | 0 | – | 0 | 0 | OK |
 | y12-speed-time | 2001 | 0 | – | 0 | 0 | OK |
 | y12-straight-lines | 2001 | 0 | – | 0 | 0 | OK |
+| y12-surds-indices | 2001 | 0 | – | 0 | 0 | OK |
 | y12-suvat | 2001 | 0 | – | 0 | 0 | OK |
 | y12-triangles | 2001 | 0 | – | 0 | 0 | OK |
 | y12-trig-equations | 2001 | 0 | – | 0 | 0 | OK |
 | y12-variable-acceleration | 2001 | 0 | – | 0 | 0 | OK |
 | y12-vectors | 2001 | 0 | – | 0 | 0 | OK |
+| y13-addition-formulae | 2001 | 0 | – | 0 | 0 | OK |
+| y13-concavity | 2001 | 0 | – | 0 | 0 | OK |
 | y13-connected-rates | 2001 | 0 | – | 0 | 0 | OK |
 | y13-differential-equations | 2001 | 0 | – | 0 | 0 | OK |
 | y13-differentiation | 2001 | 0 | – | 0 | 0 | OK |
@@ -128,13 +135,19 @@ Generated 2026-11-01 by `scripts/quality-report.ts` with about 2000 seeds per te
 | y13-functions | 2001 | 0 | – | 0 | 0 | OK |
 | y13-general-binomial | 2001 | 0 | – | 0 | 0 | OK |
 | y13-implicit-parametric | 2001 | 0 | – | 0 | 0 | OK |
+| y13-improper-fractions | 2001 | 0 | – | 0 | 0 | OK |
 | y13-integration | 2001 | 0 | – | 0 | 0 | OK |
 | y13-numerical | 2001 | 0 | – | 0 | 0 | OK |
+| y13-parametric | 2001 | 0 | – | 0 | 0 | OK |
 | y13-partial-fractions | 2001 | 0 | – | 0 | 0 | OK |
 | y13-proof | 2001 | 0 | – | 0 | 0 | OK |
 | y13-r-form | 2001 | 0 | – | 0 | 0 | OK |
 | y13-radians | 2001 | 0 | – | 0 | 0 | OK |
+| y13-reciprocal-trig | 2001 | 0 | – | 0 | 0 | OK |
+| y13-recurrence | 2001 | 0 | – | 0 | 0 | OK |
 | y13-series | 2001 | 0 | – | 0 | 0 | OK |
 | y13-small-angles | 2001 | 0 | – | 0 | 0 | OK |
+| y13-transformations | 2001 | 0 | – | 0 | 0 | OK |
 | y13-trapezium | 2001 | 0 | – | 0 | 0 | OK |
+| y13-trig-calculus | 2001 | 0 | – | 0 | 0 | OK |
 | y13-vectors | 2001 | 0 | – | 0 | 0 | OK |

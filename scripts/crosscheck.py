@@ -2781,6 +2781,286 @@ def y12_probability(v, ans, level):
     return root * root == disc and signed_nums(ans[1]) == [x, x + d] and x == a, f"{x}"
 
 
+# ---------------------------------------------------------------- A-level: Pure, third batch
+
+
+def surd_value(text, d):
+    """p + q√d shown as text, as an exact pair."""
+    t = text.replace("$", "").replace("x=", "").replace(" ", "")
+    root = f"\\sqrt{{{d}}}"
+    if root not in t:
+        return signed_nums(t)[0], F(0)
+    left, _ = t.split(root)
+    m = re.match(r"(.*?)([+-]?(?:\\frac\{\d+\}\{\d+\}|\d+)?)$", left)
+    pp, qq = m.group(1), m.group(2)
+    q_ = signed_nums(qq)[0] if re.search(r"\d", qq) else F(-1 if qq == "-" else 1)
+    if qq.startswith("+") and q_ < 0:
+        q_ = -q_
+    return (signed_nums(pp)[0] if pp else F(0)), q_
+
+
+def y12_surds_indices(v, ans, level):
+    d = v["d"]
+    if level == "foundational":
+        return math.isclose(math.sqrt(d * v["m"] ** 2) + math.sqrt(d * v["n"] ** 2), float(signed_nums(ans[0])[0]) * math.sqrt(d)) and signed_nums(ans[1])[0] * d == v["a"], "surds"
+    r = math.sqrt(d)
+    if level == "core":
+        p_, q_ = surd_value(ans[0], d)
+        lhs = (v["a"] + r) / (v["b"] - r)
+        x = signed_nums(ans[1])[0]
+        n = v["n"]
+        k = 2 * v["m"] + v["x"] * (2 - n)
+        return near(lhs, float(p_) + float(q_) * r, 1e-9) and F(k - 2 * v["m"], 2 - n) == x, f"{p_} {q_} x {x}"
+    p_, q_ = surd_value(ans[0], d)
+    x = float(p_) + float(q_) * r
+    return near(x * r, v["c"] * x + v["e"], 1e-9), f"x {x}"
+
+
+def y12_inequalities(v, ans, level):
+    if level == "foundational":
+        a, b, c = v["a"], v["b"], v["c"]
+        al, be = v["alpha"], v["beta"]
+        # Test x values against both inequalities and the set shown.
+        lin = lambda x: a * x + b > c
+        qd = (lambda x: (x - al) * (x - be) < 0) if v["below"] else (lambda x: (x - al) * (x - be) > 0)
+        shown = ans[2].replace("$", "")
+        if "varnothing" in shown:
+            ok = not any(lin(F(i, 7)) and qd(F(i, 7)) for i in range(-700, 700))
+            return ok, "empty"
+        pieces = [re.sub(r"^\\\{x : |\\\}$", "", part_.strip()) for part_ in shown.split("\\cup")]
+
+        def inset(x):
+            for piece in pieces:
+                m2 = re.fullmatch(r"(.+?) < x < (.+)", piece)
+                m1 = re.fullmatch(r"x > (.+)", piece)
+                if m2 and signed_nums(m2.group(1))[0] < x < signed_nums(m2.group(2))[0]:
+                    return True
+                if m1 and x > signed_nums(m1.group(1))[0]:
+                    return True
+            return False
+
+        bad = [F(i, 7) for i in range(-700, 700) if (lin(F(i, 7)) and qd(F(i, 7))) != inset(F(i, 7))]
+        return not bad, f"{bad[:3]}"
+    al, be, b, c, m, k = v["alpha"], v["beta"], v["b"], v["c"], v["m"], v["k"]
+    disc = (b - m) ** 2 - 4 * (c - k)
+    s = math.isqrt(disc)
+    roots = sorted([F(m - b - s, 2), F(m - b + s, 2)])
+    if s * s != disc or roots != [al, be]:
+        return False, f"roots {roots}"
+    if level == "core":
+        return signed_nums(ans[0]) == [al, m * al + k, be, m * be + k], "points"
+    t = c - F((b - m) ** 2, 4)
+    x = F(m - b, 2)
+    return x * x + b * x + c == m * x + t and signed_nums(ans[2])[0] == t, f"t {t}"
+
+
+def y12_graphs(v, ans, level):
+    if level == "foundational":
+        p, c, k = v["p"], v["q"], v["k"]
+        f = lambda x: x * (x - p) * (x + c)
+        roots = [x for x in range(-20, 21) if f(x) == 0]
+        return [n for i, n in enumerate(signed_nums(ans[0])) if i % 2 == 0] == roots and signed_nums(ans[2])[-1] == f(0 - k), f"{roots}"
+    if level == "core":
+        a, b, c = v["a"], v["b"], v["c"]
+        return signed_nums(ans[1])[-1] == F(a, -c) + b and signed_nums(ans[2])[0] == c - F(a, b) and signed_nums(ans[0]) == [c, b], "reciprocal"
+    mx, my, s, sc, st = v["mx"], v["my"], v["s"], v["scale"], v["stretch"]
+    want = [[mx, my + s], [mx + s, my], [mx, sc * my], [F(mx, st), my], [mx, -my]]
+    return all(signed_nums(a)[:2] == w for a, w in zip(ans, want)), "images"
+
+
+def y12_optimisation(v, ans, level):
+    best = lambda f, lo, hi, n=200000: max((lo + (hi - lo) * i / n for i in range(n + 1)), key=f)
+    if level == "foundational":
+        a = v["a"]
+        x = best(lambda t: t * (a - 2 * t) ** 2, 0, a / 2, 40000)
+        return near(signed_nums(ans[1])[0], x, 0.01) and near(signed_nums(ans[2])[0], x * (a - 2 * x) ** 2, 0.5), f"{x}"
+    if level == "core":
+        k, A = v["k"], v["A"]
+        # V = k x² h with h from the surface area.
+        V = lambda x: k * x * x * (A - 2 * k * x * x) / (2 * (k + 1) * x)
+        x = best(V, 0.01, 40, 40000)
+        return near(signed_nums(ans[1])[0], x, 0.01) and near(signed_nums(ans[2])[-1], V(x), 0.1), f"{x} {V(x)}"
+    V0 = v["V"]
+    S = lambda r: 2 * math.pi * r * r + 2 * V0 / r
+    r = best(lambda t: -S(t), 0.5, 40, 40000)
+    return near(signed_nums(ans[1])[0], r, r * 0.006 + 0.002) and near(signed_nums(ans[2])[-1], S(r), S(r) * 0.006), f"{r} {S(r)}"
+
+
+def y12_exponential_gradient(v, ans, level):
+    d = lambda f, x: (f(x + 1e-6) - f(x - 1e-6)) / 2e-6
+    if level == "stretch":
+        A, k, N = v["A"], float(q(v["rate"])), v["N"]
+        t = math.log(N / A) / k
+        f = lambda x: A * math.exp(k * x)
+        nums = signed_nums(ans[1])
+        return near(nums[0], d(f, t), 0.01) and near(nums[1], t, t * 0.006), f"{t}"
+    a, k = v["a"], v["k"]
+    f = lambda x: a * math.exp(k * x)
+    if level == "foundational":
+        return near(signed_nums(ans[1])[0], d(f, 0), 1e-4) and signed_nums(ans[2]) == [a * k, a], "tangent"
+    g = v["g"]
+    x = math.log(g / (a * k)) / k
+    return near(d(f, x), g, 1e-3) and near(signed_nums(ans[1])[0], f(x), 1e-6), f"{x}"
+
+
+def y13_reciprocal_trig(v, ans, level):
+    if level == "foundational":
+        p, c = v["p"], v["q"]
+        A = math.atan2(c, p)
+        val = lambda t: float(eval_surd_frac(t))
+        return near(val(ans[0]), 1 / math.tan(A), 1e-9) and near(val(ans[1]), 1 / math.cos(A), 1e-9) and near(val(ans[2]), 1 / math.sin(A), 1e-9), "values"
+    shown = [float(x) for x in signed_nums(ans[1])]
+    if level == "core":
+        p, c, s = v["p"], v["q"], v["s"]
+        B, C = -(p * s + c), p - c * s
+        g = lambda x: p / math.cos(math.radians(x)) ** 2 + B * math.tan(math.radians(x)) - C
+        roots = sorted(scan_roots(g, 0, 89.99, 3000) + scan_roots(g, 90.01, 180, 3000))
+    else:
+        m, n = v["m"], v["n"]
+        a, b, c = 2 * m, m + 2 * n, n + 2 * m
+        g = lambda x: a / math.tan(math.radians(x)) ** 2 - b / math.sin(math.radians(x)) + c
+        roots = sorted(scan_roots(g, 0.5, 179.5, 3000) + scan_roots(g, 180.5, 359.5, 3000))
+    return len(roots) == 2 and all(near(s_, r, 0.06) for s_, r in zip(shown, roots)), f"{roots}"
+
+
+def eval_surd_frac(text):
+    """Value of a shown fraction that may contain a square root."""
+    t = text.replace("$", "")
+    m = re.fullmatch(r"\\frac\{(\d*)(?:\\sqrt\{(\d+)\})?\}\{(\d+)\}", t)
+    if m:
+        return (int(m.group(1) or 1) * (math.sqrt(int(m.group(2))) if m.group(2) else 1)) / int(m.group(3))
+    return float(signed_nums(t)[0])
+
+
+def y13_addition_formulae(v, ans, level):
+    if level == "foundational":
+        A = math.asin(v["a"][0] / v["a"][2])
+        B = math.acos(v["b"][1] / v["b"][2])
+        return near(signed_nums(ans[0])[0], math.sin(A + B), 1e-9) and near(signed_nums(ans[1])[0], math.cos(A + B), 1e-9), "sum"
+    if level == "core":
+        k = v["k"]
+        g = lambda x: math.sin(math.radians(x + 30)) - k * math.cos(math.radians(x + 60))
+        roots = scan_roots(g, 0, 360)
+        return len(roots) == 2 and all(near(s, r, 0.06) for s, r in zip(signed_nums(ans[1]), roots)), f"{roots}"
+    T, p = q(v["T"]), q(v["p"])
+    t = (p - T) / (1 + p * T)
+    return (t + T) / (1 - t * T) == p and signed_nums(ans[0])[0] == t and signed_nums(ans[1])[0] == 2 * t / (1 - t * t), f"{t}"
+
+
+def y13_trig_calculus(v, ans, level):
+    if level == "foundational":
+        a, c, b = v["a"], v["c"], v["b"]
+        return near(signed_nums(ans[0])[0], simpson(lambda x: a * math.cos(b * x) + c * math.sin(2 * b * x), 0, math.pi / (2 * b)), 1e-7), "integral"
+    n = signed_nums(ans[0].replace("\\pi", "*"))
+    # p π + q, where a coefficient of 1 on π is left out.
+    p_ = n[0] if len(n) == 2 else F(1)
+    q_ = n[-1]
+    val = float(p_) * math.pi + float(q_)
+    if level == "core":
+        a = v["a"]
+        return near(val, simpson(lambda x: a * math.cos(x) ** 2, 0, math.pi / 4), 1e-7), f"{val}"
+    b = v["b"]
+    return near(val, simpson(lambda x: x * math.cos(b * x), 0, math.pi / (2 * b)), 1e-7), f"{val}"
+
+
+def y13_concavity(v, ans, level):
+    d2 = lambda f, x, h=1e-3: (f(x + h) - 2 * f(x) + f(x - h)) / (h * h)
+    if level == "foundational":
+        co = [1, v["b"], v["c"], v["d"]]
+        f = lambda x: poly_eval(co, x)
+        pts = signed_nums(ans[2])
+        x = float(pts[0])
+        return near(d2(f, x), 0, 1e-3) and d2(f, x - 1) < 0 < d2(f, x + 1) and near(pts[1], f(x), 1e-9) and signed_nums(ans[1])[0] == pts[0], f"{pts}"
+    if level == "core":
+        p, c = v["p"], v["q"]
+        co = [1, -2 * (p + c), 6 * p * c, 0, 0]
+        f = lambda x: poly_eval(co, x)
+        return signed_nums(ans[0]) == [p, c] and d2(f, p - 0.2) > 0 > d2(f, (p + c) / 2) and d2(f, c + 0.2) > 0, "inflections"
+    k = v["k"]
+    f = lambda x: x * math.exp(k * x)
+    x = float(signed_nums(ans[2])[0])
+    return near(d2(f, x), 0, 1e-3) and d2(f, x - 0.1) < 0 < d2(f, x + 0.1), f"{x}"
+
+
+def y13_recurrence(v, ans, level):
+    if level == "foundational":
+        u = [v["u1"]]
+        for _ in range(3):
+            u.append(v["a"] * u[-1] + v["b"])
+        return signed_nums(ans[0]) == u[1:] and signed_nums(ans[1])[0] == sum(u), f"{u}"
+    if level == "core":
+        u, tot = F(v["u1"]), F(0)
+        seen = [u]
+        for _ in range(v["N"]):
+            tot += u
+            u = v["k"] / u
+            seen.append(u)
+        val = F(ans[2].replace("$", "").replace("\\,", "").replace(" ", "").replace("\u00a0", ""))
+        return seen[0] == seen[2] != seen[1] and val == tot, f"{tot}"
+    a, b, m, N = v["a"], v["b"], v["m"], v["N"]
+    return signed_nums(ans[0])[0] == sum(a * r + b for r in range(1, N + 1)) and signed_nums(ans[1])[0] == sum(a * r + b for r in range(m, N + 1)), "sigma"
+
+
+def y13_transformations(v, ans, level):
+    mx, my, nx, ny, a, s = v["mx"], v["my"], v["nx"], v["ny"], v["a"], v["s"]
+    if level == "foundational":
+        return [signed_nums(x) for x in ans] == [[mx, my - s], [nx - s, ny], [mx + s, a * my]], "images"
+    if level == "core":
+        return [signed_nums(x) for x in ans] == [[nx, -ny], [F(mx, a), my + s], [nx, -a * ny]], "images"
+    # Build the cubic from its turning points: f′ = c(x − mx)(x − nx).
+    c = F(my - ny) * 6 / (nx - mx) ** 3
+    def f(x):
+        I = lambda t: c * (t ** 3 / 3 - (mx + nx) * t ** 2 / 2 + mx * nx * t)
+        return float(I(x) - I(mx) + my)
+    lo, hi = signed_nums(ans[0])
+    count = lambda k: sum(1 for i in range(40000) if (f(-400 + i * 0.02 + 0.00137) - k) * (f(-400 + (i + 1) * 0.02 + 0.00137) - k) < 0)
+    level_ = re.search(r"\d+", ans[2]).group()
+    low, up = min(my, -ny), max(my, -ny)
+    val = low - 1 if low >= 2 else (low + 1 if up > low + 1 else up + 1)
+    return lo == ny and hi == my and count(val) + count(-val) == int(level_), f"{val}"
+
+
+def y13_parametric(v, ans, level):
+    if level == "foundational":
+        a, b, c, x0 = v["a"], v["b"], v["c"], v["x0"]
+        t = F(x0 - b, a)
+        y = lambda x: (F(x) - b) ** 2 / (a * a) + c
+        grad = (y(x0 + F(1, 10 ** 6)) - y(x0 - F(1, 10 ** 6))) * 5 * 10 ** 5
+        return signed_nums(ans[0])[0] == y(x0) and near(signed_nums(ans[2])[0], grad, 1e-6), f"{t}"
+    if level == "core":
+        a, b = v["a"], v["b"]
+        t = math.pi / 4
+        X, Y = a * math.cos(t), b * math.sin(t)
+        return near(b * X + a * Y, a * b * math.sqrt(2), 1e-9) and near((b * math.cos(t)) / (-a * math.sin(t)), -b / a, 1e-9), "tangent"
+    a, p = v["a"], v["p"]
+    area = 0.0
+    n = 20000
+    for i in range(n):
+        t1, t2 = a * i / n, a * (i + 1) / n
+        area += ((a * t1 - t1 * t1) + (a * t2 - t2 * t2)) / 2 * (p * t2 * t2 - p * t1 * t1)
+    return near(signed_nums(ans[0])[0], p * a * a, 1e-9) and near(signed_nums(ans[2])[0], area, 1e-3), f"{area}"
+
+
+def y13_improper_fractions(v, ans, level):
+    A, B, C, D, r, s = v["A"], v["B"], v["C"], v["D"], v["r"], v["s"]
+    p, c = -(r + s), r * s
+    top = [A, A * p + B, A * c + B * p + C + D, B * c - C * s - D * r]
+    # Long division of the top by x² + px + c, without using A or B.
+    a1 = top[0]
+    b1 = top[1] - a1 * p
+    rem1 = top[2] - a1 * c - b1 * p
+    rem0 = top[3] - b1 * c
+    # Cover-up on the remainder.
+    C2, D2 = F(rem1 * r + rem0, r - s), F(rem1 * s + rem0, s - r)
+    if (a1, b1, C2, D2) != (A, B, C, D):
+        return False, f"{a1} {b1} {C2} {D2}"
+    if level == "stretch":
+        lo, hi = v["lo"], v["hi"]
+        g = lambda x: A * x + B + C / (x - r) + D / (x - s)
+        return near(simpson(g, lo, hi), F(A * (hi ** 2 - lo ** 2), 2) + B * (hi - lo) + C * math.log((hi - r) / (lo - r)) + D * math.log((hi - s) / (lo - s)), 1e-6), "integral"
+    return signed_nums(ans[0]) == ([B, C, D] if level == "foundational" else [A, B, C, D]), "constants"
+
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -2909,6 +3189,19 @@ CHECKS = {
     "y12-data-measures": y12_data_measures,
     "y12-regression": y12_regression,
     "y12-probability": y12_probability,
+    "y12-surds-indices": y12_surds_indices,
+    "y12-inequalities": y12_inequalities,
+    "y12-graphs": y12_graphs,
+    "y12-optimisation": y12_optimisation,
+    "y12-exponential-gradient": y12_exponential_gradient,
+    "y13-reciprocal-trig": y13_reciprocal_trig,
+    "y13-addition-formulae": y13_addition_formulae,
+    "y13-trig-calculus": y13_trig_calculus,
+    "y13-concavity": y13_concavity,
+    "y13-recurrence": y13_recurrence,
+    "y13-transformations": y13_transformations,
+    "y13-parametric": y13_parametric,
+    "y13-improper-fractions": y13_improper_fractions,
 }
 
 

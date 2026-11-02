@@ -145,6 +145,20 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['y12-data-measures.stretch.Y12.c.p0', ['Mean 8.96, standard deviation 2.10', 'Mean 60.84 minutes, standard deviation 8.39 minutes'], '224/25; √(84.68 − 80.2816); 4 × 8.96 + 25; 4 × 2.097'],
   ['y12-straight-lines.stretch.Y12.c.p0', ['$x + 3y - 11 = 0$', '$(-7, 6)$', '$\\frac{245}{3}$'], 'y-intercepts 27 and 11/3, base 70/3, height 7'],
   ['y13-double-angle.stretch.Y13.c.p0', ['Proof', '$\\theta = 63.4^\\circ$, $\\theta = 135.0^\\circ$'], 'tan²θ − tanθ − 2 = 0: tan θ = 2 or −1'],
+  // A-level Pure, third batch
+  ['y12-surds-indices.core.Y12.c.p0', ['$2 + \\frac{3}{5}\\sqrt{10}$', '$x = 5$'], '(30 + 9√10) ÷ 15; 2x + 4 = 3x − 1'],
+  ['y12-inequalities.stretch.Y12.c.p0', ['$x = -6$ and $x = -3$', '$y > x^2 + 6x + 13$ and $y < -3x - 5$', '$t = -\\frac{29}{4}$'], 'x² + 9x + 18 = 0; 81 − 4(13 − t) = 0'],
+  ['y12-graphs.core.Y12.c.p0', ['$x = 4$ and $y = -6$', '$(0, -\\frac{33}{4})$', '$(\\frac{11}{2}, 0)$'], '9/(−4) − 6; 9/(x − 4) = 6'],
+  ['y12-optimisation.core.Y12.c.p0', ['Shown', '$x = 8$', 'The second derivative is negative, so a maximum. $V = \\frac{4096}{3}$ cm³'], 'h = (768 − 4x²)/6x; V′ = 256 − 4x²; 2048 − 2048/3'],
+  ['y12-exponential-gradient.core.Y12.c.p0', ['$x = \\frac{1}{2}\\ln 7$', '$14$'], '4e^(2x) = 28; y = 2 × 7'],
+  ['y13-reciprocal-trig.core.Y13.c.p0', ['Shown', '$x = 45.0^\\circ$, $x = 146.3^\\circ$'], '(3t + 2)(t − 1) = 0; 180° − 33.69°'],
+  ['y13-addition-formulae.stretch.Y13.c.p0', ['$\\frac{19}{17}$', '$-\\frac{323}{36}$'], '(7 − ⅔) ÷ (1 + 14/3); (38/17) ÷ (−72/289)'],
+  ['y13-trig-calculus.stretch.Y13.c.p0', ['$\\frac{1}{50}\\pi - \\frac{1}{25}$'], '[x sin 5x ÷ 5 + cos 5x ÷ 25] from 0 to π/10'],
+  ['y13-concavity.stretch.Y13.c.p0', ['$5\\mathrm{e}^{5x}(5x + 2)$', '$\\left(-\\frac{2}{5}, -\\frac{2}{5}\\mathrm{e}^{-2}\\right)$', '$x < -\\frac{2}{5}$'], 'y″ = (10 + 25x)e^(5x)'],
+  ['y13-recurrence.core.Y13.c.p0', ['$u_2 = 4$, $u_3 = 5$', 'Order 2', '$675$'], '75 pairs of 5 + 4'],
+  ['y13-transformations.core.Y13.c.p0', ['$(2, 6)$', '$(-\\frac{1}{2}, 10)$', '$(2, 24)$'], '|−6|; −2 ÷ 4, 5 + 5; −4 × −6'],
+  ['y13-parametric.stretch.Y13.c.p0', ['$A(16, 0)$', 'Shown', '$\\frac{32}{3}$'], 't = 2; ∫(16t² − 8t³) from 0 to 2'],
+  ['y13-improper-fractions.core.Y13.c.p0', ['$A = 2$, $B = 2$, $C = 6$, $D = 6$'], '(2x + 2)(x² − 9) leaves 12x, and 12x/(x² − 9) = 6/(x − 3) + 6/(x + 3)'],
 ];
 
 describe('golden questions (hand-verified)', () => {
