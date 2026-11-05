@@ -6,6 +6,7 @@ import { MarkScheme, QuestionView } from '../components/QuestionView';
 import { shareLink } from '../state';
 import { ReportProblem } from '../components/ReportProblem';
 import type { SavedSet } from '../saved';
+import { ClearSet, type Clear } from '../components/ClearSet';
 
 interface Edit {
   toggleLock: (i: number) => void;
@@ -32,9 +33,10 @@ interface Props {
   onGenerate: () => void;
   onRegenerate: (i: number) => void;
   onPresent: (i: number) => void;
+  clear: Clear;
 }
 
-export function BuilderView({ options, questions, locked, edit, saved, onOptions, onGenerate, onRegenerate, onPresent }: Props) {
+export function BuilderView({ options, questions, locked, edit, saved, onOptions, onGenerate, onRegenerate, onPresent, clear }: Props) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
   const marks = questions.reduce((s, q) => s + q.marks, 0);
@@ -69,12 +71,16 @@ export function BuilderView({ options, questions, locked, edit, saved, onOptions
           <div className="empty">
             <h2>Choose your options, then generate</h2>
             <p>Every question is generated fresh from a template, with a worked mark scheme. Use Board for the projector, or Worksheet to print.</p>
+            {clear.canUndo && <ClearSet count={0} clear={clear} />}
           </div>
         ) : (
           <>
-            <p className="set-summary" aria-live="polite">
-              {questions.length} question{questions.length === 1 ? '' : 's'} · {marks} marks{nLocked ? ` · ${nLocked} locked (kept when you generate again)` : ''}
-            </p>
+            <div className="set-head">
+              <p className="set-summary" aria-live="polite">
+                {questions.length} question{questions.length === 1 ? '' : 's'} · {marks} marks{nLocked ? ` · ${nLocked} locked (kept when you generate again)` : ''}
+              </p>
+              <ClearSet count={questions.length} clear={clear} />
+            </div>
             {questions.map((q, i) => {
               const isLocked = locked.has(q.code);
               return (

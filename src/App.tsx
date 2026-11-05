@@ -8,6 +8,7 @@ import { WorksheetView } from './views/WorksheetView';
 import { HomeView } from './views/HomeView';
 import { BankView } from './views/BankView';
 import { TuitionButton } from './components/Tuition';
+import type { Clear } from './components/ClearSet';
 import { withTier } from './components/Controls';
 import type { Strand, Tier } from './engine/types';
 import { DEFAULT_SHEET, questionFromCode, readHash, writeHash, type SheetOptions, type View } from './state';
@@ -78,6 +79,34 @@ export default function App() {
   );
 
   // Editing the set after generating.
+  // The set before "Clear set", kept so it can be undone until the set changes again.
+  const [cleared, setCleared] = useState<{ questions: Question[]; locked: Set<string>; example: Question | null; kept: string } | null>(null);
+  const codes = questions.map((q) => q.code).join();
+  const nLocked = questions.filter((q) => locked.has(q.code)).length;
+  // Once the set changes, the Undo would bring back something stale.
+  useEffect(() => {
+    if (cleared && cleared.kept !== codes) setCleared(null);
+  }, [cleared, codes]);
+  const clear: Clear = {
+    // Locked questions survive a clear; the worked example goes only with the whole set.
+    clear: () => {
+      const kept = questions.filter((q) => locked.has(q.code));
+      setCleared({ questions, locked, example, kept: kept.map((q) => q.code).join() });
+      setQuestions(kept);
+      if (kept.length === 0) setExample(null);
+      setIndex(0);
+    },
+    undo: () => {
+      if (!cleared) return;
+      setQuestions(cleared.questions);
+      setLocked(cleared.locked);
+      setExample(cleared.example);
+      setCleared(null);
+    },
+    canUndo: cleared !== null && cleared.kept === codes,
+    locked: nLocked,
+  };
+
   const edit = {
     toggleLock: (i: number) =>
       setLocked((l) => {
@@ -243,13 +272,14 @@ export default function App() {
             onOptions={setOptions}
             onGenerate={generate}
             onRegenerate={regenKeepingLock}
+            clear={clear}
             onPresent={(i) => {
               setIndex(i);
               setView('board');
             }}
           />
         )}
-        {view === 'bank' && <BankView tier={options.tier} count={questions.length} onAdd={(q) => setQuestions((qs) => [...qs, q])} onOpen={(v) => { setView(v); window.scrollTo(0, 0); }} />}
+        {view === 'bank' && <BankView tier={options.tier} count={questions.length} clear={clear} onAdd={(q) => setQuestions((qs) => [...qs, q])} onOpen={(v) => { setView(v); window.scrollTo(0, 0); }} />}
         {view === 'board' && <BoardView questions={questions} index={index} onIndex={setIndex} onRegenerate={regen} />}
         {view === 'worksheet' && (
           <WorksheetView

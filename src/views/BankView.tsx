@@ -4,10 +4,12 @@ import { buildQuestion } from '../engine/generate';
 import { TEMPLATES } from '../engine/registry';
 import { freshSeed } from '../engine/rng';
 import { LEVELS, STRANDS, TIERS, levelsFor, type Calc, type Level, type Question, type Template, type Tier } from '../engine/types';
+import { ClearSet, type Clear } from '../components/ClearSet';
 
 interface Props {
   tier: Tier;
   count: number;
+  clear: Clear;
   onAdd: (q: Question) => void;
   onOpen: (view: 'build' | 'worksheet') => void;
 }
@@ -78,7 +80,7 @@ function Preview({ t, tier, onAdd }: { t: Template; tier: Tier; onAdd: (q: Quest
 }
 
 /** Every question type, grouped by year, area and topic, with a search across all of them. */
-export function BankView({ tier: startTier, count, onAdd, onOpen }: Props) {
+export function BankView({ tier: startTier, count, clear, onAdd, onOpen }: Props) {
   const [tier, setTier] = useState<Tier>(startTier);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState<string | null>(null);
@@ -114,6 +116,7 @@ export function BankView({ tier: startTier, count, onAdd, onOpen }: Props) {
           <button type="button" onClick={() => onOpen('worksheet')} disabled={count === 0}>
             Make worksheet
           </button>
+          <ClearSet count={count} clear={clear} />
         </div>
       </div>
       {!searching && (
