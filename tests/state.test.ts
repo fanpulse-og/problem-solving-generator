@@ -38,7 +38,7 @@ describe('URL state', () => {
       },
       example: 'ratio-parts.foundational.F.nc.ex1',
       title: 'Year 9 & 10 starter',
-      sheet: { answers: 'answers', paper: true },
+      sheet: { answers: 'answers', paper: true, example: true, limit: 3 },
       locked: [0],
     };
     expect(readHash(writeHash(s))).toEqual(s);

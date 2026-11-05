@@ -3061,6 +3061,238 @@ def y13_improper_fractions(v, ans, level):
     return signed_nums(ans[0]) == ([B, C, D] if level == "foundational" else [A, B, C, D]), "constants"
 
 
+# ---------------------------------------------------------------- A-level: Year 13 Statistics
+
+
+def nphi(z):
+    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
+
+
+def nz(p):
+    lo, hi = -9.0, 9.0
+    for _ in range(90):
+        m = (lo + hi) / 2
+        if nphi(m) < p:
+            lo = m
+        else:
+            hi = m
+    return (lo + hi) / 2
+
+
+def close3s(text, w, sf=0.006):
+    return near(F(text), w, max(abs(w) * sf, 1e-5))
+
+
+def first_num(text):
+    return float(signed_nums(text)[0])
+
+
+def y13_normal_distribution(v, ans, level):
+    mu = v["mu"]
+    if level == "foundational":
+        s = float(q(v["sigma"]))
+        a, b, p = v["a"], v["b"], float(q(v["p"]))
+        return close3s(ans[0], 1 - nphi((a - mu) / s)) and close3s(ans[1], nphi((a - mu) / s) - nphi((b - mu) / s)) and near(signed_nums(ans[2])[0], mu + nz(p) * s, 0.006 * abs(mu + nz(p) * s)), "probabilities"
+    if level == "core":
+        a, b, p = v["a"], v["b"], float(q(v["p"]))
+        # Search for σ directly from the upper-tail statement.
+        lo, hi = 0.01, 500.0
+        for _ in range(100):
+            m = (lo + hi) / 2
+            if 1 - nphi((a - mu) / m) < p:
+                lo = m
+            else:
+                hi = m
+        cond = (1 - nphi((b - mu) / lo)) / p
+        return near(signed_nums(ans[0])[-1], lo, lo * 0.006) and close3s(ans[1], cond), f"sigma {lo} {cond}"
+    a, b, p1, p2 = v["a"], v["b"], float(q(v["p"])), float(q(v["p2"]))
+    s = (b - a) / (nz(1 - p2) - nz(p1))
+    m = a - nz(p1) * s
+    nums = signed_nums(ans[0])
+    inside = 1 - p1 - p2
+    return near(nums[0], m, abs(m) * 0.006) and near(nums[1], s, s * 0.006) and close3s(ans[1], inside * inside), f"{m} {s}"
+
+
+def y13_normal_hypothesis(v, ans, level):
+    mu, s, n, up, alpha = v["mu"], v["sigma"], v["n"], v["up"], v["alpha"]
+    xb = float(q(v["xbar"]))
+    se = s / math.sqrt(n)
+    pv = 1 - nphi((xb - mu) / se) if up else nphi((xb - mu) / se)
+    if level == "foundational":
+        return close3s(ans[1], pv), f"{pv}"
+    if level == "core":
+        shown = F(re.search(r"value (\d*\.?\d+)", ans[0]).group(1))
+        return near(shown, pv, max(pv * 0.006, 1e-5)) and (("Do not reject" not in ans[0]) == (pv < alpha / 100)), f"{pv}"
+    z = nz(1 - alpha / 100)
+    lim = mu + z * se if up else mu - z * se
+    inside = xb > lim if up else xb < lim
+    return near(signed_nums(ans[1])[0], lim, 0.0051) and (("Not in the" not in ans[2]) == inside), f"{lim}"
+
+
+def y13_normal_approximation(v, ans, level):
+    n, p, k, j = v["n"], float(q(v["p"])), v["k"], v["j"]
+    m, s = n * p, math.sqrt(n * p * (1 - p))
+    if level == "foundational":
+        nums = signed_nums(ans[1])
+        return near(nums[0], m, 1e-9) and near(nums[1], s * s, 1e-9) and close3s(ans[2], 1 - nphi((k - 0.5 - m) / s)), "approx"
+    if level == "core":
+        ap = nphi((k + 0.5 - m) / s) - nphi((j - 0.5 - m) / s)
+        ex = sum(bpmf(n, p, i) for i in range(j, k + 1))
+        err = abs(ap - ex) / ex * 100
+        return close3s(ans[0], ap) and close3s(ans[1], ex) and near(F(ans[2].replace("%", "")), err, max(err * 0.06, 1e-4)), f"{ap} {ex} {err}"
+    pv = 1 - nphi((k - 0.5 - m) / s)
+    shown = F(re.search(r"value (\d*\.?\d+)", ans[0]).group(1))
+    return near(shown, pv, max(pv * 0.006, 1e-5)) and (("Do not reject" not in ans[0]) == (pv < v["alpha"] / 100)), f"{pv}"
+
+
+def y13_conditional_probability(v, ans, level):
+    if level == "foundational":
+        a, b, c, d = v["t"]
+        N = a + b + c + d
+        return signed_nums(ans[0])[0] == F(a + b, N) and signed_nums(ans[1])[0] == F(a, a + c) and F(a, a + c) != F(a + b, N), "table"
+    if level == "core":
+        p, q1, q2 = q(v["p"]), q(v["q1"]), q(v["q2"])
+        pB = p * q1 + (1 - p) * q2
+        return F(ans[0]) == pB and signed_nums(ans[1])[0] == p * q1 / pB, f"{pB}"
+    pa, pb, g = q(v["pa"]), q(v["pb"]), q(v["given"])
+    both = g * pb
+    # Region by region, as in a Venn diagram.
+    only_a, only_b = pa - both, pb - both
+    neither = 1 - only_a - only_b - both
+    return F(ans[0]) == both and F(ans[1]) == only_a + only_b + both and signed_nums(ans[2])[0] == neither / (neither + only_a) and all(x >= 0 for x in (only_a, only_b, neither)), f"{neither}"
+
+
+def y13_correlation(v, ans, level):
+    if level == "foundational":
+        return (("Do not reject" not in ans[0]) == (q(v["pv"]) < F(v["alpha"], 100))) and ((">" in ans[0]) == (q(v["r"]) > 0)), "p-value"
+    if level == "core":
+        c, m, x = float(q(v["c"])), float(q(v["m"])), v["x"]
+        y = 10 ** (m * math.log10(x) - c)
+        nums = signed_nums(ans[1].replace("$n", "").replace("$a", ""))
+        return near(nums[0], m, 1e-9) and near(nums[1], 10 ** -c, 10 ** -c * 0.006) and near(F(ans[2].split()[0]), y, y * 0.006), f"{y}"
+    return (("Do not reject" not in ans[0]) == (abs(q(v["r"])) > q(v["crit"]))), "two tails"
+
+
+# ---------------------------------------------------------------- A-level: Year 13 Mechanics
+
+
+def y13_moments(v, ans, level):
+    G = 9.8
+    if level == "foundational":
+        L, M, m, x = v["L"], v["M"], v["m"], v["x"]
+        # Moments about B for R_A; then resolve for R_B.
+        Ra = G * (M * L / 2 + m * (L - x)) / L
+        Rb = G * (M + m) - Ra
+        return near(F(ans[0].split()[0]), Rb, Rb * 0.006) and near(F(ans[1].split()[0]), Ra, Ra * 0.006), f"{Ra} {Rb}"
+    if level == "core":
+        L, M, d = v["L"], v["M"], v["d"]
+        m = F(M * (2 * d - L), 2 * (L - d))
+        R = float(M + m) * G
+        return signed_nums(ans[1])[0] == m and near(F(ans[2].split()[0]), R, R * 0.006), f"{m}"
+    a, b = v["tan"]
+    M, L = v["M"], v["L"]
+    al = math.atan2(a, b)
+    # Moments about the top of the ladder: R and F act at the bottom.
+    R = M * G
+    F_ = (R * L * math.cos(al) - M * G * L / 2 * math.cos(al)) / (L * math.sin(al))
+    return near(F(ans[1].split()[0]), F_, F_ * 0.006) and near(signed_nums(ans[2])[0], F_ / R, 1e-9), f"{F_}"
+
+
+def y13_rough_slope(v, ans, level):
+    G, s, c, mu, m = 9.8, float(q(v["sin"])), float(q(v["cos"])), float(q(v["mu"])), v["m"]
+    if level == "foundational":
+        d = v["d"]
+        # Work-energy.
+        sp = math.sqrt(2 * (m * G * s * d - mu * m * G * c * d) / m)
+        a = sp * sp / (2 * d)
+        return near(F(ans[0].split()[0]), m * G * c, m * G * c * 0.006) and near(F(ans[1].split()[0]), a, a * 0.006) and near(F(ans[2].split()[0]), sp, sp * 0.006), f"{a} {sp}"
+    if level == "core":
+        u = v["u"]
+        dist = 0.5 * m * u * u / (m * G * s + mu * m * G * c)
+        a = u * u / (2 * dist)
+        stays = mu >= s / c
+        return near(F(ans[0].split()[0]), a, a * 0.006) and near(F(ans[1].split()[0]), dist, dist * 0.006) and (("stays" in ans[2]) == stays), f"{a} {dist}"
+    m2, d = v["m2"], v["d"]
+    fr = mu * m * G * c
+    sp = math.sqrt(2 * d * (m2 * G - m * G * s - fr) / (m + m2))
+    a = sp * sp / (2 * d)
+    T = m2 * (G - a)
+    nums = signed_nums(ans[1].replace("s$^{-2}$", ""))
+    return near(F(ans[0].split()[0]), fr, fr * 0.006) and near(nums[0], a, a * 0.006) and near(nums[-1], T, T * 0.006) and near(F(ans[2].split()[0]), sp, sp * 0.006), f"{a} {T}"
+
+
+def y13_projectiles(v, ans, level):
+    G, U, h = 9.8, v["U"], v["h"]
+    s, c = float(q(v["sin"])), float(q(v["cos"]))
+    T = (U * s + math.sqrt((U * s) ** 2 + 2 * G * h)) / G
+    land = math.sqrt(U * U + 2 * G * h)
+    got = lambda i: float(F(ans[i].split()[0]))
+    if level == "foundational":
+        return near(got(0), T, T * 0.006) and near(got(1), U * T, U * T * 0.006) and near(got(2), land, land * 0.006), f"{T}"
+    if level == "core":
+        top = (U * s) ** 2 / (2 * G)
+        return near(got(0), T, T * 0.006) and near(got(1), U * c * T, U * c * T * 0.006) and near(got(2), top, top * 0.006), f"{T} {top}"
+    x, w = v["x"], v["w"]
+    t = x / (U * c)
+    y = h + U * s * t - 4.9 * t * t
+    return near(got(0), T, T * 0.006) and near(got(1), land, land * 0.006) and (ans[2].startswith("Yes") == (y > w)), f"{y}"
+
+
+def y13_vector_kinematics(v, ans, level):
+    if level == "foundational":
+        u, a, t = v["u"], v["a"], v["t"]
+        w = (u[0] + a[0] * t, u[1] + a[1] * t)
+        pos = (u[0] * t + F(a[0] * t * t, 2), u[1] * t + F(a[1] * t * t, 2))
+        b = (math.degrees(math.atan2(w[0], w[1])) + 360) % 360
+        return ij_parts(ans[0]) == w and near(signed_nums(ans[1])[0], b, 0.051) and ij_parts(ans[2]) == pos, f"{b}"
+    if level == "core":
+        p, c, s, w, t = *v["r"], v["t"]
+        vx, vy = 2 * p * t, 3 * s * t * t + w
+        shown = ans[2].split("$")[1]
+        m = re.fullmatch(r"(\d*)(?:\\sqrt\{(\d+)\})?", shown)
+        val = int(m.group(1) or 1) ** 2 * int(m.group(2) or 1)
+        return val == vx * vx + vy * vy, f"{val}"
+    p, c, s, x0, y0 = v["r"]
+    T = v["T"]
+    roots = [t for t in range(1, 30) if s * t * t - s * T * T == 0]
+    X = F(p * T * T, 2) + c * T + x0
+    Y = F(s * T ** 3, 3) - s * T * T * T + y0
+    return roots == [T] and signed_nums(ans[0])[0] == T and ij_parts(ans[2]) == (X, Y), f"{X} {Y}"
+
+
+def y13_equilibrium(v, ans, level):
+    G, m = 9.8, v["m"]
+    a = v["a"]
+    s, c = a[0] / a[2], a[1] / a[2]
+    if level == "foundational":
+        b = v["b"]
+        sb, cb = b[0] / b[2], b[1] / b[2]
+        # Solve the 2 × 2 system by Cramer's rule.
+        det = c * sb + s * cb
+        Ta = (cb * m * G) / det
+        Tb = (c * m * G) / det
+        nums = [x for x in signed_nums(ans[1].replace("T_A", "").replace("T_B", ""))]
+        return near(nums[0], Ta, Ta * 0.006) and near(nums[1], Tb, Tb * 0.006), f"{Ta} {Tb}"
+    if level == "core":
+        # Horizontally and vertically on the particle.
+        R = m * G / c
+        P = R * s
+        return near(signed_nums(ans[0])[0], P, P * 0.006) and near(F(ans[1].split()[0]), R, R * 0.006), f"{P} {R}"
+    mu = float(q(v["mu"]))
+    # Bisection on P until friction is exactly at its limit.
+    def gap(P):
+        R = m * G * c + P * s
+        return m * G * s - P * c - mu * R
+    lo, hi = 0.0, 10000.0
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if gap(mid) > 0:
+            lo = mid
+        else:
+            hi = mid
+    return near(signed_nums(ans[1])[0], lo, lo * 0.006), f"{lo}"
+
+
 CHECKS = {
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
@@ -3202,6 +3434,16 @@ CHECKS = {
     "y13-transformations": y13_transformations,
     "y13-parametric": y13_parametric,
     "y13-improper-fractions": y13_improper_fractions,
+    "y13-normal-distribution": y13_normal_distribution,
+    "y13-normal-hypothesis": y13_normal_hypothesis,
+    "y13-normal-approximation": y13_normal_approximation,
+    "y13-conditional-probability": y13_conditional_probability,
+    "y13-correlation": y13_correlation,
+    "y13-moments": y13_moments,
+    "y13-rough-slope": y13_rough_slope,
+    "y13-projectiles": y13_projectiles,
+    "y13-vector-kinematics": y13_vector_kinematics,
+    "y13-equilibrium": y13_equilibrium,
 }
 
 

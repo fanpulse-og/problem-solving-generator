@@ -87,8 +87,9 @@ input {
   border-radius: 6px;
   background: var(--accent);
   color: var(--brand-ink);
-  font-family: var(--serif);
-  font-size: 1.3rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 .tabs {
   display: flex;
@@ -130,6 +131,9 @@ a.tuition {
 a.tuition:hover {
   background: #1d4ed8;
 }
+.narrow-only {
+  display: none;
+}
 @media (max-width: 560px) {
   .topbar {
     padding: 0.5rem 0.75rem;
@@ -137,8 +141,19 @@ a.tuition:hover {
   .brand {
     font-size: 0.95rem;
   }
+  /* Phones: tuition and coffee share the brand's row, the tabs get a row of their own. */
+  .topbar {
+    gap: 0.5rem 0.3rem;
+  }
   .topbar-right {
-    gap: 0.3rem;
+    display: contents;
+  }
+  .topbar .tabs {
+    order: 3;
+    width: 100%;
+  }
+  a.tuition {
+    margin-left: auto;
   }
   .topbar .tab {
     padding: 0.35rem 0.5rem;
@@ -150,6 +165,9 @@ a.tuition:hover {
   }
   .wide-only {
     display: none;
+  }
+  .narrow-only {
+    display: inline;
   }
 }
 a.coffee:hover {
@@ -1350,4 +1368,227 @@ a.cta:hover {
 }
 .site-footer .small {
   font-size: 0.8rem;
+}
+
+/* Worksheet: page count, removing questions */
+.limit-note {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+.page-count {
+  font-size: 0.95rem;
+}
+.page-warning {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e0b252;
+  border-radius: 6px;
+  background: #fdf6e3;
+  font-size: 0.9rem;
+}
+.undo-bar {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.sheet-q {
+  position: relative;
+}
+.sheet-remove {
+  position: absolute;
+  top: -0.2rem;
+  right: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border-radius: 50%;
+  line-height: 1;
+  color: #a3202a;
+  background: var(--paper);
+}
+.sheet-remove:hover:not(:disabled) {
+  border-color: #a3202a;
+}
+/* A copy laid out as it prints, drawn larger by 16 / (11.5pt in px), so that rem sizes match print. */
+.print-measure {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: calc(180mm / 0.95833);
+  visibility: hidden;
+}
+.print-measure .sheet {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+}
+.print-measure .diagram {
+  max-width: calc(290px / 0.95833);
+}
+
+/* Question bank */
+.bank {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+.bank h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+.bank-intro {
+  margin: 0 0 1rem;
+  color: var(--ink-soft);
+}
+.bank-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.bank-search {
+  flex: 1 1 16rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.bank-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-left: auto;
+  font-size: 0.9rem;
+}
+.bank-tiers {
+  margin-bottom: 1rem;
+}
+.bank-tier-title {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.15rem;
+}
+details.bank-strand {
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+details.bank-strand > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.9rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.bank-count {
+  color: var(--ink-soft);
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+.bank-topic {
+  padding: 0 0.9rem 0.6rem;
+}
+.bank-topic h3 {
+  margin: 0.4rem 0 0.3rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+button.bank-item {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.3rem;
+  text-align: left;
+}
+button.bank-item[aria-expanded='true'] {
+  border-color: var(--accent);
+  background: var(--brand-soft);
+}
+.bank-preview {
+  margin: 0.2rem 0 0.7rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+}
+.bank-preview-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+.bank-preview-tools .seg {
+  flex: 0 1 auto;
+}
+.bank-preview-tools .seg button {
+  padding: 0.35rem 0.7rem;
+}
+.bank-added {
+  color: #1f6b3b;
+  font-size: 0.9rem;
+}
+.bank-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+/* Report a problem */
+dialog.report-dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+dialog.report-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+}
+.report-dialog h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+.report-about {
+  margin: 0 0 0.8rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.report-dialog label {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.report-dialog textarea,
+.report-dialog input[type='email'] {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 400;
+}
+.report-small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.report-trap {
+  position: absolute;
+  left: -9999px;
+}
+.report-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+.report-error {
+  margin: 0 0 0.7rem;
+  color: #a3202a;
+  font-size: 0.9rem;
 }

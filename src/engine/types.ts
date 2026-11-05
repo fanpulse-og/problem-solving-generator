@@ -16,10 +16,11 @@ export const TIERS: { id: Tier; label: string }[] = [
 /** A-level tiers: every Edexcel A-level paper allows a calculator, so there is no non-calculator choice. */
 export const isALevel = (tier: Tier) => tier === 'Y12' || tier === 'Y13';
 
+/** The ids are in share links, so they never change; only the names shown to people do. */
 export const LEVELS: { id: Level; label: string }[] = [
-  { id: 'foundational', label: 'Foundational' },
-  { id: 'core', label: 'Core' },
-  { id: 'stretch', label: 'Stretch' },
+  { id: 'foundational', label: 'Practice' },
+  { id: 'core', label: 'Apply' },
+  { id: 'stretch', label: 'Extend' },
 ];
 
 export const STRANDS = [

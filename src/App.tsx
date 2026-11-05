@@ -6,6 +6,7 @@ import { BuilderView } from './views/BuilderView';
 import { BoardView } from './views/BoardView';
 import { WorksheetView } from './views/WorksheetView';
 import { HomeView } from './views/HomeView';
+import { BankView } from './views/BankView';
 import { TuitionButton } from './components/Tuition';
 import { withTier } from './components/Controls';
 import type { Strand, Tier } from './engine/types';
@@ -151,21 +152,24 @@ export default function App() {
       setLocked(new Set(s.locked ?? []));
       setExample(s.example ? questionFromCode(s.example) : null);
       setTitle(s.title ?? 'Problem solving');
-      setSheet(s.sheet ?? DEFAULT_SHEET);
+      // Sets saved before the example was optional always had one.
+      setSheet({ ...DEFAULT_SHEET, ...s.sheet, example: s.sheet?.example ?? !!s.example });
       setIndex(0);
     },
     regenerate: (s: SavedSet) => {
       setOptions(s.options);
       setLocked(new Set());
       setTitle(s.title ?? 'Problem solving');
-      setSheet(s.sheet ?? DEFAULT_SHEET);
+      setSheet({ ...DEFAULT_SHEET, ...s.sheet });
       generateWith(s.options, []);
     },
     remove: (id: string) => persist(saved.filter((s) => s.id !== id)),
   };
 
-  const tabs: [View, string][] = [
+  // [view, label, shorter label for phones]
+  const tabs: [View, string, string?][] = [
     ['build', 'Build'],
+    ['bank', 'Question bank', 'Bank'],
     ['board', 'Board'],
     ['worksheet', 'Worksheet'],
   ];
@@ -186,15 +190,22 @@ export default function App() {
           }}
         >
           <span className="logo" aria-hidden="true">
-            ∑
+            MPS
           </span>
-          <span>Problem Solving Generator</span>
+          <span>Maths Problem Solving</span>
         </a>
         <div className="topbar-right">
           <nav aria-label="Views" className="tabs">
-            {tabs.map(([id, label]) => (
+            {tabs.map(([id, label, short]) => (
               <button key={id} type="button" className={view === id ? 'tab on' : 'tab'} aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>
-                {label}
+                {short ? (
+                  <>
+                    <span className="wide-only">{label}</span>
+                    <span className="narrow-only">{short}</span>
+                  </>
+                ) : (
+                  label
+                )}
               </button>
             ))}
           </nav>
@@ -238,6 +249,7 @@ export default function App() {
             }}
           />
         )}
+        {view === 'bank' && <BankView tier={options.tier} count={questions.length} onAdd={(q) => setQuestions((qs) => [...qs, q])} onOpen={(v) => { setView(v); window.scrollTo(0, 0); }} />}
         {view === 'board' && <BoardView questions={questions} index={index} onIndex={setIndex} onRegenerate={regen} />}
         {view === 'worksheet' && (
           <WorksheetView
@@ -246,7 +258,15 @@ export default function App() {
             title={title}
             sheet={sheet}
             onTitle={setTitle}
-            onSheet={setSheet}
+            onSheet={(s) => {
+              // Switching the example on needs one to show.
+              if (s.example && !example) setExample(defaultExample(questions, TEMPLATES));
+              setSheet(s);
+            }}
+            onQuestions={(qs) => {
+              setQuestions(qs);
+              setIndex(0);
+            }}
             onExampleTemplate={(id) => {
               const t = TEMPLATES.find((x) => x.id === id);
               if (t) setExample(exampleFor(t, questions));

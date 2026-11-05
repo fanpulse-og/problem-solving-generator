@@ -115,7 +115,7 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
           <p>Problem solving from the KS3 programme of study, pitched to build towards GCSE.</p>
         </header>
         <div className="level-grid one">
-          <LevelCard card={{ tier: 'KS3', title: 'KS3 Mathematics', sub: 'Foundational, core and stretch questions for Years 7, 8 and 9.' }} onBuild={onBuild} onWorksheet={onWorksheet} />
+          <LevelCard card={{ tier: 'KS3', title: 'KS3 Mathematics', sub: 'Practice, Apply and Extend questions for Years 7, 8 and 9.' }} onBuild={onBuild} onWorksheet={onWorksheet} />
         </div>
       </section>
 
@@ -186,6 +186,8 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
           <a href="https://buymeacoffee.com/zainhusayn" target="_blank" rel="noopener noreferrer">
             Buy me a coffee
           </a>
+          <span aria-hidden="true"> · </span>
+          <a href="./privacy.html">Privacy</a>
         </p>
         <p className="small">© {new Date().getFullYear()} Maths Problem Solving. Not affiliated with Pearson Edexcel.</p>
       </footer>

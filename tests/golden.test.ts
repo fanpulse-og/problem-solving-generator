@@ -159,6 +159,20 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['y13-transformations.core.Y13.c.p0', ['$(2, 6)$', '$(-\\frac{1}{2}, 10)$', '$(2, 24)$'], '|−6|; −2 ÷ 4, 5 + 5; −4 × −6'],
   ['y13-parametric.stretch.Y13.c.p0', ['$A(16, 0)$', 'Shown', '$\\frac{32}{3}$'], 't = 2; ∫(16t² − 8t³) from 0 to 2'],
   ['y13-improper-fractions.core.Y13.c.p0', ['$A = 2$, $B = 2$, $C = 6$, $D = 6$'], '(2x + 2)(x² − 9) leaves 12x, and 12x/(x² − 9) = 6/(x − 3) + 6/(x + 3)'],
+  // A-level Y13 Mechanics and Statistics
+  ['y13-moments.foundational.Y13.c.p0', ['637 N', '245 N', 'Its weight acts at its midpoint.'], '4R = 10g × 2 + 80g × 3, so R = 65g; the rest is 25g'],
+  ['y13-moments.core.Y13.c.p0', ['0', '$m = 20$', '784 N'], '60g × 1 = mg × 3; R = 80g'],
+  ['y13-moments.stretch.Y13.c.p0', ['196 N', '40.8 N', '$\\frac{5}{24}$'], 'S = Mg ÷ (2 tan α) = 196 × 5/24; μ = S ÷ R'],
+  ['y13-rough-slope.foundational.Y13.c.p0', ['58.8 N', '3.72 m s$^{-2}$', '8.63 m s$^{-1}$'], 'R = 10g × 0.6; a = g(0.8 − 0.7 × 0.6); v² = 2 × 3.724 × 10'],
+  ['y13-rough-slope.stretch.Y13.c.p0', ['27.1 N', '$a = 0.754$ m s$^{-2}$, $T = 72.4$ N', '2.46 m s$^{-1}$'], 'F = 0.3 × 98 × 12/13; a = (78.4 − 37.69 − 27.14) ÷ 18'],
+  ['y13-projectiles.core.Y13.c.p0', ['4.24 s', '66.2 m', '22.1 m', 'For example, include air resistance.'], 'u = 20.8 up and 15.6 across; T = 2u/g; u²/2g'],
+  ['y13-projectiles.foundational.Y13.c.p0', ['3.99 s', '156 m', '55.2 m s$^{-1}$'], 't = √(156/9.8); 39t; √(39² + 2 × 9.8 × 78)'],
+  ['y13-vector-kinematics.stretch.Y13.c.p0', ['$t = 4$', '$\\mathbf{r} = (4t^{2} - 8t + 3)\\mathbf{i} + (2t^{3} - 96t + 2)\\mathbf{j}$', '$(35\\mathbf{i} - 254\\mathbf{j})$ m'], '6t² = 96; integrate; 64 − 32 + 3 and 128 − 384 + 2'],
+  ['y13-vector-kinematics.foundational.Y13.c.p0', ['$(13\\mathbf{i} - 14\\mathbf{j})$ m s$^{-1}$', '$137.1^\\circ$', '$(44\\mathbf{i} - 24\\mathbf{j})$ m'], 'bearing 180° − arctan(13/14); s = ut + ½at²'],
+  ['y13-equilibrium.stretch.Y13.c.p0', ['$P\\cos\\alpha + \\mu R = 3g\\sin\\alpha$;  $R = 3g\\cos\\alpha + P\\sin\\alpha$', '$P = 5.88$', 'Up the plane.'], '3g(5 − 2.4)/13 ÷ (12 + 1)/13 = 3g × 0.2'],
+  ['y13-conditional-probability.core.Y13.c.p0', ['0.18', '$\\frac{5}{9}$'], '0.1 + 0.08; 0.1 ÷ 0.18'],
+  ['y13-conditional-probability.stretch.Y13.c.p0', ['0.16', '0.54', '$\\frac{23}{30}$', 'Not independent: $\\mathrm{P}(A \\mid B) \\neq \\mathrm{P}(A)$'], '0.4 × 0.4; 0.3 + 0.4 − 0.16; 0.46 ÷ 0.6'],
+  ['y13-normal-hypothesis.foundational.Y13.c.p0', ['$\\overline{X} \\sim \\mathrm{N}\\left(80, \\frac{16}{30}\\right)$', '0.0200'], 'z = −1.5 ÷ (4/√30) = −2.054'],
 ];
 
 describe('golden questions (hand-verified)', () => {

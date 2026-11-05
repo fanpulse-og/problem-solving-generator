@@ -13,7 +13,7 @@ Start from [`src/templates/_skeleton.ts`](../src/templates/_skeleton.ts).
 | `tiers` | Any of `'KS3'`, `'F'`, `'H'`, or `'Y12'`, `'Y13'` for A-level. KS3 should get easier numbers (check `tier === 'KS3'` in `generate`). A-level templates use `calculator: 'calc'`, since every paper allows one. |
 | `formerTiers` | Optional. Tiers the template is no longer offered at (see [TIERS.md](TIERS.md)); old links with them still open. |
 | `levelsByTier` | Optional. Levels offered at a tier when the other levels need Higher-only content, e.g. `{ F: ['foundational', 'core'] }`. |
-| `levels` | Any of `'foundational'`, `'core'`, `'stretch'`. Levels should change the **question**, not just the numbers: foundational adds scaffolding parts; core is the paper-style problem; stretch reverses it, adds a step or asks for a decision. |
+| `levels` | Any of `'foundational'`, `'core'`, `'stretch'`, shown to people as Practice, Apply and Extend (the ids are in share links, so they stay). Levels should change the **question**, not just the numbers: foundational adds scaffolding parts; core is the paper-style problem; stretch reverses it, adds a step or asks for a decision. |
 | `style`, `styleByLevel` | One of the styles in `src/engine/types.ts` (`STYLES`), optionally different per level. |
 | `calculator` | `'non-calc'`, `'calc'` or `'either'`. With `'either'`, `generate` receives `calc` and must keep non-calculator numbers mental-friendly. |
 | `generate(ctx)` | Picks the variables from `ctx.rng`. Throw `reject(…)` or use `ensure(cond, reason)` to retry with fresh numbers. |

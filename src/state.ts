@@ -2,7 +2,7 @@ import { buildQuestion, parseCode, type SetOptions } from './engine/generate';
 import { currentSubtopics, templateById } from './engine/registry';
 import type { Question } from './engine/types';
 
-export type View = 'home' | 'build' | 'board' | 'worksheet';
+export type View = 'home' | 'build' | 'bank' | 'board' | 'worksheet';
 
 export const DEFAULT_OPTIONS: SetOptions = {
   tier: 'F',
@@ -22,8 +22,12 @@ export interface SheetOptions {
   answers: 'scheme' | 'answers' | 'none';
   /** Non-calculator questions first, then calculator, each under its own heading. */
   paper: boolean;
+  /** Include a worked example. Off by default. */
+  example: boolean;
+  /** Pages of questions to fit into; 0 means no limit. */
+  limit: number;
 }
-export const DEFAULT_SHEET: SheetOptions = { answers: 'scheme', paper: false };
+export const DEFAULT_SHEET: SheetOptions = { answers: 'scheme', paper: false, example: false, limit: 0 };
 
 export interface UrlState {
   view: View;
@@ -49,7 +53,7 @@ const sameList = (a: string[], b: string[]) => a.length === b.length && a.every(
 export function readHash(hash = location.hash): UrlState {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
   // A bare address is the home page; links from before it existed (no path, but settings) open the builder.
-  const view: View = path === 'board' || path === 'worksheet' || path === 'build' ? path : query ? 'build' : 'home';
+  const view: View = path === 'board' || path === 'worksheet' || path === 'build' || path === 'bank' ? path : query ? 'build' : 'home';
   const p = new URLSearchParams(query);
   let options: SetOptions = { ...DEFAULT_OPTIONS };
   try {
@@ -82,6 +86,9 @@ export function readHash(hash = location.hash): UrlState {
     sheet: {
       answers: p.get('ans') === 'answers' || p.get('ans') === 'none' ? (p.get('ans') as SheetOptions['answers']) : 'scheme',
       paper: p.get('paper') === '1',
+      // A link carries an example only when it is switched on, including links from before it was optional.
+      example: p.has('ex'),
+      limit: Number(p.get('lim')) || 0,
     },
   };
 }
@@ -101,10 +108,11 @@ export function writeHash(s: UrlState): string {
   if (o.count !== d.count) p.set('n', String(o.count));
   if (o.target === 'marks') p.set('target', 'marks');
   if ((o.marks ?? d.marks) !== d.marks) p.set('m', String(o.marks));
-  if (s.example) p.set('ex', s.example);
+  if (s.example && s.sheet?.example) p.set('ex', s.example);
   if (s.title) p.set('t', s.title);
   if (s.sheet && s.sheet.answers !== DEFAULT_SHEET.answers) p.set('ans', s.sheet.answers);
   if (s.sheet?.paper) p.set('paper', '1');
+  if (s.sheet?.limit) p.set('lim', String(s.sheet.limit));
   if (s.locked?.length) p.set('lk', s.locked.join(','));
   const query = p.toString().replace(/%2C/g, ',').replace(/%7C/g, '|');
   if (s.view === 'home') return '';

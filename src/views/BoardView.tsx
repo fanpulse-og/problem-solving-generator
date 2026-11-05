@@ -24,7 +24,8 @@ export function BoardView({ questions, index, onIndex, onRegenerate }: Props) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
+      // Typing in a form, such as the report pop-up, is not a shortcut.
+      if ((e.target instanceof Element && e.target.closest('input, textarea, select, dialog')) || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'ArrowRight' && index < questions.length - 1) onIndex(index + 1);
       else if (e.key === 'ArrowLeft' && index > 0) onIndex(index - 1);
       else if (e.key === 'a' || e.key === 'A') setShowAnswer((s) => !s);
