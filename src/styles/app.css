@@ -80,16 +80,10 @@ input {
   font-size: 1.05rem;
 }
 .logo {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
-  background: var(--accent);
-  color: var(--brand-ink);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  flex: none;
 }
 .tabs {
   display: flex;
@@ -626,6 +620,9 @@ details.more .menu > * {
 }
 .qtable th {
   font-weight: 600;
+}
+.qtable.left td {
+  text-align: left;
 }
 .qtable td.blank {
   min-width: 3.5rem;
@@ -1298,12 +1295,24 @@ a.cta:hover {
   padding: 0;
   list-style: none;
 }
-.chips li {
-  padding: 0.1rem 0.55rem;
+.chips-hint {
+  margin: 0 0 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+.chips button {
+  padding: 0.15rem 0.6rem;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--paper);
+  color: var(--ink);
   font-size: 0.8rem;
+  cursor: pointer;
+}
+.chips button:hover {
+  border-color: var(--accent);
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 .level-card-actions {
   display: flex;
@@ -1340,7 +1349,7 @@ a.cta:hover {
 }
 .how-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   text-align: left;
 }
@@ -1599,4 +1608,224 @@ dialog.report-dialog::backdrop {
   margin: 0 0 0.7rem;
   color: #a3202a;
   font-size: 0.9rem;
+}
+
+/* Phones: a diagram inside a part keeps a readable size and scrolls sideways if it has to. */
+@media (max-width: 560px) {
+  .board-question {
+    padding: 1rem 0.9rem;
+  }
+  .diagram {
+    max-width: none;
+    overflow-x: auto;
+  }
+  .diagram svg {
+    min-width: 280px;
+  }
+  .qpart-body .diagram {
+    margin-left: -1.6rem;
+  }
+}
+
+/* Phones: the builder's options fold away, so the questions are not a long scroll below them. */
+.options-toggle {
+  display: none;
+}
+@media (max-width: 860px) {
+  .options-toggle {
+    display: block;
+    width: 100%;
+    font-weight: 600;
+  }
+  .sidebar.folded {
+    display: none;
+  }
+  .results {
+    scroll-margin-top: 0.5rem;
+  }
+}
+
+/* Worksheet versions */
+.sheet-version {
+  margin-left: 0.75rem;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-size: 0.55em;
+  font-weight: 600;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.version-row {
+  align-items: center;
+}
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .how-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mock papers on the home page */
+.level.mocks {
+  --tint: #b45309;
+}
+.mock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.6rem;
+}
+.mock-grid button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+.mock-grid button span {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+/* Board: timer and full screen */
+.board-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.timer-clock {
+  min-width: 4.5ch;
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.timer.up .timer-clock {
+  color: var(--mark);
+}
+.board:fullscreen {
+  max-width: none;
+  overflow: auto;
+  background: var(--bg);
+  padding: 1.5rem 3vw 2rem;
+}
+
+/* Practice mode */
+.practice {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 2rem;
+}
+.practice .board-question .question {
+  font-size: 1.1rem;
+}
+.practice .board-solution {
+  font-size: 1.05rem;
+}
+.practice .board-count {
+  text-align: center;
+}
+.practice-answers {
+  margin: 1rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.practice-answers h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+.practice-part {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.practice-part input {
+  width: min(100%, 16rem);
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.practice-part.right input {
+  border-color: var(--found);
+  background: #eef8f1;
+}
+.practice-part.wrong input {
+  border-color: var(--mark);
+  background: #fdf0ef;
+}
+.practice-self {
+  color: var(--ink-soft);
+}
+.mark {
+  font-weight: 600;
+}
+.mark.right {
+  color: var(--found);
+}
+.mark.wrong {
+  color: var(--mark);
+}
+.mark.again {
+  color: #92600a;
+  font-weight: 500;
+}
+.practice-actions,
+.practice-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+.practice-start {
+  justify-content: center;
+}
+.practice-summary {
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.practice-summary h2 {
+  margin-top: 0;
+}
+@media (max-width: 560px) {
+  .practice {
+    padding: 0.75rem;
+  }
+  .practice .board-bar {
+    gap: 0.4rem;
+    font-size: 0.9rem;
+  }
+}
+
+.loading {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+/* Mid-width screens: shorter labels keep the header on one row. */
+@media (max-width: 1100px) {
+  .wide-only {
+    display: none;
+  }
+  .narrow-only {
+    display: inline;
+  }
 }

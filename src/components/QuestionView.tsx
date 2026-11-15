@@ -32,10 +32,10 @@ export function BlockView({ block }: { block: Block }) {
         </div>
       );
     case 'table': {
-      const { header, rows, rowHeaders } = block.table;
+      const { header, rows, rowHeaders, leftAlign } = block.table;
       return (
         <div className="qtable-wrap">
-          <table className="qtable">
+          <table className={leftAlign ? 'qtable left' : 'qtable'}>
             {header && (
               <thead>
                 <tr>

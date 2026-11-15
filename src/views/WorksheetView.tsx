@@ -3,6 +3,7 @@ import { LEVELS, STRANDS, type Calc, type Question } from '../engine/types';
 import { AnswerView, MarkScheme, QuestionView } from '../components/QuestionView';
 import { exampleChoices } from '../engine/example';
 import { TEMPLATES } from '../engine/registry';
+import { regenerate } from '../engine/generate';
 import { countPages, questionsToRemove, type PageBlock } from '../engine/pages';
 import type { SheetOptions } from '../state';
 
@@ -53,11 +54,14 @@ function QuestionPages({ title, example, sections, number, sheet, totalMarks, on
   return (
     <div className="sheet-body">
       <header className="sheet-head">
-        <h1>{title}</h1>
+        <h1>
+          {title}
+          {sheet.version && <span className="sheet-version">Version {sheet.version}</span>}
+        </h1>
         <div className="sheet-name">
           Name <span className="line" /> Date <span className="line short" />
         </div>
-        <p className="sheet-info">Answer all questions. {totalMarks} marks. Diagrams are NOT accurately drawn, unless otherwise indicated.</p>
+        <p className="sheet-info">{sheet.time > 0 && `Time allowed: ${timeAllowed(sheet.time)}. `}Answer all questions. {totalMarks} marks. Diagrams are NOT accurately drawn, unless otherwise indicated.</p>
       </header>
 
       {example && (
@@ -80,7 +84,8 @@ function QuestionPages({ title, example, sections, number, sheet, totalMarks, on
           )}
           {sec.stages.map(({ level, qs }) => (
             <section key={level.id} className="stage">
-              <h2>{level.label}</h2>
+              {/* A timed mock paper runs straight through, like a real one. */}
+              {sheet.time === 0 && <h2>{level.label}</h2>}
               {qs.map((q) => (
                 <div key={q.code} className="sheet-q" data-code={q.code}>
                   {onRemove && (
@@ -107,6 +112,7 @@ function AnswerPages({ title, ordered, number, sheet }: { title: string; ordered
       <header className="sheet-head">
         <h1>
           {title}: {sheet.answers === 'answers' ? 'answers' : 'mark scheme'}
+          {sheet.version && <span className="sheet-version">Version {sheet.version}</span>}
         </h1>
       </header>
       <div className="answer-list">
@@ -138,6 +144,8 @@ function readBlocks(root: Element | null, selector: string): (PageBlock & { ques
 }
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+/** "1 hour 30 minutes" */
+const timeAllowed = (minutes: number) => [Math.floor(minutes / 60) ? plural(Math.floor(minutes / 60), 'hour') : '', minutes % 60 ? plural(minutes % 60, 'minute') : ''].filter(Boolean).join(' ');
 
 /**
  * Printable worksheet: an optional worked example, then the questions in stages,
@@ -148,7 +156,7 @@ export function WorksheetView({ questions, example, title, sheet, onTitle, onShe
   const measureQ = useRef<HTMLDivElement>(null);
   const measureA = useRef<HTMLDivElement>(null);
   const [blocks, setBlocks] = useState<{ q: (PageBlock & { question?: string })[]; a: PageBlock[] }>({ q: [], a: [] });
-  const [undo, setUndo] = useState<{ qs: Question[]; text: string } | null>(null);
+  const [undo, setUndo] = useState<{ qs: Question[]; text: string; version?: string } | null>(null);
   const shownExample = sheet.example ? example : null;
 
   // The order on the page, which also fixes the question numbers.
@@ -172,7 +180,17 @@ export function WorksheetView({ questions, example, title, sheet, onTitle, onShe
     return () => {
       live = false;
     };
-  }, [questions, shownExample, title, sheet.answers, sheet.paper]);
+  }, [questions, shownExample, title, sheet.answers, sheet.paper, sheet.version, sheet.time]);
+
+  // Another version: the same question types and levels with new numbers, under the next letter.
+  const nextLetter = String.fromCharCode((sheet.version || 'A').charCodeAt(0) + 1);
+  const nextVersion = () => {
+    const fresh: Question[] = [];
+    questions.forEach((q, i) => fresh.push(regenerate(q, [...fresh, ...questions.slice(i)])));
+    setUndo({ qs: questions, text: `Now showing version ${nextLetter}.`, version: sheet.version });
+    onQuestions(fresh);
+    onSheet({ ...sheet, version: nextLetter });
+  };
 
   const removeQuestions = (codes: string[], text: string) => {
     setUndo({ qs: questions, text });
@@ -186,6 +204,7 @@ export function WorksheetView({ questions, example, title, sheet, onTitle, onShe
         className="link"
         onClick={() => {
           onQuestions(undo.qs);
+          if (undo.version !== undefined) onSheet({ ...sheet, version: undo.version });
           setUndo(null);
         }}
       >
@@ -293,6 +312,24 @@ export function WorksheetView({ questions, example, title, sheet, onTitle, onShe
             )}
           </p>
         )}
+        <div className="tool-row version-row">
+          {sheet.version === '' ? (
+            <button type="button" onClick={() => onSheet({ ...sheet, version: 'A' })} title="Same questions with different numbers, to stop copying">
+              Make versions A and B
+            </button>
+          ) : (
+            <>
+              <strong>Version {sheet.version}</strong>
+              <button type="button" onClick={nextVersion} disabled={sheet.version >= 'Z'}>
+                Next version ({nextLetter}): same questions, new numbers
+              </button>
+              <button type="button" className="link" onClick={() => onSheet({ ...sheet, version: '' })}>
+                Remove version label
+              </button>
+              <span className="limit-note">Print this version before moving to the next.</span>
+            </>
+          )}
+        </div>
         {undoBar}
         <div className="tool-row">
           <button type="button" className="primary" onClick={() => window.print()}>

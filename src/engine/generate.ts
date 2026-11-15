@@ -131,18 +131,29 @@ export function generateSet(all: Template[], o: SetOptions, setSeed = freshSeed(
   const keys = new Set<string>(avoid);
   // Spread the count over levels as evenly as possible, earlier levels first.
   const perLevel = levels.map((_, i) => Math.floor(o.count / levels.length) + (i < o.count % levels.length ? 1 : 0));
+  // Across the whole set: no question type twice until every type has been used,
+  // and the topics take turns (strands in a mixed set, sub-topics within one strand).
+  const used = new Map<string, number>();
+  const turns = new Map<string, number>();
+  const everything = eligibleTemplates(all, o);
+  const group = new Set(everything.map((t) => t.strand)).size > 1 ? (t: Template) => t.strand : (t: Template) => t.subtopic;
+  const least = <T>(items: T[], score: (x: T) => number) => {
+    const min = Math.min(...items.map(score));
+    return items.filter((x) => score(x) === min);
+  };
   levels.forEach((level, li) => {
     const pool = eligibleTemplates(all, o, level).filter((t) => o.styles.length === 0 || o.styles.includes(t.styleByLevel?.[level] ?? t.style));
     if (pool.length === 0) return;
-    let order = rng.shuffle(pool);
     let made = 0;
     let guard = 0;
     while (made < perLevel[li] && guard++ < perLevel[li] * 20) {
-      if (order.length === 0) order = rng.shuffle(pool);
-      const t = order.shift()!;
+      const fresh = least(pool, (t) => used.get(t.id) ?? 0);
+      const t = rng.pick(least(fresh, (t) => turns.get(group(t)) ?? 0));
+      used.set(t.id, (used.get(t.id) ?? 0) + 1);
       const q = buildQuestion(t, level, o.tier, pickCalc(t, o.calc, rng), freshSeedFrom(rng));
       if (keys.has(q.key)) continue;
       keys.add(q.key);
+      turns.set(group(t), (turns.get(group(t)) ?? 0) + 1);
       out.push(q);
       made++;
     }

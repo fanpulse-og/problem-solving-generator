@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Question } from '../engine/types';
 import { AnswerView, MarkScheme, QuestionView, totalSteps } from '../components/QuestionView';
 import { ReportProblem } from '../components/ReportProblem';
@@ -10,12 +10,78 @@ interface Props {
   onRegenerate: (i: number) => void;
 }
 
-/** One question at a time for the projector. Keys: ← → questions, A answer, Space next step, R reset. */
+const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+
+/** A countdown for the class: pick the minutes, start, pause, reset. */
+function Timer() {
+  const [minutes, setMinutes] = useState(3);
+  const [left, setLeft] = useState(180);
+  const [running, setRunning] = useState(false);
+  useEffect(() => {
+    if (!running) return;
+    // Count from the clock, so a sleeping tab does not lose time.
+    const end = Date.now() + left * 1000;
+    const tick = setInterval(() => {
+      const now = Math.max(0, Math.round((end - Date.now()) / 1000));
+      setLeft(now);
+      if (now === 0) setRunning(false);
+    }, 250);
+    return () => clearInterval(tick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running]);
+  const reset = (m = minutes) => {
+    setRunning(false);
+    setLeft(m * 60);
+  };
+  return (
+    <div className={`timer${left === 0 ? ' up' : ''}`}>
+      <select
+        aria-label="Timer length"
+        value={minutes}
+        onChange={(e) => {
+          setMinutes(Number(e.target.value));
+          reset(Number(e.target.value));
+        }}
+      >
+        {[1, 2, 3, 4, 5, 8, 10, 15].map((m) => (
+          <option key={m} value={m}>
+            {m} min
+          </option>
+        ))}
+      </select>
+      <span className="timer-clock" role="timer" aria-live="off">
+        {left === 0 ? 'Time’s up' : clock(left)}
+      </span>
+      <button type="button" onClick={() => (left === 0 ? reset() : setRunning((r) => !r))}>
+        {left === 0 ? 'Reset' : running ? 'Pause' : left < minutes * 60 ? 'Resume' : 'Start timer'}
+      </button>
+      {left > 0 && left < minutes * 60 && !running && (
+        <button type="button" onClick={() => reset()}>
+          Reset
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** One question at a time for the projector. Keys: ← → questions, A answer, Space next step, R reset, F full screen. */
 export function BoardView({ questions, index, onIndex, onRegenerate }: Props) {
   const q = questions[index];
   const [showAnswer, setShowAnswer] = useState(false);
   const [steps, setSteps] = useState(0);
   const total = q ? totalSteps(q) : 0;
+  const board = useRef<HTMLDivElement>(null);
+  const [full, setFull] = useState(false);
+  const canFull = typeof document !== 'undefined' && document.fullscreenEnabled;
+  const toggleFull = () => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void board.current?.requestFullscreen();
+  };
+  useEffect(() => {
+    const onChange = () => setFull(document.fullscreenElement !== null);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
 
   useEffect(() => {
     setShowAnswer(false);
@@ -35,11 +101,13 @@ export function BoardView({ questions, index, onIndex, onRegenerate }: Props) {
       } else if (e.key === 'r' || e.key === 'R') {
         setSteps(0);
         setShowAnswer(false);
-      } else return;
+      } else if ((e.key === 'f' || e.key === 'F') && canFull) toggleFull();
+      else return;
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [index, questions.length, total, onIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, questions.length, total, onIndex, canFull]);
 
   if (!q) {
     return (
@@ -51,7 +119,15 @@ export function BoardView({ questions, index, onIndex, onRegenerate }: Props) {
   }
 
   return (
-    <div className="board">
+    <div className="board" ref={board}>
+      <div className="board-tools">
+        <Timer />
+        {canFull && (
+          <button type="button" onClick={toggleFull} aria-pressed={full}>
+            {full ? 'Exit full screen' : 'Full screen'}
+          </button>
+        )}
+      </div>
       <div className="board-bar">
         <button type="button" onClick={() => onIndex(index - 1)} disabled={index === 0} aria-label="Previous question">
           ← Previous
@@ -106,7 +182,7 @@ export function BoardView({ questions, index, onIndex, onRegenerate }: Props) {
           </div>
         )}
       </div>
-      <p className="keys">Keys: ← → change question · A answer · Space next step · R reset</p>
+      <p className="keys">Keys: ← → change question · A answer · Space next step · R reset{canFull ? ' · F full screen' : ''}</p>
     </div>
   );
 }

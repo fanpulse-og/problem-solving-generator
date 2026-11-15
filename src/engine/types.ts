@@ -68,6 +68,8 @@ export interface TableSpec {
   rows: string[][];
   /** Render the first column as a heading column. */
   rowHeaders?: boolean;
+  /** Left-align the cells, as in a stem and leaf diagram, where the length of a row matters. */
+  leftAlign?: boolean;
 }
 
 export type DiagramSpec =

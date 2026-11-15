@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { SetOptions } from '../engine/generate';
 import { LEVELS, STYLES, type Question } from '../engine/types';
 import { Controls } from '../components/Controls';
@@ -49,6 +49,17 @@ export function BuilderView({ options, questions, locked, edit, saved, onOptions
     return () => document.removeEventListener('click', close);
   }, []);
 
+  // Phones: the options fold away once there are questions, and Generate jumps to them.
+  const [optionsOpen, setOptionsOpen] = useState(questions.length === 0);
+  const results = useRef<HTMLElement>(null);
+  const generate = () => {
+    onGenerate();
+    if (window.matchMedia('(max-width: 860px)').matches) {
+      setOptionsOpen(false);
+      requestAnimationFrame(() => results.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  };
+
   const copy = async (q: Question) => {
     const url = shareLink('board', [q.code], options);
     try {
@@ -62,11 +73,14 @@ export function BuilderView({ options, questions, locked, edit, saved, onOptions
 
   return (
     <div className="builder">
-      <aside className="sidebar">
-        <Controls options={options} onChange={onOptions} onGenerate={onGenerate} lockedCount={nLocked} />
+      <button type="button" className="options-toggle" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((o) => !o)}>
+        {optionsOpen ? 'Hide options' : 'Change options'} <span aria-hidden="true">{optionsOpen ? '▴' : '▾'}</span>
+      </button>
+      <aside className={optionsOpen ? 'sidebar' : 'sidebar folded'}>
+        <Controls options={options} onChange={onOptions} onGenerate={generate} lockedCount={nLocked} />
         <SavedSets saved={saved} canSave={questions.length > 0} />
       </aside>
-      <section className="results" aria-label="Generated questions">
+      <section className="results" aria-label="Generated questions" ref={results}>
         {questions.length === 0 ? (
           <div className="empty">
             <h2>Choose your options, then generate</h2>

@@ -1,23 +1,36 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { addOne, buildSet, regenerate, type SetOptions } from './engine/generate';
 import { TEMPLATES } from './engine/registry';
 import type { Question } from './engine/types';
-import { BuilderView } from './views/BuilderView';
-import { BoardView } from './views/BoardView';
-import { WorksheetView } from './views/WorksheetView';
 import { HomeView } from './views/HomeView';
-import { BankView } from './views/BankView';
+import { buildMock, MOCKS } from './engine/mock';
 import { TuitionButton } from './components/Tuition';
 import type { Clear } from './components/ClearSet';
 import { withTier } from './components/Controls';
 import type { Strand, Tier } from './engine/types';
-import { DEFAULT_SHEET, questionFromCode, readHash, writeHash, type SheetOptions, type View } from './state';
+import { DEFAULT_SHEET, DEFAULT_TITLE, questionFromCode, readHash, titleFor, writeHash, type SheetOptions, type View } from './state';
 import { defaultExample, exampleFor } from './engine/example';
 import { loadSaved, storeSaved, type SavedSet } from './saved';
 import { freshSeed } from './engine/rng';
 
 /** Settings for a card on the home page: its tier, and for A-level just its strand. */
-const forCard = (o: SetOptions, tier: Tier, strand?: Strand): SetOptions => (strand ? { ...withTier(o, tier), strands: [strand], subtopics: [] } : withTier(o, tier));
+const forCard = (o: SetOptions, tier: Tier, strand?: Strand, subtopic?: string): SetOptions =>
+  strand ? { ...withTier(o, tier), strands: [strand], subtopics: subtopic ? [subtopic] : [] } : withTier(o, tier);
+
+// Only the home page is needed to start with; the other views (and KaTeX with them) load when opened.
+const BuilderView = lazy(() => import('./views/BuilderView').then((m) => ({ default: m.BuilderView })));
+const BoardView = lazy(() => import('./views/BoardView').then((m) => ({ default: m.BoardView })));
+const WorksheetView = lazy(() => import('./views/WorksheetView').then((m) => ({ default: m.WorksheetView })));
+const BankView = lazy(() => import('./views/BankView').then((m) => ({ default: m.BankView })));
+const PracticeView = lazy(() => import('./views/PracticeView').then((m) => ({ default: m.PracticeView })));
+
+/** The mark: a square-root sign drawn as a tick. */
+const Logo = () => (
+  <svg className="logo" viewBox="0 0 32 32" aria-hidden="true">
+    <rect width="32" height="32" rx="7" fill="#2563eb" />
+    <path d="M5.5 17.5h4l4.2 7.5L20.5 8H27" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 const fromCodes = (codes: string[]) => codes.map(questionFromCode).filter((q): q is Question => q !== null);
 
@@ -28,7 +41,7 @@ export default function App() {
   const [questions, setQuestions] = useState<Question[]>(() => initial.codes.map(questionFromCode).filter((q): q is Question => q !== null));
   const [index, setIndex] = useState(Math.min(initial.index, Math.max(0, initial.codes.length - 1)));
   const [example, setExample] = useState<Question | null>(() => (initial.example ? questionFromCode(initial.example) : null));
-  const [title, setTitle] = useState(initial.title ?? 'Problem solving');
+  const [title, setTitle] = useState(initial.title ?? DEFAULT_TITLE);
   const [sheet, setSheet] = useState<SheetOptions>(initial.sheet ?? DEFAULT_SHEET);
   // Locked questions are kept when the set is generated again; stored by code.
   const [locked, setLocked] = useState<Set<string>>(() => new Set((initial.locked ?? []).map((i) => initial.codes[i]).filter(Boolean)));
@@ -38,7 +51,7 @@ export default function App() {
   // Keep the URL in step with the state, so the page can be bookmarked or shared.
   useEffect(() => {
     const lockedAt = questions.flatMap((q, i) => (locked.has(q.code) ? [i] : []));
-    const hash = writeHash({ view, codes: questions.map((q) => q.code), index, options, example: example?.code, title: title === 'Problem solving' ? undefined : title, sheet, locked: lockedAt });
+    const hash = writeHash({ view, codes: questions.map((q) => q.code), index, options, example: example?.code, title: title === DEFAULT_TITLE ? undefined : title, sheet, locked: lockedAt });
     // An empty hash means nothing to remember: keep the plain address.
     if (hash !== location.hash) history.replaceState(null, '', hash || location.pathname + location.search);
   }, [view, questions, index, options, example, title, sheet, locked]);
@@ -50,7 +63,7 @@ export default function App() {
       setView(s.view);
       setOptions(s.options);
       setIndex(s.index);
-      setTitle(s.title ?? 'Problem solving');
+      setTitle(s.title ?? DEFAULT_TITLE);
       setExample(s.example ? questionFromCode(s.example) : null);
       setSheet(s.sheet ?? DEFAULT_SHEET);
       setLocked(new Set((s.locked ?? []).map((i) => s.codes[i]).filter(Boolean)));
@@ -60,12 +73,19 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, [questions]);
 
+  // The title follows the chosen topics until someone types their own.
+  const autoTitle = useRef(DEFAULT_TITLE);
   const generateWith = useCallback(
     (o: SetOptions, keep: Question[]) => {
       const set = buildSet(TEMPLATES, o, freshSeed(), keep);
       setQuestions(set);
       setIndex(0);
       setExample(defaultExample(set, TEMPLATES));
+      const was = autoTitle.current;
+      autoTitle.current = titleFor(o);
+      setTitle((t) => (t === DEFAULT_TITLE || t === was ? autoTitle.current : t));
+      // A new set is not a version of the last one, nor a timed paper.
+      setSheet((sh) => ({ ...sh, version: '', time: 0 }));
     },
     [],
   );
@@ -170,7 +190,7 @@ export default function App() {
           codes: questions.map((q) => q.code),
           locked: questions.filter((q) => locked.has(q.code)).map((q) => q.code),
           example: example?.code,
-          title: title === 'Problem solving' ? undefined : title,
+          title: title === DEFAULT_TITLE ? undefined : title,
           sheet,
         },
         ...saved,
@@ -180,7 +200,7 @@ export default function App() {
       setQuestions(fromCodes(s.codes));
       setLocked(new Set(s.locked ?? []));
       setExample(s.example ? questionFromCode(s.example) : null);
-      setTitle(s.title ?? 'Problem solving');
+      setTitle(s.title ?? DEFAULT_TITLE);
       // Sets saved before the example was optional always had one.
       setSheet({ ...DEFAULT_SHEET, ...s.sheet, example: s.sheet?.example ?? !!s.example });
       setIndex(0);
@@ -188,7 +208,7 @@ export default function App() {
     regenerate: (s: SavedSet) => {
       setOptions(s.options);
       setLocked(new Set());
-      setTitle(s.title ?? 'Problem solving');
+      setTitle(s.title ?? DEFAULT_TITLE);
       setSheet({ ...DEFAULT_SHEET, ...s.sheet });
       generateWith(s.options, []);
     },
@@ -201,6 +221,7 @@ export default function App() {
     ['bank', 'Question bank', 'Bank'],
     ['board', 'Board'],
     ['worksheet', 'Worksheet'],
+    ['practice', 'Practice'],
   ];
 
   return (
@@ -218,9 +239,7 @@ export default function App() {
             window.scrollTo(0, 0);
           }}
         >
-          <span className="logo" aria-hidden="true">
-            MPS
-          </span>
+          <Logo />
           <span>Maths Problem Solving</span>
         </a>
         <div className="topbar-right">
@@ -252,16 +271,39 @@ export default function App() {
               setView('build');
               window.scrollTo(0, 0);
             }}
-            onWorksheet={(tier: Tier, strand?: Strand) => {
-              const o = forCard(options, tier, strand);
+            onWorksheet={(tier: Tier, strand?: Strand, subtopic?: string) => {
+              const o = forCard(options, tier, strand, subtopic);
               setOptions(o);
               setLocked(new Set());
               generateWith(o, []);
               setView('worksheet');
               window.scrollTo(0, 0);
             }}
+            onPractice={(tier: Tier, strand?: Strand) => {
+              const o = forCard(options, tier, strand);
+              setOptions(o);
+              setLocked(new Set());
+              generateWith(o, []);
+              setView('practice');
+              window.scrollTo(0, 0);
+            }}
+            onMock={(id: string) => {
+              const spec = MOCKS.find((m) => m.id === id);
+              if (!spec) return;
+              setOptions((o) => withTier(o, spec.tier));
+              setLocked(new Set());
+              setQuestions(buildMock(TEMPLATES, spec));
+              setIndex(0);
+              setExample(null);
+              autoTitle.current = spec.label;
+              setTitle(spec.label);
+              setSheet({ ...DEFAULT_SHEET, time: spec.minutes });
+              setView('worksheet');
+              window.scrollTo(0, 0);
+            }}
           />
         )}
+        <Suspense fallback={<p className="loading">Loading…</p>}>
         {view === 'build' && (
           <BuilderView
             options={options}
@@ -304,6 +346,26 @@ export default function App() {
             onNewExample={() => setExample(example ? exampleFor(example.template, questions) : defaultExample(questions, TEMPLATES))}
           />
         )}
+        {view === 'practice' && (
+          <PracticeView
+            questions={questions}
+            tier={options.tier}
+            onStart={(tier) => {
+              const o = withTier(options, tier);
+              setOptions(o);
+              setLocked(new Set());
+              generateWith(o, []);
+            }}
+            onAgain={() => {
+              const fresh: Question[] = [];
+              questions.forEach((q, i) => fresh.push(regenerate(q, [...fresh, ...questions.slice(i)])));
+              setLocked(new Set());
+              setQuestions(fresh);
+              setIndex(0);
+            }}
+          />
+        )}
+        </Suspense>
       </main>
     </div>
   );

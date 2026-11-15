@@ -1,32 +1,40 @@
 # Question quality report
 
-Generated 2026-11-02 by `scripts/quality-report.ts` with about 2000 seeds per template (300858 questions).
+Generated 2026-11-14 by `scripts/quality-report.ts` with about 2000 seeds per template (326895 questions).
 
 - **(a) Untidy answer:** a number with more decimal places than the question asks for, a “…”, or a fraction with a denominator over 1000.
 - **(b) Non-calc too heavy:** non-calculator questions only. The mark-scheme working multiplies or divides numbers whose significant digits multiply to more than 6 (3-digit × 2-digit is the most allowed; a 1-digit divisor is always fine), or uses a number with more than 6 significant digits.
 - **(c) Marks wrong:** the mark-scheme steps do not match the marks shown, or an answer is missing.
 - **(d) Throws:** the generator could not make a question.
 
-**0 of 150 templates flagged.**
+**0 of 163 templates flagged.**
 
 | Template | Seeds | (a) Untidy answer | (b) Non-calc too heavy | (c) Marks wrong | (d) Throws | First example |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| alg-algebraic-fractions | 2001 | 0 | 0 | 0 | 0 | OK |
 | alg-algebraic-proof | 2004 | 0 | 0 | 0 | 0 | OK |
 | alg-circles-lines | 2001 | 0 | 0 | 0 | 0 | OK |
 | alg-completing-square | 2001 | 0 | 0 | 0 | 0 | OK |
 | alg-equal-cost | 2016 | 0 | 0 | 0 | 0 | OK |
 | alg-formulae | 2016 | 0 | 0 | 0 | 0 | OK |
 | alg-functions | 2001 | 0 | 0 | 0 | 0 | OK |
+| alg-geometric-sequences | 2004 | 0 | 0 | 0 | 0 | OK |
+| alg-graph-transformations | 2001 | 0 | 0 | 0 | 0 | OK |
 | alg-inequalities | 2004 | 0 | 0 | 0 | 0 | OK |
 | alg-iteration | 2001 | 0 | – | 0 | 0 | OK |
+| alg-nonlinear-simultaneous | 2001 | 0 | 0 | 0 | 0 | OK |
 | alg-quadratic-area | 2004 | 0 | 0 | 0 | 0 | OK |
+| alg-quadratic-inequalities | 2001 | 0 | 0 | 0 | 0 | OK |
 | alg-quadratic-sequences | 2001 | 0 | 0 | 0 | 0 | OK |
+| alg-rearranging | 2001 | 0 | 0 | 0 | 0 | OK |
 | alg-rule-reverse | 2016 | 0 | 0 | 0 | 0 | OK |
 | alg-sequence-explain | 2016 | 0 | 0 | 0 | 0 | OK |
 | alg-shape-expressions | 2007 | 0 | 0 | 0 | 0 | OK |
 | alg-simultaneous-context | 2004 | 0 | 0 | 0 | 0 | OK |
 | alg-straight-line | 2007 | 0 | 0 | 0 | 0 | OK |
 | alg-travel-graph | 2007 | 0 | 0 | 0 | 0 | OK |
+| alg-triple-brackets | 2001 | 0 | 0 | 0 | 0 | OK |
+| alg-velocity-time | 2001 | 0 | 0 | 0 | 0 | OK |
 | geom-bearings | 2004 | 0 | – | 0 | 0 | OK |
 | geom-circle-theorems | 2004 | 0 | 0 | 0 | 0 | OK |
 | geom-isosceles-area | 2016 | 0 | 0 | 0 | 0 | OK |
@@ -42,6 +50,8 @@ Generated 2026-11-02 by `scripts/quality-report.ts` with about 2000 seeds per te
 | geom-semicircle-shapes | 2007 | 0 | – | 0 | 0 | OK |
 | geom-similarity | 2007 | 0 | – | 0 | 0 | OK |
 | geom-sine-cosine-rule | 2001 | 0 | – | 0 | 0 | OK |
+| geom-sine-rule | 2001 | 0 | – | 0 | 0 | OK |
+| geom-surface-area | 2007 | 0 | – | 0 | 0 | OK |
 | geom-transformations | 2007 | 0 | 0 | 0 | 0 | OK |
 | geom-unit-conversion | 2016 | 0 | 0 | 0 | 0 | OK |
 | geom-vectors | 2001 | 0 | 0 | 0 | 0 | OK |
@@ -51,6 +61,7 @@ Generated 2026-11-02 by `scripts/quality-report.ts` with about 2000 seeds per te
 | num-compare-cartons | 2016 | 0 | 0 | 0 | 0 | OK |
 | num-counting | 2016 | 0 | 0 | 0 | 0 | OK |
 | num-error-intervals | 2007 | 0 | 0 | 0 | 0 | OK |
+| num-estimation | 2007 | 0 | 0 | 0 | 0 | OK |
 | num-fraction-left | 2016 | 0 | 0 | 0 | 0 | OK |
 | num-hcf-problems | 2007 | 0 | 0 | 0 | 0 | OK |
 | num-index-equations | 2001 | 0 | 0 | 0 | 0 | OK |
@@ -71,6 +82,7 @@ Generated 2026-11-02 by `scripts/quality-report.ts` with about 2000 seeds per te
 | prob-tree-diagram | 2004 | 0 | 0 | 0 | 0 | OK |
 | prob-two-way-table | 2016 | 0 | 0 | 0 | 0 | OK |
 | prob-venn-diagram | 2007 | 0 | 0 | 0 | 0 | OK |
+| prob-without-replacement | 2004 | 0 | 0 | 0 | 0 | OK |
 | ratio-best-buy | 2016 | 0 | 0 | 0 | 0 | OK |
 | ratio-density | 2007 | 0 | – | 0 | 0 | OK |
 | ratio-difference | 2016 | 0 | 0 | 0 | 0 | OK |
@@ -96,6 +108,7 @@ Generated 2026-11-02 by `scripts/quality-report.ts` with about 2000 seeds per te
 | stats-median-range | 2016 | 0 | 0 | 0 | 0 | OK |
 | stats-pie-chart | 2007 | 0 | 0 | 0 | 0 | OK |
 | stats-scatter-graph | 2007 | 0 | 0 | 0 | 0 | OK |
+| stats-stem-leaf | 2007 | 0 | 0 | 0 | 0 | OK |
 | y12-binomial | 2001 | 0 | – | 0 | 0 | OK |
 | y12-binomial-distribution | 2001 | 0 | – | 0 | 0 | OK |
 | y12-circle | 2001 | 0 | – | 0 | 0 | OK |

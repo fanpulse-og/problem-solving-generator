@@ -3293,7 +3293,274 @@ def y13_equilibrium(v, ans, level):
     return near(signed_nums(ans[1])[0], lo, lo * 0.006), f"{lo}"
 
 
+def signed_vals(text):
+    """Integers and \frac{a}{b} in an answer, keeping minus signs."""
+    out = []
+    for m in re.finditer(r"(-?)\\frac\{(\d+)\}\{(\d+)\}|(-?\d+(?:\.\d+)?)", text.replace("−", "-")):
+        out.append(F(int(m.group(2)), int(m.group(3))) * (-1 if m.group(1) else 1) if m.group(2) else F(m.group(4)))
+    return out
+
+
+def lin_pair(text):
+    """(p, q, r, s) from \\dfrac{px + q}{rx + s} in an answer."""
+    m = re.search(r"frac\{(\d*)x ([+-]) (\d+)\}\{(\d*)x ([+-]) (\d+)\}", text)
+    sg = lambda t: -1 if t == "-" else 1
+    return int(m.group(1) or 1), sg(m.group(2)) * int(m.group(3)), int(m.group(4) or 1), sg(m.group(5)) * int(m.group(6))
+
+
+def alg_algebraic_fractions(v, ans, level):
+    if level == "foundational":
+        p, q_, r, s_ = lin_pair(ans[0])
+        # Cross-multiplied identity, at more points than its degree.
+        ok = all((x + v["a"]) * (x + v["b"]) * (r * x + s_) == (x + v["a"]) * (x + v["c"]) * (p * x + q_) for x in range(20, 26))
+        return ok and (p, r) == (1, 1), "not equivalent"
+    if level == "core":
+        want = set()
+        for n in range(-60, 61):
+            if n + v["a"] != 0 and n + v["b"] != 0 and F(v["p"], n + v["a"]) + F(v["q"], n + v["b"]) == 1:
+                want.add(F(n))
+        return set(signed_vals(ans[0])) == want and len(want) == 2, f"expected {sorted(want)}"
+    p, q_, r, s_ = lin_pair(ans[0])
+    m, n, c, j, k = v["m"], v["n"], v["c"], v["j"], v["k"]
+    ok = all(F(m * m * x * x - n * n, k * (m * x + n)) * F(j * x, x * x - c * x) == F(p * x + q_, r * x + s_) for x in range(20, 27))
+    return ok and math.gcd(math.gcd(p, abs(q_)), math.gcd(r, abs(s_))) == 1, "not equivalent or not simplified"
+
+
+def alg_quadratic_inequalities(v, ans, level):
+    ops = {"<": lambda a, b: a < b, "<=": lambda a, b: a <= b, ">": lambda a, b: a > b, ">=": lambda a, b: a >= b}
+    tex = {"<": "<", "\\leqslant": "<=", ">": ">", "\\geqslant": ">="}
+
+    def original(x):
+        if level == "core":
+            return ops[v["op"]](x * x + v["l"] * x, v["r"] * x - v["c"])
+        ok = ops[v["op"]](v["a"] * x * x + v["b"] * x + v["c"], 0)
+        return ok and ops[v["op2"]](v["p"] * x + v["s"], v["t"]) if level == "stretch" else ok
+
+    # Read the printed solution back as a predicate on x.
+    val = r"(-?(?:\\frac\{\d+\}\{\d+\}|\d+))"
+    op = r"(<|>|\\leqslant|\\geqslant)"
+    num = lambda t: signed_vals(t)[0]
+    parts = []
+    for piece in ans[0].split(" or "):
+        t = piece.strip("$ ")
+        m2 = re.fullmatch(val + " " + op + " x " + op + " " + val, t)
+        m1 = re.fullmatch("x " + op + " " + val, t)
+        if m2:
+            parts.append(lambda x, m2=m2: ops[tex[m2.group(2)]](num(m2.group(1)), x) and ops[tex[m2.group(3)]](x, num(m2.group(4))))
+        elif m1:
+            parts.append(lambda x, m1=m1: ops[tex[m1.group(1)]](x, num(m1.group(2))))
+        else:
+            return False, f"cannot read {t}"
+    for i in range(-240, 241):
+        x = F(i, 12)
+        if original(x) != any(f(x) for f in parts):
+            return False, f"disagrees at x = {x}"
+    return True, ""
+
+
+def lead(text):
+    """First number in an answer, ignoring digit-group spaces and currency signs."""
+    t = re.sub(r"(?<=\d)[\s   ](?=\d{3})", "", text.replace("−", "-"))
+    return F(re.search(r"-?\d+(?:\.\d+)?", t).group(0))
+
+
+def parse_poly(text, var="x"):
+    """{power: coefficient} for a polynomial such as 2x^3 - 7x^2 + 3."""
+    out = {}
+    for term in re.findall(r"[+-]?[^+-]+", text.replace(" ", "").replace("$", "")):
+        m = re.fullmatch(r"([+-]?)(\d*)(?:" + var + r"(?:\^(\d+))?)?", term)
+        power = (int(m.group(3)) if m.group(3) else 1) if var in term else 0
+        k = int(m.group(2)) if m.group(2) else 1
+        out[power] = out.get(power, 0) + (-k if m.group(1) == "-" else k)
+    return out
+
+
+def rational_roots(a, b, c):
+    """Both roots of ax² + bx + c = 0 when the discriminant is a perfect square."""
+    d = b * b - 4 * a * c
+    s = math.isqrt(d)
+    assert s * s == d, "irrational roots"
+    return sorted([F(-b - s, 2 * a), F(-b + s, 2 * a)])
+
+
+def alg_nonlinear_simultaneous(v, ans, level):
+    m, k = v["m"], v["k"]
+    if level == "core":
+        xs = rational_roots(1 + m * m, 2 * m * k, k * k - v["n"])
+    else:
+        xs = rational_roots(1, v["b"] - m, v["c"] - k)
+    want = [(x, m * x + k) for x in xs]
+    if level == "stretch":
+        # AB² from the two points, compared with the surd in the answer squared.
+        ab2 = (want[1][0] - want[0][0]) ** 2 + (want[1][1] - want[0][1]) ** 2
+        t = re.fullmatch(r"\$(\d*)(?:\\sqrt\{(\d+)\})?\$", ans[0])
+        return F(int(t.group(1) or 1)) ** 2 * int(t.group(2) or 1) == ab2, f"expected AB² = {ab2}"
+    got = signed_vals(ans[0])
+    return sorted([(got[0], got[1]), (got[2], got[3])]) == want, f"expected {want}"
+
+
+def alg_rearranging(v, ans, level):
+    if level == "foundational":
+        p = parse_poly(ans[0].split("=")[1], "y")
+        return all(F(p[2] * y * y + p.get(0, 0) + v["a"], v["b"]) == y * y for y in range(1, 6)), "does not undo the square root"
+    m = re.search(r"dfrac\{([^}]*)\}\{([^}]*)\}", ans[0])
+    top, bot = parse_poly(m.group(1), "y"), parse_poly(m.group(2), "y")
+    for xn in (2, 5, -3, 9):
+        x = F(xn, 11)
+        y = (v["a"] * x + v["b"]) / (v["c"] * x + v["d"])
+        if (top.get(1, 0) * y + top.get(0, 0)) / (bot.get(1, 0) * y + bot.get(0, 0)) != x:
+            return False, "rearranged formula is not equivalent"
+    if level == "stretch":
+        x = signed_vals(ans[1])[0]
+        return (v["a"] * x + v["b"]) / (v["c"] * x + v["d"]) == v["y0"], "part (b)"
+    return True, ""
+
+
+def alg_triple_brackets(v, ans, level):
+    # Multiply the three brackets out as lists of coefficients.
+    prod = [1]
+    for lin in ([v["p"], v["a"]], [1, v["b"]], [1, v["c"]]):
+        new = [0] * (len(prod) + 1)
+        for i, x in enumerate(prod):
+            for j, y in enumerate(lin):
+                new[i + j] += x * y
+        prod = new
+    if level != "stretch":
+        got = parse_poly(ans[0])
+        return [got.get(3 - i, 0) for i in range(4)] == prod, f"expected {prod}"
+    a, k, m = [int(re.search(n + r" = (-?\d+)", ans[0]).group(1)) for n in ("a", "k", "m")]
+    return (k, a * a, m) == (prod[1], -prod[2], prod[3]) and a > 0, f"expected from {prod}"
+
+
+def alg_geometric_sequences(v, ans, level):
+    val = lambda t: nums(t)[0] if "frac" in t else lead(t)
+    if level == "core":
+        seq = [v["a"], v["b"]]
+        while len(seq) < 6:
+            seq.append(seq[-1] + seq[-2])
+        bb = F(seq[5] - 3 * seq[2], 2)
+        aa = seq[2] - bb
+        return ans[1] == f"$a = {aa}$, $b = {bb}$", f"expected a = {aa}, b = {bb}"
+    r = F(v["rn"], v["rd"])
+    second, fourth = v["a"] * r, v["a"] * r**3
+    if level == "foundational":
+        word, k = re.fullmatch(r"(Multiply|Divide) by (.+)", ans[0]).groups()
+        factor = val(k) if word == "Multiply" else 1 / val(k)
+        return factor == second / v["a"] and val(ans[1]) == v["a"] * r**5, "rule or 6th term"
+    r2 = fourth / second
+    root = F(math.isqrt(r2.numerator), math.isqrt(r2.denominator))
+    first, fifth = re.fullmatch(r"1st term (.+), 5th term (.+)", ans[0]).groups()
+    return root * root == r2 and val(first) == second / root and val(fifth) == fourth * root, f"expected {second / root}, {fourth * root}"
+
+
+def prob_without_replacement(v, ans, level):
+    a, b, c = v["counts"]
+    n = a + b + c
+    pairs = math.comb(n, 2)
+    same = F(math.comb(a, 2) + math.comb(b, 2) + math.comb(c, 2), pairs)
+    if level == "foundational":
+        return nums(ans[0])[0] == F(math.comb(a, 2), pairs) and nums(ans[1])[0] == 1 - same, "probabilities"
+    if level == "core":
+        return nums(ans[0])[0] == same, f"expected {same}"
+    p = F(math.comb(a, 2), pairs)
+    fits = [k for k in range(a, 500) if F(a * (a - 1), k * (k - 1)) == p]
+    return fits == [int(lead(ans[0].replace("n", "")))], f"expected {fits}"
+
+
+def geom_sine_rule(v, ans, level):
+    s = lambda deg: math.sin(math.radians(deg))
+    got = float(lead(ans[0]))
+    if level == "foundational":
+        w = v["a"] * s(v["B"]) / s(v["A"])
+        return abs(got - w) <= w * 0.006, f"{w}"
+    if level == "core":
+        w = math.degrees(math.asin(v["b"] * s(v["A"]) / v["a"]))
+        return abs(got - w) <= 0.051, f"{w}"
+    w = v["c"] ** 2 * s(v["A"]) * s(v["B"]) / (2 * s(v["A"] + v["B"]))
+    return abs(got - w) <= w * 0.006, f"{w}"
+
+
+def alg_velocity_time(v, ans, level):
+    t1, t2, t3, top = v["t1"], v["t2"], v["t3"], v["V"]
+    dist = F(top * t1, 2) + top * t2 + F(top * t3, 2)
+    total = t1 + t2 + t3
+    if level == "foundational":
+        return lead(ans[0]) == F(top, t1) and lead(ans[1]) == dist, f"expected {F(top, t1)}, {dist}"
+    if level == "core":
+        return lead(ans[0].replace("V", "")) == top and lead(ans[1]) == F(top, t3), "V or deceleration"
+    return lead(ans[0].replace("T", "")) == total and lead(ans[1]) == dist / total, f"expected {total}, {dist / total}"
+
+
+def alg_graph_transformations(v, ans, level):
+    a, b, h, k = v["a"], v["b"], v["h"], v["k"]
+    pt = lambda t: tuple(int(x) for x in re.search(r"\((-?\d+), (-?\d+)\)", t).groups())
+    if level == "foundational":
+        want = [(a, b + k), (a + h, b), (a, -b)]
+    elif level == "core":
+        want = [(-a, b), (a + h, b + k), (a + h, -b)]
+    else:
+        # Move the turning point by the vector, then write the curve from its new turning point.
+        vx, vy = F(-v["p"], 2) + h, v["q"] - F(v["p"] ** 2, 4) + k
+        got = parse_poly(ans[0].split("=")[1])
+        return (got.get(2), got.get(1, 0), got.get(0, 0)) == (1, -2 * vx, vy + vx * vx), "translated curve"
+    return [pt(t) for t in ans] == want, f"expected {want}"
+
+
+def num_estimation(v, ans, level):
+    one = lambda h: round_sf(F(h, 100), 1)
+    ra, rb = one(v["a"]), one(v["b"])
+    if level == "foundational":
+        return lead(ans[0]) == ra * rb / one(v["c"]), f"expected {ra * rb / one(v['c'])}"
+    if level == "core":
+        ups = [ra > F(v["a"], 100), rb > F(v["b"], 100)]
+        word = "Overestimate" if ups[0] else "Underestimate"
+        return ups[0] == ups[1] and lead(ans[0].replace("£", "")) == ra * rb and ans[1].startswith(word), f"expected {ra * rb}, {word}"
+    est = ra * rb * one(v["c"])
+    real = F(v["a"] * v["b"] * v["c"], 10**6)
+    yes = ans[0].startswith("Yes")
+    return yes == (est < v["budget"]) == (real < v["budget"]) and lead(ans[0].split("£")[1]) == est, f"expected estimate {est}"
+
+
+def geom_surface_area(v, ans, level):
+    got = lead(ans[0])
+    if level == "foundational":
+        return got == 2 * (v["l"] * v["w"] + v["l"] * v["h"] + v["w"] * v["h"]), "cuboid"
+    r, h = v["r"] / 10, v["h"] / 10
+    if level == "core":
+        w = 2 * math.pi * r * r + 2 * math.pi * r * h
+        return abs(float(got) - w) <= w * 0.006, f"{w}"
+    w = math.ceil((math.pi * r * r + 2 * math.pi * r * h) / v["cover"] / v["tin"])
+    return got == w, f"expected {w} tins"
+
+
+def stats_stem_leaf(v, ans, level):
+    xs = sorted(v["values"])
+    n = len(xs)
+    med = F(xs[(n - 1) // 2] + xs[n // 2], 2)
+    if level == "stretch":
+        w = xs[0] - v["rise"] if v["low"] else xs[-1] + v["rise"]
+        return lead(ans[0]) == w, f"expected {w}"
+    if lead(ans[0]) != med:
+        return False, f"median {med}"
+    if level == "foundational":
+        return lead(ans[1]) == xs[-1] - xs[0], "range"
+    return lead(ans[1]) == F(100 * sum(1 for x in xs if x > v["cut"]), n), "percentage"
+
+
 CHECKS = {
+    "alg-algebraic-fractions": alg_algebraic_fractions,
+    "alg-quadratic-inequalities": alg_quadratic_inequalities,
+    "alg-nonlinear-simultaneous": alg_nonlinear_simultaneous,
+    "alg-rearranging": alg_rearranging,
+    "alg-triple-brackets": alg_triple_brackets,
+    "alg-geometric-sequences": alg_geometric_sequences,
+    "prob-without-replacement": prob_without_replacement,
+    "geom-sine-rule": geom_sine_rule,
+    "alg-velocity-time": alg_velocity_time,
+    "alg-graph-transformations": alg_graph_transformations,
+    "num-estimation": num_estimation,
+    "geom-surface-area": geom_surface_area,
+    "stats-stem-leaf": stats_stem_leaf,
     "num-ticket-price": num_ticket_price,
     "num-fraction-left": num_fraction_left,
     "num-compare-cartons": num_compare_cartons,

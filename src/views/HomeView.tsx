@@ -2,12 +2,17 @@ import type React from 'react';
 import { TEMPLATES, subtopicsByStrand } from '../engine/registry';
 import type { Strand, Tier } from '../engine/types';
 import { tuitionHref } from '../components/Tuition';
+import { MOCKS } from '../engine/mock';
 
 interface Props {
   /** Open the builder at this tier, optionally narrowed to one strand. */
   onBuild: (tier: Tier, strand?: Strand) => void;
-  /** Generate a default set at this tier and open it as a printable worksheet. */
-  onWorksheet: (tier: Tier, strand?: Strand) => void;
+  /** Generate a default set at this tier and open it as a printable worksheet, optionally on one topic of a strand. */
+  onWorksheet: (tier: Tier, strand?: Strand, subtopic?: string) => void;
+  /** Generate a default set and open it in practice mode, where answers are checked. */
+  onPractice: (tier: Tier, strand?: Strand) => void;
+  /** Build a full mock paper and open it as a worksheet. */
+  onMock: (id: string) => void;
 }
 
 interface Card {
@@ -28,7 +33,7 @@ const typesAt = ({ tier, strand }: Card) => TEMPLATES.filter((t) => t.tiers.incl
 /** Chips: the strands of a key stage, or the topics of one A-level strand. */
 const chipsFor = ({ tier, strand }: Card) => (strand ? (subtopicsByStrand(tier).get(strand) ?? []) : [...subtopicsByStrand(tier).keys()]);
 
-function LevelCard({ card, onBuild, onWorksheet }: { card: Card } & Props) {
+function LevelCard({ card, onBuild, onWorksheet, onPractice }: { card: Card } & Omit<Props, 'onMock'>) {
   return (
     <article className="level-card">
       <div className="level-card-head">
@@ -36,9 +41,15 @@ function LevelCard({ card, onBuild, onWorksheet }: { card: Card } & Props) {
         <span className="count">{typesAt(card)} question types</span>
       </div>
       <p>{card.sub}</p>
+      <p className="chips-hint">Pick a topic for an instant worksheet:</p>
       <ul className="chips" aria-label={card.strand ? 'Topics' : 'Strands'}>
         {chipsFor(card).map((s) => (
-          <li key={s}>{s}</li>
+          <li key={s}>
+            {/* A-level chips are topics of the card's strand; the others are whole strands. */}
+            <button type="button" title={`Instant worksheet: ${s}`} onClick={() => (card.strand ? onWorksheet(card.tier, card.strand, s) : onWorksheet(card.tier, s as Strand))}>
+              {s}
+            </button>
+          </li>
         ))}
       </ul>
       <div className="level-card-actions">
@@ -47,6 +58,9 @@ function LevelCard({ card, onBuild, onWorksheet }: { card: Card } & Props) {
         </button>
         <button type="button" onClick={() => onWorksheet(card.tier, card.strand)}>
           Instant worksheet
+        </button>
+        <button type="button" onClick={() => onPractice(card.tier, card.strand)}>
+          Practise
         </button>
       </div>
     </article>
@@ -77,7 +91,8 @@ const A_LEVEL: { year: string; spec: string; tier: Tier; cards: { strand: Strand
   },
 ];
 
-export function HomeView({ onBuild, onWorksheet }: Props) {
+export function HomeView({ onBuild, onWorksheet, onPractice, onMock }: Props) {
+  const cardProps = { onBuild, onWorksheet, onPractice };
   return (
     <div className="home">
       <section className="hero">
@@ -115,7 +130,7 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
           <p>Problem solving from the KS3 programme of study, pitched to build towards GCSE.</p>
         </header>
         <div className="level-grid one">
-          <LevelCard card={{ tier: 'KS3', title: 'KS3 Mathematics', sub: 'Practice, Apply and Extend questions for Years 7, 8 and 9.' }} onBuild={onBuild} onWorksheet={onWorksheet} />
+          <LevelCard card={{ tier: 'KS3', title: 'KS3 Mathematics', sub: 'Practice, Apply and Extend questions for Years 7, 8 and 9.' }} {...cardProps} />
         </div>
       </section>
 
@@ -126,8 +141,8 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
           <p>Questions in the style of Edexcel GCSE (9–1) papers, following the Foundation and Higher specification.</p>
         </header>
         <div className="level-grid">
-          <LevelCard card={{ tier: 'F', title: 'GCSE Foundation', sub: 'Grades 1–5. Multi-step problems, reasoning and real-world contexts.' }} onBuild={onBuild} onWorksheet={onWorksheet} />
-          <LevelCard card={{ tier: 'H', title: 'GCSE Higher', sub: 'Grades 4–9. Everything in Foundation plus the Higher-only content.' }} onBuild={onBuild} onWorksheet={onWorksheet} />
+          <LevelCard card={{ tier: 'F', title: 'GCSE Foundation', sub: 'Grades 1–5. Multi-step problems, reasoning and real-world contexts.' }} {...cardProps} />
+          <LevelCard card={{ tier: 'H', title: 'GCSE Higher', sub: 'Grades 4–9. Everything in Foundation plus the Higher-only content.' }} {...cardProps} />
         </div>
       </section>
 
@@ -145,7 +160,7 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
               {y.cards.map((c) => {
                 const card: Card = { tier: y.tier, strand: c.strand, title: c.title, sub: c.sub };
                 return typesAt(card) > 0 ? (
-                  <LevelCard key={c.title} card={card} onBuild={onBuild} onWorksheet={onWorksheet} />
+                  <LevelCard key={c.title} card={card} {...cardProps} />
                 ) : (
                   <article key={c.title} className="level-card soon-card" aria-disabled="true">
                     <div className="level-card-head">
@@ -161,8 +176,27 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
         ))}
       </section>
 
+      <section className="level mocks" aria-labelledby="mock-h">
+        <header>
+          <span className="level-tag">Full papers</span>
+          <h2 id="mock-h">Mock papers</h2>
+          <p>A full-length paper in one click: the right number of marks and the specification’s balance of topics, easier questions first, with a mark scheme. Every click makes a new paper.</p>
+        </header>
+        <div className="mock-grid">
+          {MOCKS.map((m) => (
+            <button key={m.id} type="button" onClick={() => onMock(m.id)}>
+              <strong>{m.label}</strong>
+              <span>
+                {m.marks} marks · {m.minutes >= 60 ? `${Math.floor(m.minutes / 60)} h ` : ''}
+                {m.minutes % 60 ? `${m.minutes % 60} min` : ''}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="how" aria-labelledby="how-h">
-        <h2 id="how-h">Three ways to use it</h2>
+        <h2 id="how-h">Four ways to use it</h2>
         <div className="how-grid">
           <div>
             <h3>Build</h3>
@@ -174,7 +208,11 @@ export function HomeView({ onBuild, onWorksheet }: Props) {
           </div>
           <div>
             <h3>Worksheet</h3>
-            <p>A printable A4 sheet with a worked example, then an answer sheet with full mark schemes.</p>
+            <p>A printable A4 sheet with an answer sheet of full mark schemes. Make versions A and B with different numbers.</p>
+          </div>
+          <div>
+            <h3>Practise</h3>
+            <p>For students: type an answer, have it checked, then see the worked solution step by step.</p>
           </div>
         </div>
       </section>

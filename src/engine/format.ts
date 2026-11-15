@@ -224,3 +224,16 @@ export function polyTex(coeffs: number[], v = 'x'): string {
 
 /** "x + 3", "x - 2", "2x" for a linear expression ax + b. */
 export const linTex = (a: number, b: number, v = 'x') => polyTex([a, b], v);
+
+/** The reverse of polyTex, for checks that read an answer back: "2x^3 - 7x^2 + 3" → [2, -7, 0, 3]. */
+export function polyCoeffs(tex: string, v = 'x'): number[] {
+  const byPower = new Map<number, number>();
+  for (const term of tex.replace(/\s/g, '').split(/(?=[+-])/)) {
+    const m = new RegExp(`^([+-]?)(\\d*)(?:${v}(?:\\^(\\d+))?)?$`).exec(term);
+    if (!m || (m[2] === '' && !term.includes(v))) throw new Error(`polyCoeffs: cannot read "${term}"`);
+    const power = term.includes(v) ? Number(m[3] ?? 1) : 0;
+    byPower.set(power, (byPower.get(power) ?? 0) + (m[2] === '' ? 1 : Number(m[2])) * (m[1] === '-' ? -1 : 1));
+  }
+  const deg = Math.max(...byPower.keys());
+  return Array.from({ length: deg + 1 }, (_, i) => byPower.get(deg - i) ?? 0);
+}

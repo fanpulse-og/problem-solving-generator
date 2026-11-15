@@ -97,7 +97,10 @@ export default defineTemplate<V>({
       ensure(!p.eq(q) && !p.eq(Q.of(1, 2)) && !q.eq(Q.of(1, 2)), 'different, non-trivial probabilities');
       const least = Q.of(1).sub(Q.of(1).sub(p).mul(Q.of(1).sub(q)));
       ensure(Math.abs(least.toNumber() - 0.5) >= 0.05, 'a clear decision');
-      return { ...base, ctx: rng.int(0, INDEP.length - 1), p, q };
+      const ctx = rng.int(0, INDEP.length - 1);
+      // Public transport that is late most days would not be believable.
+      ensure(INDEP[ctx].event !== 'late' || (p.toNumber() <= 0.4 && q.toNumber() <= 0.4), 'believable chances of being late');
+      return { ...base, ctx, p, q };
     }
     if (level === 'core') {
       const r = rng.int(3, 9);

@@ -4,13 +4,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Free Edexcel-style maths problem-solving questions with worked mark schemes for KS3, GCSE and A-level. No ads, no sign-up." />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563eb'/><text x='16' y='20.5' font-size='11.5' font-weight='800' text-anchor='middle' fill='white' font-family='system-ui,Arial,sans-serif'>MPS</text></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563eb'/><path d='M5.5 17.5h4l4.2 7.5L20.5 8H27' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
     <title>Maths Problem Solving</title>
     <!-- Cloudflare Web Analytics: cookie-free visitor counts, see privacy.html -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "530e1943251844e3be049b83e1221a29"}'></script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Shown at once, while the app loads; React replaces it. -->
+      <div class="app">
+        <header class="topbar">
+          <span class="brand">
+            <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2563eb" /><path d="M5.5 17.5h4l4.2 7.5L20.5 8H27" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>Maths Problem Solving</span>
+          </span>
+        </header>
+        <main>
+          <div class="home" id="first-paint">
+            <section class="hero">
+              <p class="kicker">Edexcel-style problem solving</p>
+              <h1>Fresh maths questions, worked mark schemes</h1>
+              <p class="tagline">Build exam-style problem-solving questions for lessons, homework and revision. Every answer is checked twice.</p>
+              <p class="trust"><span>Free</span><span>No ads</span><span>No sign-up</span></p>
+            </section>
+          </div>
+          <p class="loading">Loading…</p>
+        </main>
+      </div>
+    </div>
+    <script>
+      // A link to a set or worksheet is not the home page: show only "Loading…" for it.
+      if (location.hash.length > 2) document.getElementById('first-paint').remove();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

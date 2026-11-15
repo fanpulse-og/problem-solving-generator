@@ -2,7 +2,7 @@ import { buildQuestion, parseCode, type SetOptions } from './engine/generate';
 import { currentSubtopics, templateById } from './engine/registry';
 import type { Question } from './engine/types';
 
-export type View = 'home' | 'build' | 'bank' | 'board' | 'worksheet';
+export type View = 'home' | 'build' | 'bank' | 'board' | 'worksheet' | 'practice';
 
 export const DEFAULT_OPTIONS: SetOptions = {
   tier: 'F',
@@ -26,8 +26,12 @@ export interface SheetOptions {
   example: boolean;
   /** Pages of questions to fit into; 0 means no limit. */
   limit: number;
+  /** Version letter printed on the sheet ("A", "B"…) when several versions are made; '' for none. */
+  version: string;
+  /** Time allowed in minutes, printed on a mock paper; 0 for none. */
+  time: number;
 }
-export const DEFAULT_SHEET: SheetOptions = { answers: 'scheme', paper: false, example: false, limit: 0 };
+export const DEFAULT_SHEET: SheetOptions = { answers: 'scheme', paper: false, example: false, limit: 0, version: '', time: 0 };
 
 export interface UrlState {
   view: View;
@@ -53,7 +57,7 @@ const sameList = (a: string[], b: string[]) => a.length === b.length && a.every(
 export function readHash(hash = location.hash): UrlState {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
   // A bare address is the home page; links from before it existed (no path, but settings) open the builder.
-  const view: View = path === 'board' || path === 'worksheet' || path === 'build' || path === 'bank' ? path : query ? 'build' : 'home';
+  const view: View = path === 'board' || path === 'worksheet' || path === 'build' || path === 'bank' || path === 'practice' ? path : query ? 'build' : 'home';
   const p = new URLSearchParams(query);
   let options: SetOptions = { ...DEFAULT_OPTIONS };
   try {
@@ -89,6 +93,8 @@ export function readHash(hash = location.hash): UrlState {
       // A link carries an example only when it is switched on, including links from before it was optional.
       example: p.has('ex'),
       limit: Number(p.get('lim')) || 0,
+      version: /^[A-Z]$/.test(p.get('ver') ?? '') ? p.get('ver')! : '',
+      time: Number(p.get('tm')) || 0,
     },
   };
 }
@@ -113,6 +119,8 @@ export function writeHash(s: UrlState): string {
   if (s.sheet && s.sheet.answers !== DEFAULT_SHEET.answers) p.set('ans', s.sheet.answers);
   if (s.sheet?.paper) p.set('paper', '1');
   if (s.sheet?.limit) p.set('lim', String(s.sheet.limit));
+  if (s.sheet?.version) p.set('ver', s.sheet.version);
+  if (s.sheet?.time) p.set('tm', String(s.sheet.time));
   if (s.locked?.length) p.set('lk', s.locked.join(','));
   const query = p.toString().replace(/%2C/g, ',').replace(/%7C/g, '|');
   if (s.view === 'home') return '';
@@ -129,6 +137,14 @@ export function questionFromCode(code: string): Question | null {
   } catch {
     return null;
   }
+}
+
+/** A worksheet title from the chosen topics: one sub-topic or one strand names it. */
+export const DEFAULT_TITLE = 'Problem solving';
+export function titleFor(o: SetOptions): string {
+  if (o.subtopics.length === 1) return o.subtopics[0];
+  if (o.strands.length === 1 && o.subtopics.length === 0) return o.strands[0];
+  return DEFAULT_TITLE;
 }
 
 export function shareLink(view: View, codes: string[], options: SetOptions): string {

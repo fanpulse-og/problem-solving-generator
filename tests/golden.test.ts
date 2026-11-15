@@ -173,6 +173,24 @@ const GOLDEN: [code: string, answers: string[], working: string][] = [
   ['y13-conditional-probability.core.Y13.c.p0', ['0.18', '$\\frac{5}{9}$'], '0.1 + 0.08; 0.1 ÷ 0.18'],
   ['y13-conditional-probability.stretch.Y13.c.p0', ['0.16', '0.54', '$\\frac{23}{30}$', 'Not independent: $\\mathrm{P}(A \\mid B) \\neq \\mathrm{P}(A)$'], '0.4 × 0.4; 0.3 + 0.4 − 0.16; 0.46 ÷ 0.6'],
   ['y13-normal-hypothesis.foundational.Y13.c.p0', ['$\\overline{X} \\sim \\mathrm{N}\\left(80, \\frac{16}{30}\\right)$', '0.0200'], 'z = −1.5 ÷ (4/√30) = −2.054'],
+  // GCSE Higher gaps: algebraic fractions, inequalities, curves, sequences, probability, sine rule and more
+  ['alg-algebraic-fractions.core.H.nc.p0', ['$x = -1$ or $x = 9$'], '3/(x + 3) + 3/(x − 5) = 1: at −1, 3/2 − 1/2; at 9, 1/4 + 3/4'],
+  ['alg-algebraic-fractions.stretch.H.nc.p0', ['$\\dfrac{10x - 5}{7x - 21}$'], '(2x − 1)(2x + 1)/7(2x + 1) × 5x/x(x − 3) = 5(2x − 1)/7(x − 3)'],
+  ['alg-quadratic-inequalities.stretch.H.nc.p0', ['$-1 < x \\leqslant 2$'], '(x + 1)(3x − 11) < 0 gives −1 < x < 11/3; 4x − 6 ≤ 2 gives x ≤ 2'],
+  ['alg-triple-brackets.core.H.nc.p0', ['$3x^3 - 19x^2 + 5x + 75$'], '(x² − 8x + 15)(3x + 5) = 3x³ − 24x² + 45x + 5x² − 40x + 75'],
+  ['alg-rearranging.stretch.H.nc.p0', ['$x = \\dfrac{9y + 9}{5y - 2}$', '$x = \\frac{3}{4}$'], '5xy − 9y = 2x + 9, x(5y − 2) = 9y + 9; y = −2 gives −9/−12'],
+  ['alg-nonlinear-simultaneous.core.H.nc.p0', ['$x = -9$, $y = -2$ or $x = -6$, $y = 7$'], '81 + 4 = 85 and 36 + 49 = 85; both on y = 3x + 25'],
+  ['alg-nonlinear-simultaneous.stretch.H.nc.p0', ['$6\\sqrt{2}$'], 'x² − 4x − 5 = 0: A(−1, −3), B(5, 3); AB² = 36 + 36 = 72'],
+  ['alg-geometric-sequences.stretch.H.nc.p0', ['1st term 16, 5th term 81'], 'r² = 54/24 = 9/4, r = 3/2; 24 ÷ 3/2 = 16; 54 × 3/2 = 81'],
+  ['alg-graph-transformations.stretch.H.nc.p0', ['$y = x^2 - 6x - 6$'], '(x − 4)² + 2(x − 4) − 7 − 7 = x² − 8x + 16 + 2x − 8 − 14'],
+  ['prob-without-replacement.core.H.nc.p0', ['$\\frac{17}{55}$'], '2, 4 and 5 of 11: (2 + 12 + 20)/110 = 34/110'],
+  ['prob-without-replacement.stretch.H.nc.p0', ['$n = 10$'], '6 green: 30/n(n − 1) = 1/3, so n(n − 1) = 90'],
+  ['alg-velocity-time.stretch.H.nc.p0', ['$T = 60$', '9.8 m/s'], 'triangles 60 + 72 = 132; (588 − 132) ÷ 12 = 38 s steady; 10 + 38 + 12; 588 ÷ 60'],
+  ['geom-sine-rule.foundational.H.c.p0', ['13.6 cm'], '11 × sin 77° ÷ sin 52° = 11 × 0.9744 ÷ 0.7880 = 13.60'],
+  ['num-estimation.foundational.F.nc.p0', ['200'], '20 × 5 ÷ 0.5 = 100 ÷ 0.5'],
+  ['geom-surface-area.foundational.F.c.p0', ['378 cm²'], '2 × (15 × 8 + 15 × 3 + 8 × 3) = 2 × 189'],
+  ['geom-surface-area.core.F.c.p0', ['792 cm²'], '2π × 6² + 2π × 6 × 15 = 252π = 791.7'],
+  ['stats-stem-leaf.foundational.F.nc.p0', ['67 pages', '24 pages'], '13 values, the 7th is 67; 80 − 56'],
 ];
 
 describe('golden questions (hand-verified)', () => {
