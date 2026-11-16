@@ -7,6 +7,13 @@
       "runtimeArgs": ["vite", "--port", "5173", "--strictPort"],
       "port": 5173,
       "env": { "PATH": "/Users/zainhusayni/.local/node/bin:/usr/bin:/bin" }
+    },
+    {
+      "name": "built-site",
+      "runtimeExecutable": "/Users/zainhusayni/.local/node/bin/npx",
+      "runtimeArgs": ["vite", "preview", "--port", "4173", "--strictPort"],
+      "port": 4173,
+      "env": { "PATH": "/Users/zainhusayni/.local/node/bin:/usr/bin:/bin" }
     }
   ]
 }

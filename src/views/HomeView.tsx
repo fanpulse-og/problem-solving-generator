@@ -218,6 +218,18 @@ export function HomeView({ onBuild, onWorksheet, onPractice, onMock }: Props) {
       </section>
 
       <footer className="site-footer">
+        {/* Plain links to the static topic pages (scripts/build-pages.tsx), for visitors and search engines. */}
+        <p>
+          Sample questions by level: <a href="/ks3/">KS3</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/gcse-foundation/">GCSE Foundation</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/gcse-higher/">GCSE Higher</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/a-level-year-12/">A-level Year 12</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/a-level-year-13/">A-level Year 13</a>
+        </p>
         <p>
           <a href={tuitionHref()}>Online maths tuition</a>
           <span aria-hidden="true"> · </span>

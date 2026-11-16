@@ -9,7 +9,7 @@ Start from [`src/templates/_skeleton.ts`](../src/templates/_skeleton.ts).
 | Field | What it is |
 |---|---|
 | `id` | Unique kebab-case id, e.g. `ratio-difference`. It appears in share links, so **never rename or reuse one**. |
-| `title`, `strand`, `subtopic` | How the template is listed in the topic picker. |
+| `title`, `strand`, `subtopic` | How the template is listed in the topic picker. The title also names the template's public page (`/gcse/<title>/` or `/a-level/<title>/`, built by `scripts/build-pages.tsx`), so renaming one changes that page's address. |
 | `tiers` | Any of `'KS3'`, `'F'`, `'H'`, or `'Y12'`, `'Y13'` for A-level. KS3 should get easier numbers (check `tier === 'KS3'` in `generate`). A-level templates use `calculator: 'calc'`, since every paper allows one. |
 | `formerTiers` | Optional. Tiers the template is no longer offered at (see [TIERS.md](TIERS.md)); old links with them still open. |
 | `levelsByTier` | Optional. Levels offered at a tier when the other levels need Higher-only content, e.g. `{ F: ['foundational', 'core'] }`. |
